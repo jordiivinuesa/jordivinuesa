@@ -1,5 +1,7 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { useDbSync } from "@/hooks/useDbSync";
+import { useChatPersistence } from "@/hooks/useChatPersistence";
 import { exercises } from "@/data/exercises";
 import { foods, type FoodItem } from "@/data/foods";
 import { toast } from "@/hooks/use-toast";
@@ -35,17 +37,19 @@ function findBestFoodMatch(name: string): FoodItem | null {
   return partial || null;
 }
 
+const WELCOME_MESSAGE: ChatMessage = {
+  id: "welcome",
+  role: "assistant",
+  content:
+    "¡Hola! 💪 Soy tu **FitCoach** personal. Puedo ayudarte a:\n\n- 📝 **Registrar ejercicios** — Dime qué has entrenado y lo apunto\n- 🍽️ **Registrar comidas** — Cuéntame qué has comido\n- 🎯 **Planificar rutinas** — Te diseño entrenamientos\n- 🥗 **Consejos de nutrición** — Mejoro tu dieta\n\n¿En qué te puedo ayudar hoy?",
+};
+
 export function useAICoach() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content:
-        "¡Hola! 💪 Soy tu **FitCoach** personal. Puedo ayudarte a:\n\n- 📝 **Registrar ejercicios** — Dime qué has entrenado y lo apunto\n- 🍽️ **Registrar comidas** — Cuéntame qué has comido\n- 🎯 **Planificar rutinas** — Te diseño entrenamientos\n- 🥗 **Consejos de nutrición** — Mejoro tu dieta\n\n¿En qué te puedo ayudar hoy?",
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const { saveMessage, loadMessages } = useChatPersistence();
 
   const {
     addMealEntry,
@@ -54,14 +58,25 @@ export function useAICoach() {
     addSetToExercise,
     updateSet,
     finishWorkout,
-    activeWorkout,
   } = useAppStore();
+
+  const { saveMealToDb, saveWorkoutToDb } = useDbSync();
+
+  // Load persisted messages on mount
+  useEffect(() => {
+    if (loaded) return;
+    loadMessages().then((msgs) => {
+      if (msgs.length > 0) {
+        setMessages([WELCOME_MESSAGE, ...msgs]);
+      }
+      setLoaded(true);
+    });
+  }, [loadMessages, loaded]);
 
   const processToolCalls = useCallback(
     (toolCalls: ToolCallResult[]) => {
       for (const tc of toolCalls) {
         if (tc.name === "log_exercises" && tc.data?.exercises) {
-          // Start a workout if none active
           if (!useAppStore.getState().activeWorkout) {
             startWorkout("Entrenamiento IA");
           }
@@ -72,13 +87,11 @@ export function useAICoach() {
               const state = useAppStore.getState();
               const exIdx = state.activeWorkout!.exercises.length - 1;
               if (ex.sets && ex.sets.length > 0) {
-                // Update the first set (auto-created)
                 updateSet(exIdx, 0, {
                   reps: ex.sets[0].reps,
                   weight: ex.sets[0].weight,
                   completed: true,
                 });
-                // Add remaining sets
                 for (let i = 1; i < ex.sets.length; i++) {
                   addSetToExercise(exIdx);
                   updateSet(exIdx, i, {
@@ -90,6 +103,14 @@ export function useAICoach() {
               }
             }
           }
+
+          // Auto-finish and save workout to DB
+          const workout = useAppStore.getState().activeWorkout;
+          if (workout) {
+            finishWorkout();
+            saveWorkoutToDb(workout);
+          }
+
           toast({
             title: "✅ Ejercicios registrados",
             description: `${tc.data.exercises.length} ejercicio(s) añadidos al entrenamiento`,
@@ -103,7 +124,7 @@ export function useAICoach() {
             const multiplier = grams / 100;
 
             const entry = {
-              id: Math.random().toString(36).substring(2, 9),
+              id: crypto.randomUUID(),
               foodId: foodMatch?.id || `custom_${Date.now()}`,
               foodName: foodMatch?.name || meal.food_name,
               grams,
@@ -114,6 +135,7 @@ export function useAICoach() {
               mealType: meal.meal_type as any,
             };
             addMealEntry(entry);
+            saveMealToDb(entry);
           }
           toast({
             title: "✅ Comida registrada",
@@ -122,17 +144,18 @@ export function useAICoach() {
         }
       }
     },
-    [addMealEntry, startWorkout, addExerciseToWorkout, addSetToExercise, updateSet]
+    [addMealEntry, startWorkout, addExerciseToWorkout, addSetToExercise, updateSet, finishWorkout, saveMealToDb, saveWorkoutToDb]
   );
 
   const sendMessage = useCallback(
     async (input: string) => {
       const userMsg: ChatMessage = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         role: "user",
         content: input,
       };
       setMessages((prev) => [...prev, userMsg]);
+      saveMessage(userMsg);
       setIsLoading(true);
 
       const abortController = new AbortController();
@@ -140,7 +163,6 @@ export function useAICoach() {
 
       let assistantContent = "";
       const collectedToolCalls: any[] = [];
-      let currentToolCall: any = null;
 
       const apiMessages = [...messages.filter((m) => m.id !== "welcome"), userMsg].map((m) => ({
         role: m.role,
@@ -169,14 +191,15 @@ export function useAICoach() {
         const decoder = new TextDecoder();
         let textBuffer = "";
         let streamDone = false;
+        let assistantId = `assistant_${Date.now()}`;
 
         const upsertAssistant = (content: string) => {
           setMessages((prev) => {
             const last = prev[prev.length - 1];
-            if (last?.role === "assistant" && last.id !== "welcome") {
-              return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content } : m));
+            if (last?.role === "assistant" && last.id === assistantId) {
+              return prev.map((m) => (m.id === assistantId ? { ...m, content } : m));
             }
-            return [...prev, { id: `assistant_${Date.now()}`, role: "assistant", content }];
+            return [...prev, { id: assistantId, role: "assistant", content }];
           });
         };
 
@@ -207,13 +230,11 @@ export function useAICoach() {
 
               const delta = choice.delta;
 
-              // Handle text content
               if (delta?.content) {
                 assistantContent += delta.content;
                 upsertAssistant(assistantContent);
               }
 
-              // Handle tool calls
               if (delta?.tool_calls) {
                 for (const tc of delta.tool_calls) {
                   if (tc.index !== undefined) {
@@ -232,11 +253,6 @@ export function useAICoach() {
                     }
                   }
                 }
-              }
-
-              // If finish_reason is "tool_calls", process them
-              if (choice.finish_reason === "tool_calls" || choice.finish_reason === "stop") {
-                // Will process after loop
               }
             } catch {
               textBuffer = line + "\n" + textBuffer;
@@ -281,7 +297,6 @@ export function useAICoach() {
         if (processedToolCalls.length > 0) {
           processToolCalls(processedToolCalls);
 
-          // Update the assistant message with tool call info
           setMessages((prev) => {
             const last = prev[prev.length - 1];
             if (last?.role === "assistant") {
@@ -292,7 +307,6 @@ export function useAICoach() {
             return prev;
           });
 
-          // If there was no text content with tool calls, add a confirmation message
           if (!assistantContent.trim()) {
             const confirmations: string[] = [];
             for (const tc of processedToolCalls) {
@@ -306,8 +320,14 @@ export function useAICoach() {
               }
             }
             const confirmText = confirmations.join("\n\n");
-            upsertAssistant(confirmText || "✅ ¡Registrado correctamente!");
+            assistantContent = confirmText || "✅ ¡Registrado correctamente!";
+            upsertAssistant(assistantContent);
           }
+        }
+
+        // Save assistant message to DB
+        if (assistantContent.trim()) {
+          saveMessage({ id: assistantId, role: "assistant", content: assistantContent });
         }
       } catch (err: any) {
         if (err.name === "AbortError") return;
@@ -317,13 +337,12 @@ export function useAICoach() {
           title: "Error",
           description: err.message || "Error al conectar con el coach IA",
         });
-        // Remove the loading state but keep user message
       } finally {
         setIsLoading(false);
         abortRef.current = null;
       }
     },
-    [messages, processToolCalls]
+    [messages, processToolCalls, saveMessage]
   );
 
   const stopGeneration = useCallback(() => {

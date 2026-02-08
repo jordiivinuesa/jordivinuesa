@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { useDbSync } from "@/hooks/useDbSync";
 import { exercises, muscleGroupLabels, type MuscleGroup } from "@/data/exercises";
 import { Plus, Dumbbell, Check, X, Trash2, Search, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,6 +18,8 @@ const WorkoutPage = () => {
     finishWorkout,
     cancelWorkout,
   } = useAppStore();
+
+  const { saveWorkoutToDb } = useDbSync();
 
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,6 +50,14 @@ const WorkoutPage = () => {
     setSelectedMuscle("all");
   };
 
+  const handleFinishWorkout = () => {
+    const workout = useAppStore.getState().activeWorkout;
+    finishWorkout();
+    if (workout) {
+      saveWorkoutToDb(workout);
+    }
+  };
+
   if (!activeWorkout) {
     return (
       <div className="px-4 pt-6">
@@ -71,7 +82,6 @@ const WorkoutPage = () => {
           </Button>
         </div>
 
-        {/* Start Workout Dialog */}
         <Dialog open={showStartDialog} onOpenChange={setShowStartDialog}>
           <DialogContent className="bg-card border-border max-w-[340px] rounded-2xl">
             <DialogHeader>
@@ -102,7 +112,6 @@ const WorkoutPage = () => {
 
   return (
     <div className="px-4 pt-6">
-      {/* Active Workout Header */}
       <div className="mb-4 flex items-center justify-between animate-fade-in">
         <div>
           <h1 className="text-xl font-bold font-display">{activeWorkout.name}</h1>
@@ -119,7 +128,7 @@ const WorkoutPage = () => {
           </Button>
           <Button
             size="sm"
-            onClick={finishWorkout}
+            onClick={handleFinishWorkout}
             className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Check className="mr-1 h-4 w-4" />
@@ -128,7 +137,6 @@ const WorkoutPage = () => {
         </div>
       </div>
 
-      {/* Exercises List */}
       <div className="space-y-4">
         {activeWorkout.exercises.map((exercise, exIdx) => (
           <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-fade-in">
@@ -142,7 +150,6 @@ const WorkoutPage = () => {
               </button>
             </div>
 
-            {/* Sets Table */}
             <div className="space-y-1.5">
               <div className="grid grid-cols-[32px_1fr_1fr_40px] gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1">
                 <span>Serie</span>
@@ -201,7 +208,6 @@ const WorkoutPage = () => {
         ))}
       </div>
 
-      {/* Add Exercise Button */}
       <button
         onClick={() => setShowExercisePicker(true)}
         className="mt-4 mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border py-4 text-sm font-medium text-muted-foreground hover:border-primary/40 hover:text-primary transition-all"
@@ -210,7 +216,6 @@ const WorkoutPage = () => {
         Añadir ejercicio
       </button>
 
-      {/* Exercise Picker Dialog */}
       <Dialog open={showExercisePicker} onOpenChange={setShowExercisePicker}>
         <DialogContent className="bg-card border-border max-w-[380px] max-h-[80vh] rounded-2xl p-0 overflow-hidden">
           <div className="p-4 pb-2">
@@ -227,7 +232,6 @@ const WorkoutPage = () => {
                 autoFocus
               />
             </div>
-            {/* Muscle group filter */}
             <div className="mt-3 flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
               <button
                 onClick={() => setSelectedMuscle("all")}

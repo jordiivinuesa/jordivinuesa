@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAppStore, type MealEntry } from "@/store/useAppStore";
+import { useDbSync } from "@/hooks/useDbSync";
 import { foods, foodCategoryLabels, foodCategoryIcons, type FoodCategory, type FoodItem } from "@/data/foods";
-import { Plus, Search, UtensilsCrossed, Trash2, X } from "lucide-react";
+import { Plus, Search, Trash2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ const mealTypeLabels: Record<MealType, string> = {
 
 const NutritionPage = () => {
   const { currentDate, dayLogs, addMealEntry, removeMealEntry, calorieGoal, proteinGoal, carbsGoal, fatGoal } = useAppStore();
+  const { saveMealToDb, deleteMealFromDb } = useDbSync();
   const dayLog = dayLogs[currentDate];
   const meals = dayLog?.meals || [];
 
@@ -48,11 +50,11 @@ const NutritionPage = () => {
 
   const categories = Object.entries(foodCategoryLabels) as [FoodCategory, string][];
 
-  const handleAddFood = () => {
+  const handleAddFood = async () => {
     if (!selectedFood) return;
     const multiplier = parseFloat(grams) / 100;
     const entry: MealEntry = {
-      id: Math.random().toString(36).substring(2, 9),
+      id: crypto.randomUUID(),
       foodId: selectedFood.id,
       foodName: selectedFood.name,
       grams: parseFloat(grams),
@@ -63,10 +65,16 @@ const NutritionPage = () => {
       mealType: selectedMealType,
     };
     addMealEntry(entry);
+    saveMealToDb(entry);
     setSelectedFood(null);
     setGrams("100");
     setShowFoodPicker(false);
     setSearchQuery("");
+  };
+
+  const handleRemoveMeal = (mealId: string) => {
+    removeMealEntry(currentDate, mealId);
+    deleteMealFromDb(mealId);
   };
 
   const openFoodPicker = (mealType: MealType) => {
@@ -74,7 +82,6 @@ const NutritionPage = () => {
     setShowFoodPicker(true);
   };
 
-  // Group meals by type
   const mealGroups = (Object.keys(mealTypeLabels) as MealType[]).map((type) => ({
     type,
     label: mealTypeLabels[type],
@@ -136,7 +143,7 @@ const NutritionPage = () => {
                     <div className="flex items-center gap-2 ml-2">
                       <span className="text-xs font-medium text-primary whitespace-nowrap">{Math.round(meal.calories)} kcal</span>
                       <button
-                        onClick={() => removeMealEntry(currentDate, meal.id)}
+                        onClick={() => handleRemoveMeal(meal.id)}
                         className="rounded-md p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -150,7 +157,7 @@ const NutritionPage = () => {
         ))}
       </div>
 
-      {/* Food Picker Dialog */}
+      {/* Food Picker Dialog - same as before */}
       <Dialog open={showFoodPicker} onOpenChange={setShowFoodPicker}>
         <DialogContent className="bg-card border-border max-w-[380px] max-h-[85vh] rounded-2xl p-0 overflow-hidden">
           {!selectedFood ? (
