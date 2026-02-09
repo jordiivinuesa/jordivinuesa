@@ -41,17 +41,48 @@ export interface UserProfile {
   posts_count: number;
 }
 
+async function resolveSignedUrl(imageUrl: string): Promise<string> {
+  // If it's already a signed URL or external URL, return as-is
+  if (!imageUrl || !imageUrl.includes("post-images")) return imageUrl;
+
+  // Extract the storage path from a full public URL or use as-is if it's a path
+  let storagePath = imageUrl;
+  const bucketSegment = "/object/public/post-images/";
+  const idx = imageUrl.indexOf(bucketSegment);
+  if (idx !== -1) {
+    storagePath = imageUrl.substring(idx + bucketSegment.length);
+  }
+
+  const { data, error } = await supabase.storage
+    .from("post-images")
+    .createSignedUrl(storagePath, 3600); // 1 hour expiry
+
+  if (error || !data?.signedUrl) return imageUrl; // fallback
+  return data.signedUrl;
+}
+
+async function resolvePostImageUrls(posts: any[]): Promise<Map<string, string>> {
+  const urlMap = new Map<string, string>();
+  const promises = posts.map(async (p) => {
+    const signed = await resolveSignedUrl(p.image_url);
+    urlMap.set(p.id, signed);
+  });
+  await Promise.all(promises);
+  return urlMap;
+}
+
 function enrichPosts(
   posts: any[],
   profileMap: Map<string, any>,
   likeCounts: Map<string, number>,
   commentCounts: Map<string, number>,
-  userLikes: Set<string>
+  userLikes: Set<string>,
+  signedUrls: Map<string, string>
 ): Post[] {
   return posts.map((p) => ({
     id: p.id,
     user_id: p.user_id,
-    image_url: p.image_url,
+    image_url: signedUrls.get(p.id) || p.image_url,
     caption: p.caption,
     is_public: p.is_public,
     created_at: p.created_at,
@@ -81,8 +112,8 @@ export function useSocial() {
         return null;
       }
 
-      const { data: urlData } = supabase.storage.from("post-images").getPublicUrl(data.path);
-      return urlData.publicUrl;
+      // Store the path, not the public URL (bucket is private)
+      return data.path;
     },
     [user]
   );
@@ -165,8 +196,9 @@ export function useSocial() {
 
     const profileMap = new Map(profiles?.map((p: any) => [p.user_id, p]) || []);
     const { likeCounts, commentCounts, userLikes } = await fetchPostMeta(posts.map((p) => p.id));
+    const signedUrls = await resolvePostImageUrls(posts);
 
-    return enrichPosts(posts, profileMap, likeCounts, commentCounts, userLikes);
+    return enrichPosts(posts, profileMap, likeCounts, commentCounts, userLikes, signedUrls);
   }, [user, fetchPostMeta]);
 
   const fetchUserPosts = useCallback(
@@ -187,8 +219,9 @@ export function useSocial() {
       const profile = profiles?.[0] || null;
       const profileMap = new Map(profile ? [[profile.user_id, profile]] : []);
       const { likeCounts, commentCounts, userLikes } = await fetchPostMeta(posts.map((p) => p.id));
+      const signedUrls = await resolvePostImageUrls(posts);
 
-      return enrichPosts(posts, profileMap, likeCounts, commentCounts, userLikes);
+      return enrichPosts(posts, profileMap, likeCounts, commentCounts, userLikes, signedUrls);
     },
     [user, fetchPostMeta]
   );

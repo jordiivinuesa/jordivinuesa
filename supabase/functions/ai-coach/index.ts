@@ -144,7 +144,71 @@ serve(async (req) => {
       );
     }
 
-    const { messages } = await req.json();
+    // Validate request body size (max ~512KB)
+    const contentLength = req.headers.get("content-length");
+    if (contentLength && parseInt(contentLength, 10) > 524288) {
+      return new Response(
+        JSON.stringify({ error: "Payload demasiado grande" }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "JSON inválido" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate messages structure
+    if (
+      !body ||
+      typeof body !== "object" ||
+      !("messages" in body) ||
+      !Array.isArray((body as any).messages)
+    ) {
+      return new Response(
+        JSON.stringify({ error: "Formato de mensaje inválido: se requiere un array de messages" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const rawMessages = (body as any).messages;
+
+    // Limit message count
+    if (rawMessages.length === 0 || rawMessages.length > 50) {
+      return new Response(
+        JSON.stringify({ error: "Se requieren entre 1 y 50 mensajes" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate each message
+    const allowedRoles = new Set(["user", "assistant", "system"]);
+    const MAX_CONTENT_LENGTH = 10000;
+    const messages: Array<{ role: string; content: string }> = [];
+
+    for (const msg of rawMessages) {
+      if (
+        !msg ||
+        typeof msg !== "object" ||
+        typeof msg.role !== "string" ||
+        !allowedRoles.has(msg.role) ||
+        typeof msg.content !== "string" ||
+        msg.content.length === 0 ||
+        msg.content.length > MAX_CONTENT_LENGTH
+      ) {
+        return new Response(
+          JSON.stringify({ error: "Mensaje inválido: cada mensaje debe tener role (user/assistant/system) y content (1-10000 chars)" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      messages.push({ role: msg.role, content: msg.content });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
