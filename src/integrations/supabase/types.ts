@@ -359,6 +359,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      is_display_name_taken: {
+        Args: { check_name: string; exclude_user_id: string }
+        Returns: boolean
+      }
       search_public_profiles: {
         Args: {
           exclude_user_id: string
