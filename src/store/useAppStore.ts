@@ -48,6 +48,7 @@ interface AppState {
   proteinGoal: number;
   carbsGoal: number;
   fatGoal: number;
+  onboardingCompleted: boolean | null; // null = not loaded yet
 
   setCurrentDate: (date: string) => void;
   addMealEntry: (entry: MealEntry) => void;
@@ -73,6 +74,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   proteinGoal: 180,
   carbsGoal: 280,
   fatGoal: 80,
+  onboardingCompleted: null,
 
   setCurrentDate: (date) => set({ currentDate: date }),
 

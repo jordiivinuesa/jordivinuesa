@@ -194,43 +194,58 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activity_level: string | null
+          age: number | null
           avatar_url: string | null
           calorie_goal: number
           carbs_goal: number
           created_at: string
           display_name: string | null
           fat_goal: number
+          fitness_goal: string | null
           height: number | null
           id: string
+          onboarding_completed: boolean
           protein_goal: number
+          sex: string | null
           updated_at: string
           user_id: string
           weight: number | null
         }
         Insert: {
+          activity_level?: string | null
+          age?: number | null
           avatar_url?: string | null
           calorie_goal?: number
           carbs_goal?: number
           created_at?: string
           display_name?: string | null
           fat_goal?: number
+          fitness_goal?: string | null
           height?: number | null
           id?: string
+          onboarding_completed?: boolean
           protein_goal?: number
+          sex?: string | null
           updated_at?: string
           user_id: string
           weight?: number | null
         }
         Update: {
+          activity_level?: string | null
+          age?: number | null
           avatar_url?: string | null
           calorie_goal?: number
           carbs_goal?: number
           created_at?: string
           display_name?: string | null
           fat_goal?: number
+          fitness_goal?: string | null
           height?: number | null
           id?: string
+          onboarding_completed?: boolean
           protein_goal?: number
+          sex?: string | null
           updated_at?: string
           user_id?: string
           weight?: number | null
