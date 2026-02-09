@@ -10,6 +10,8 @@ import WorkoutPage from "./pages/WorkoutPage";
 import NutritionPage from "./pages/NutritionPage";
 import HistoryPage from "./pages/HistoryPage";
 import ChatPage from "./pages/ChatPage";
+import SocialFeedPage from "./pages/SocialFeedPage";
+import UserProfilePage from "./pages/UserProfilePage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -43,6 +45,8 @@ const AppRoutes = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/workout" element={<WorkoutPage />} />
               <Route path="/coach" element={<ChatPage />} />
+              <Route path="/social" element={<SocialFeedPage />} />
+              <Route path="/social/user/:userId" element={<UserProfilePage />} />
               <Route path="/nutrition" element={<NutritionPage />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="*" element={<NotFound />} />
