@@ -161,11 +161,9 @@ export function useSocial() {
 
     const userIds = [...new Set(posts.map((p) => p.user_id))];
     const { data: profiles } = await supabase
-      .from("profiles")
-      .select("user_id, display_name, avatar_url")
-      .in("user_id", userIds);
+      .rpc("get_public_profiles", { user_ids: userIds });
 
-    const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
+    const profileMap = new Map(profiles?.map((p: any) => [p.user_id, p]) || []);
     const { likeCounts, commentCounts, userLikes } = await fetchPostMeta(posts.map((p) => p.id));
 
     return enrichPosts(posts, profileMap, likeCounts, commentCounts, userLikes);
@@ -183,12 +181,10 @@ export function useSocial() {
 
       if (!posts || posts.length === 0) return [];
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("user_id, display_name, avatar_url")
-        .eq("user_id", userId)
-        .single();
+      const { data: profiles } = await supabase
+        .rpc("get_public_profiles", { user_ids: [userId] });
 
+      const profile = profiles?.[0] || null;
       const profileMap = new Map(profile ? [[profile.user_id, profile]] : []);
       const { likeCounts, commentCounts, userLikes } = await fetchPostMeta(posts.map((p) => p.id));
 
@@ -223,11 +219,9 @@ export function useSocial() {
 
       const userIds = [...new Set(comments.map((c) => c.user_id))];
       const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, display_name, avatar_url")
-        .in("user_id", userIds);
+        .rpc("get_public_profiles", { user_ids: userIds });
 
-      const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
+      const profileMap = new Map(profiles?.map((p: any) => [p.user_id, p]) || []);
 
       return comments.map((c) => ({
         ...c,
@@ -286,7 +280,7 @@ export function useSocial() {
 
       const [{ data: profile }, { count: followers }, { count: following }, { count: postsCount }, { data: followRow }] =
         await Promise.all([
-          supabase.from("profiles").select("user_id, display_name, avatar_url").eq("user_id", userId).single(),
+          supabase.rpc("get_public_profiles", { user_ids: [userId] }).then(r => ({ data: r.data?.[0] || null, error: r.error })),
           supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", userId),
           supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", userId),
           supabase.from("posts").select("*", { count: "exact", head: true }).eq("user_id", userId),
@@ -312,11 +306,11 @@ export function useSocial() {
     async (query: string) => {
       if (!user || !query.trim()) return [];
       const { data } = await supabase
-        .from("profiles")
-        .select("user_id, display_name, avatar_url")
-        .ilike("display_name", `%${query}%`)
-        .neq("user_id", user.id)
-        .limit(20);
+        .rpc("search_public_profiles", {
+          search_query: query,
+          exclude_user_id: user.id,
+          result_limit: 20,
+        });
       return data || [];
     },
     [user]

@@ -336,7 +336,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_public_profiles: {
+        Args: { user_ids: string[] }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+        }[]
+      }
+      search_public_profiles: {
+        Args: {
+          exclude_user_id: string
+          result_limit?: number
+          search_query: string
+        }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
