@@ -142,7 +142,17 @@ export const foods: FoodItem[] = [
   { id: "f74", name: "Zumo de naranja", category: "bebidas", calories: 45, protein: 0.7, carbs: 10, fat: 0.2, fiber: 0.2 },
   { id: "f75", name: "Bebida de avena", category: "bebidas", calories: 43, protein: 0.3, carbs: 7, fat: 1.4, fiber: 0.8 },
 
-  // MÁS PROTEÍNAS (carnes y pescados)
+  // CARNES PICADAS
+  { id: "f118", name: "Carne picada de ternera", category: "proteínas", calories: 254, protein: 17, carbs: 0, fat: 20, fiber: 0 },
+  { id: "f119", name: "Carne picada de pollo", category: "proteínas", calories: 143, protein: 17, carbs: 0, fat: 8, fiber: 0 },
+  { id: "f120", name: "Carne picada de pavo", category: "proteínas", calories: 148, protein: 20, carbs: 0, fat: 7, fiber: 0 },
+  { id: "f121", name: "Carne picada mixta (cerdo-ternera)", category: "proteínas", calories: 230, protein: 17, carbs: 0, fat: 18, fiber: 0 },
+  { id: "f122", name: "Carne picada de cerdo", category: "proteínas", calories: 263, protein: 16, carbs: 0, fat: 22, fiber: 0 },
+  { id: "f123", name: "Hamburguesa de ternera", category: "proteínas", calories: 240, protein: 18, carbs: 2, fat: 18, fiber: 0 },
+  { id: "f124", name: "Hamburguesa de pollo", category: "proteínas", calories: 150, protein: 18, carbs: 3, fat: 7, fiber: 0 },
+  { id: "f125", name: "Albóndigas de ternera", category: "proteínas", calories: 220, protein: 15, carbs: 8, fat: 14, fiber: 1 },
+
+  // MÁS CARNES Y PESCADOS
   { id: "f76", name: "Cordero (pierna)", category: "proteínas", calories: 230, protein: 25, carbs: 0, fat: 14, fiber: 0 },
   { id: "f77", name: "Pato (pechuga)", category: "proteínas", calories: 135, protein: 19, carbs: 0, fat: 6, fiber: 0 },
   { id: "f78", name: "Bacalao", category: "proteínas", calories: 82, protein: 18, carbs: 0, fat: 0.7, fiber: 0 },
@@ -155,6 +165,54 @@ export const foods: FoodItem[] = [
   { id: "f85", name: "Calamar", category: "proteínas", calories: 92, protein: 16, carbs: 3.1, fat: 1.4, fiber: 0 },
   { id: "f86", name: "Jamón serrano", category: "proteínas", calories: 241, protein: 31, carbs: 0, fat: 13, fiber: 0 },
   { id: "f87", name: "Pavo fiambre", category: "proteínas", calories: 105, protein: 17, carbs: 2, fat: 3, fiber: 0 },
+  { id: "f126", name: "Jamón cocido (york)", category: "proteínas", calories: 126, protein: 18, carbs: 1.5, fat: 5, fiber: 0 },
+  { id: "f127", name: "Chopped", category: "proteínas", calories: 260, protein: 12, carbs: 3, fat: 22, fiber: 0 },
+  { id: "f128", name: "Salchichas de pollo", category: "proteínas", calories: 170, protein: 13, carbs: 3, fat: 12, fiber: 0 },
+  { id: "f129", name: "Salchichas de cerdo", category: "proteínas", calories: 301, protein: 12, carbs: 2, fat: 27, fiber: 0 },
+  { id: "f130", name: "Bacon", category: "proteínas", calories: 541, protein: 37, carbs: 1, fat: 42, fiber: 0 },
+  { id: "f131", name: "Pechuga de pollo empanada", category: "proteínas", calories: 220, protein: 18, carbs: 14, fat: 10, fiber: 1 },
+  { id: "f132", name: "Palitos de merluza", category: "proteínas", calories: 190, protein: 11, carbs: 17, fat: 8, fiber: 1 },
+  { id: "f133", name: "Surimi (palitos de cangrejo)", category: "proteínas", calories: 88, protein: 8, carbs: 11, fat: 0.5, fiber: 0 },
+  { id: "f134", name: "Anchoas en aceite", category: "proteínas", calories: 210, protein: 29, carbs: 0, fat: 10, fiber: 0 },
+  { id: "f135", name: "Caballa en conserva", category: "proteínas", calories: 206, protein: 19, carbs: 0, fat: 14, fiber: 0 },
+
+  // MÁS LÁCTEOS Y SUPERMERCADO
+  { id: "f136", name: "Queso en lonchas", category: "lácteos", calories: 310, protein: 22, carbs: 2, fat: 24, fiber: 0 },
+  { id: "f137", name: "Queso rallado", category: "lácteos", calories: 380, protein: 28, carbs: 3, fat: 29, fiber: 0 },
+  { id: "f138", name: "Queso crema", category: "lácteos", calories: 342, protein: 6, carbs: 4, fat: 34, fiber: 0 },
+  { id: "f139", name: "Natillas", category: "lácteos", calories: 122, protein: 3.5, carbs: 18, fat: 4, fiber: 0 },
+  { id: "f140", name: "Flan de huevo", category: "lácteos", calories: 130, protein: 4, carbs: 20, fat: 4, fiber: 0 },
+  { id: "f141", name: "Yogur de proteínas", category: "lácteos", calories: 67, protein: 10, carbs: 5, fat: 0.5, fiber: 0 },
+  { id: "f142", name: "Batido de proteínas (brick)", category: "lácteos", calories: 70, protein: 12, carbs: 4, fat: 1, fiber: 0 },
+  { id: "f143", name: "Nata para cocinar", category: "lácteos", calories: 195, protein: 2.5, carbs: 4, fat: 19, fiber: 0 },
+  { id: "f144", name: "Leche de almendras", category: "bebidas", calories: 24, protein: 0.5, carbs: 3, fat: 1.1, fiber: 0.2 },
+  { id: "f145", name: "Leche de soja", category: "bebidas", calories: 44, protein: 3.3, carbs: 3, fat: 1.8, fiber: 0.6 },
+
+  // MÁS COMIDAS PREPARADAS ESTILO SUPERMERCADO
+  { id: "f146", name: "Gazpacho", category: "comidas preparadas", calories: 36, protein: 0.7, carbs: 4, fat: 1.8, fiber: 0.5 },
+  { id: "f147", name: "Salmorejo", category: "comidas preparadas", calories: 80, protein: 1.5, carbs: 6, fat: 5.5, fiber: 0.8 },
+  { id: "f148", name: "Nuggets de pollo", category: "comidas preparadas", calories: 260, protein: 14, carbs: 16, fat: 15, fiber: 1 },
+  { id: "f149", name: "San Jacobo", category: "comidas preparadas", calories: 260, protein: 14, carbs: 18, fat: 14, fiber: 1 },
+  { id: "f150", name: "Canelones de carne", category: "comidas preparadas", calories: 155, protein: 8, carbs: 14, fat: 7, fiber: 1 },
+  { id: "f151", name: "Lasaña boloñesa", category: "comidas preparadas", calories: 148, protein: 8, carbs: 14, fat: 7, fiber: 1 },
+  { id: "f152", name: "Arroz tres delicias", category: "comidas preparadas", calories: 155, protein: 4, carbs: 24, fat: 5, fiber: 1 },
+  { id: "f153", name: "Fabada asturiana", category: "comidas preparadas", calories: 140, protein: 8, carbs: 14, fat: 6, fiber: 4 },
+  { id: "f154", name: "Cocido madrileño", category: "comidas preparadas", calories: 130, protein: 7, carbs: 13, fat: 5, fiber: 3 },
+  { id: "f155", name: "Fideuá", category: "comidas preparadas", calories: 145, protein: 7, carbs: 19, fat: 4, fiber: 1 },
+
+  // MÁS SNACKS
+  { id: "f156", name: "Patatas fritas (bolsa)", category: "snacks", calories: 536, protein: 7, carbs: 52, fat: 33, fiber: 4 },
+  { id: "f157", name: "Palomitas", category: "snacks", calories: 375, protein: 11, carbs: 74, fat: 4.5, fiber: 15 },
+  { id: "f158", name: "Frutos secos mix", category: "snacks", calories: 607, protein: 20, carbs: 18, fat: 53, fiber: 8 },
+  { id: "f159", name: "Aceitunas", category: "snacks", calories: 115, protein: 0.8, carbs: 6, fat: 11, fiber: 3 },
+  { id: "f160", name: "Torreznos", category: "snacks", calories: 544, protein: 38, carbs: 0, fat: 43, fiber: 0 },
+  { id: "f161", name: "Chocolate con leche", category: "snacks", calories: 535, protein: 8, carbs: 59, fat: 30, fiber: 2 },
+  { id: "f162", name: "Helado de vainilla", category: "snacks", calories: 207, protein: 3.5, carbs: 24, fat: 11, fiber: 0 },
+
+  // MÁS CARBOHIDRATOS
+  { id: "f163", name: "Tortillas de trigo (wrap)", category: "carbohidratos", calories: 310, protein: 8, carbs: 52, fat: 8, fiber: 3 },
+  { id: "f164", name: "Pasta integral (cocida)", category: "carbohidratos", calories: 124, protein: 5, carbs: 23, fat: 1.1, fiber: 4 },
+  { id: "f165", name: "Maíz dulce (lata)", category: "carbohidratos", calories: 82, protein: 3, carbs: 16, fat: 1.2, fiber: 2 },
 
   // COMIDAS PREPARADAS
   { id: "f88", name: "Pizza margarita", category: "comidas preparadas", calories: 266, protein: 11, carbs: 33, fat: 10, fiber: 2 },
