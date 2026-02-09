@@ -63,7 +63,7 @@ interface AppState {
 
 const today = new Date().toISOString().split('T')[0];
 
-const generateId = () => Math.random().toString(36).substring(2, 9);
+const generateId = () => crypto.randomUUID();
 
 export const useAppStore = create<AppState>((set, get) => ({
   currentDate: today,
