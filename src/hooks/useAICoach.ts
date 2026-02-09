@@ -296,7 +296,7 @@ export function useAICoach() {
         const decoder = new TextDecoder();
         let textBuffer = "";
         let streamDone = false;
-        let assistantId = `assistant_${Date.now()}`;
+        let assistantId = crypto.randomUUID();
 
         const upsertAssistant = (content: string) => {
           setMessages((prev) => {
