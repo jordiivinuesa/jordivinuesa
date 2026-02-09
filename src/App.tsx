@@ -18,12 +18,30 @@ import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const onboardingCompleted = useAppStore((s) => s.onboardingCompleted);
+
+  // Load onboarding status directly so we don't depend on useDbSync
+  useEffect(() => {
+    if (!user) return;
+    if (onboardingCompleted !== null) return;
+    supabase
+      .from("profiles")
+      .select("onboarding_completed")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        useAppStore.setState({
+          onboardingCompleted: data?.onboarding_completed ?? false,
+        });
+      });
+  }, [user, onboardingCompleted]);
 
   if (loading || (user && onboardingCompleted === null)) {
     return (
