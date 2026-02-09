@@ -11,7 +11,8 @@ export interface FoodItem {
 
 export type FoodCategory = 
   | "proteínas" | "carbohidratos" | "frutas" | "verduras" 
-  | "lácteos" | "grasas" | "snacks" | "bebidas" | "cereales" | "legumbres";
+  | "lácteos" | "grasas" | "snacks" | "bebidas" | "cereales" | "legumbres"
+  | "comidas preparadas" | "salsas" | "panadería";
 
 export const foodCategoryLabels: Record<FoodCategory, string> = {
   proteínas: "Proteínas",
@@ -24,6 +25,9 @@ export const foodCategoryLabels: Record<FoodCategory, string> = {
   bebidas: "Bebidas",
   cereales: "Cereales",
   legumbres: "Legumbres",
+  "comidas preparadas": "Comidas preparadas",
+  salsas: "Salsas y condimentos",
+  panadería: "Panadería y repostería",
 };
 
 export const foodCategoryIcons: Record<FoodCategory, string> = {
@@ -37,6 +41,9 @@ export const foodCategoryIcons: Record<FoodCategory, string> = {
   bebidas: "🥤",
   cereales: "🌾",
   legumbres: "🫘",
+  "comidas preparadas": "🍽️",
+  salsas: "🫙",
+  panadería: "🥐",
 };
 
 export const foods: FoodItem[] = [
@@ -134,4 +141,54 @@ export const foods: FoodItem[] = [
   { id: "f73", name: "Café solo", category: "bebidas", calories: 2, protein: 0.3, carbs: 0, fat: 0, fiber: 0 },
   { id: "f74", name: "Zumo de naranja", category: "bebidas", calories: 45, protein: 0.7, carbs: 10, fat: 0.2, fiber: 0.2 },
   { id: "f75", name: "Bebida de avena", category: "bebidas", calories: 43, protein: 0.3, carbs: 7, fat: 1.4, fiber: 0.8 },
+
+  // MÁS PROTEÍNAS (carnes y pescados)
+  { id: "f76", name: "Cordero (pierna)", category: "proteínas", calories: 230, protein: 25, carbs: 0, fat: 14, fiber: 0 },
+  { id: "f77", name: "Pato (pechuga)", category: "proteínas", calories: 135, protein: 19, carbs: 0, fat: 6, fiber: 0 },
+  { id: "f78", name: "Bacalao", category: "proteínas", calories: 82, protein: 18, carbs: 0, fat: 0.7, fiber: 0 },
+  { id: "f79", name: "Sardinas", category: "proteínas", calories: 208, protein: 25, carbs: 0, fat: 11, fiber: 0 },
+  { id: "f80", name: "Pulpo", category: "proteínas", calories: 82, protein: 15, carbs: 2.2, fat: 1, fiber: 0 },
+  { id: "f81", name: "Mejillones", category: "proteínas", calories: 86, protein: 12, carbs: 3.7, fat: 2.2, fiber: 0 },
+  { id: "f82", name: "Conejo", category: "proteínas", calories: 136, protein: 20, carbs: 0, fat: 6, fiber: 0 },
+  { id: "f83", name: "Codorniz", category: "proteínas", calories: 134, protein: 22, carbs: 0, fat: 5, fiber: 0 },
+  { id: "f84", name: "Dorada", category: "proteínas", calories: 96, protein: 20, carbs: 0, fat: 1.5, fiber: 0 },
+  { id: "f85", name: "Calamar", category: "proteínas", calories: 92, protein: 16, carbs: 3.1, fat: 1.4, fiber: 0 },
+  { id: "f86", name: "Jamón serrano", category: "proteínas", calories: 241, protein: 31, carbs: 0, fat: 13, fiber: 0 },
+  { id: "f87", name: "Pavo fiambre", category: "proteínas", calories: 105, protein: 17, carbs: 2, fat: 3, fiber: 0 },
+
+  // COMIDAS PREPARADAS
+  { id: "f88", name: "Pizza margarita", category: "comidas preparadas", calories: 266, protein: 11, carbs: 33, fat: 10, fiber: 2 },
+  { id: "f89", name: "Hamburguesa con pan", category: "comidas preparadas", calories: 295, protein: 17, carbs: 24, fat: 14, fiber: 1 },
+  { id: "f90", name: "Tortilla de patatas", category: "comidas preparadas", calories: 126, protein: 6, carbs: 10, fat: 7, fiber: 1 },
+  { id: "f91", name: "Ensaladilla rusa", category: "comidas preparadas", calories: 143, protein: 3, carbs: 10, fat: 10, fiber: 2 },
+  { id: "f92", name: "Croquetas", category: "comidas preparadas", calories: 230, protein: 7, carbs: 18, fat: 14, fiber: 1 },
+  { id: "f93", name: "Empanada de atún", category: "comidas preparadas", calories: 270, protein: 10, carbs: 28, fat: 13, fiber: 1 },
+  { id: "f94", name: "Paella de pollo", category: "comidas preparadas", calories: 150, protein: 8, carbs: 20, fat: 4, fiber: 1 },
+  { id: "f95", name: "Lentejas estofadas", category: "comidas preparadas", calories: 130, protein: 8, carbs: 17, fat: 3, fiber: 5 },
+  { id: "f96", name: "Macarrones boloñesa", category: "comidas preparadas", calories: 160, protein: 8, carbs: 20, fat: 5, fiber: 2 },
+  { id: "f97", name: "Pollo asado", category: "comidas preparadas", calories: 190, protein: 27, carbs: 0, fat: 9, fiber: 0 },
+  { id: "f98", name: "Wrap de pollo", category: "comidas preparadas", calories: 220, protein: 14, carbs: 22, fat: 9, fiber: 2 },
+  { id: "f99", name: "Sushi (maki)", category: "comidas preparadas", calories: 140, protein: 5, carbs: 28, fat: 1, fiber: 1 },
+
+  // SALSAS Y CONDIMENTOS
+  { id: "f100", name: "Ketchup", category: "salsas", calories: 112, protein: 1.2, carbs: 26, fat: 0.1, fiber: 0.3 },
+  { id: "f101", name: "Mayonesa", category: "salsas", calories: 680, protein: 1, carbs: 0.6, fat: 75, fiber: 0 },
+  { id: "f102", name: "Mostaza", category: "salsas", calories: 66, protein: 4, carbs: 6, fat: 3, fiber: 3 },
+  { id: "f103", name: "Salsa de soja", category: "salsas", calories: 53, protein: 8, carbs: 5, fat: 0, fiber: 0 },
+  { id: "f104", name: "Vinagre balsámico", category: "salsas", calories: 88, protein: 0.5, carbs: 17, fat: 0, fiber: 0 },
+  { id: "f105", name: "Hummus", category: "salsas", calories: 166, protein: 8, carbs: 14, fat: 10, fiber: 6 },
+  { id: "f106", name: "Guacamole", category: "salsas", calories: 160, protein: 2, carbs: 9, fat: 15, fiber: 7 },
+  { id: "f107", name: "Salsa pesto", category: "salsas", calories: 387, protein: 5, carbs: 6, fat: 38, fiber: 2 },
+  { id: "f108", name: "Mayonesa light", category: "salsas", calories: 260, protein: 0.8, carbs: 8, fat: 25, fiber: 0 },
+
+  // PANADERÍA Y REPOSTERÍA
+  { id: "f109", name: "Croissant", category: "panadería", calories: 406, protein: 8, carbs: 46, fat: 21, fiber: 2 },
+  { id: "f110", name: "Magdalena", category: "panadería", calories: 390, protein: 6, carbs: 50, fat: 19, fiber: 1 },
+  { id: "f111", name: "Galletas María", category: "panadería", calories: 436, protein: 7, carbs: 74, fat: 13, fiber: 2 },
+  { id: "f112", name: "Bizcocho casero", category: "panadería", calories: 350, protein: 5, carbs: 52, fat: 14, fiber: 1 },
+  { id: "f113", name: "Tostada integral", category: "panadería", calories: 260, protein: 13, carbs: 43, fat: 4, fiber: 7 },
+  { id: "f114", name: "Bagel", category: "panadería", calories: 257, protein: 10, carbs: 50, fat: 1.5, fiber: 2 },
+  { id: "f115", name: "Donut", category: "panadería", calories: 421, protein: 5, carbs: 53, fat: 22, fiber: 1 },
+  { id: "f116", name: "Pan de molde", category: "panadería", calories: 250, protein: 8, carbs: 47, fat: 3.5, fiber: 4 },
+  { id: "f117", name: "Churros", category: "panadería", calories: 360, protein: 4, carbs: 40, fat: 20, fiber: 1 },
 ];
