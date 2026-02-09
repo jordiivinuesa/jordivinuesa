@@ -1,8 +1,14 @@
+import { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
-import { Calendar, Dumbbell, Flame, TrendingUp } from "lucide-react";
+import { useDbSync } from "@/hooks/useDbSync";
+import { Calendar, Dumbbell, Flame, TrendingUp, Pencil } from "lucide-react";
+import EditWorkoutDialog from "@/components/workout/EditWorkoutDialog";
+import type { Workout } from "@/store/useAppStore";
 
 const HistoryPage = () => {
   const { dayLogs } = useAppStore();
+  const { loadWorkout } = useDbSync();
+  const [editingWorkout, setEditingWorkout] = useState<{ workout: Workout; date: string } | null>(null);
 
   const sortedDays = Object.keys(dayLogs)
     .sort((a, b) => b.localeCompare(a))
@@ -75,9 +81,18 @@ const HistoryPage = () => {
                   {/* Workout summary */}
                   {workout && (
                     <div className="rounded-xl bg-secondary/50 p-3">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Dumbbell className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] text-muted-foreground">Entreno</span>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <Dumbbell className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[11px] text-muted-foreground">Entreno</span>
+                        </div>
+                        <button
+                          onClick={() => setEditingWorkout({ workout, date })}
+                          className="rounded-md p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          title="Editar entrenamiento"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                       <p className="text-sm font-bold">{workout.name}</p>
                       <p className="text-[11px] text-muted-foreground">
@@ -116,6 +131,17 @@ const HistoryPage = () => {
             );
           })}
         </div>
+      )}
+
+      {/* Edit workout dialog */}
+      {editingWorkout && (
+        <EditWorkoutDialog
+          open={!!editingWorkout}
+          onOpenChange={(open) => !open && setEditingWorkout(null)}
+          workout={editingWorkout.workout}
+          date={editingWorkout.date}
+          onSaved={() => loadWorkout(editingWorkout.date)}
+        />
       )}
     </div>
   );

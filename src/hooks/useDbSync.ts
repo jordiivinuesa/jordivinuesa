@@ -7,14 +7,14 @@ export function useDbSync() {
   const { user } = useAuth();
   const { currentDate } = useAppStore();
 
-  // Load profile goals
+  // Load profile goals and onboarding status
   const loadProfile = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from("profiles")
-      .select("calorie_goal, protein_goal, carbs_goal, fat_goal")
+      .select("calorie_goal, protein_goal, carbs_goal, fat_goal, onboarding_completed")
       .eq("user_id", user.id)
-      .maybeSingle();
+      .maybeSingle() as { data: { calorie_goal: number; protein_goal: number; carbs_goal: number; fat_goal: number; onboarding_completed: boolean } | null };
 
     if (data) {
       useAppStore.setState({
@@ -22,7 +22,11 @@ export function useDbSync() {
         proteinGoal: data.protein_goal,
         carbsGoal: data.carbs_goal,
         fatGoal: data.fat_goal,
+        onboardingCompleted: data.onboarding_completed ?? false,
       });
+    } else {
+      // Profile not yet created (trigger may not have fired yet)
+      useAppStore.setState({ onboardingCompleted: false });
     }
   }, [user]);
 

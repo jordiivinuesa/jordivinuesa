@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { useAppStore } from "@/store/useAppStore";
 import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import WorkoutPage from "./pages/WorkoutPage";
@@ -13,6 +14,7 @@ import ChatPage from "./pages/ChatPage";
 import SocialFeedPage from "./pages/SocialFeedPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import AuthPage from "./pages/AuthPage";
+import OnboardingPage from "./pages/OnboardingPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -20,6 +22,24 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const onboardingCompleted = useAppStore((s) => s.onboardingCompleted);
+
+  if (loading || (user && onboardingCompleted === null)) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/auth" replace />;
+  if (onboardingCompleted === false) return <Navigate to="/onboarding" replace />;
+  return <>{children}</>;
+};
+
+const OnboardingRoute = () => {
+  const { user, loading } = useAuth();
+  const onboardingCompleted = useAppStore((s) => s.onboardingCompleted);
 
   if (loading) {
     return (
@@ -30,12 +50,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
-  return <>{children}</>;
+  if (onboardingCompleted === true) return <Navigate to="/" replace />;
+  return <OnboardingPage />;
 };
 
 const AppRoutes = () => (
   <Routes>
     <Route path="/auth" element={<AuthPage />} />
+    <Route path="/onboarding" element={<OnboardingRoute />} />
     <Route
       path="/*"
       element={
