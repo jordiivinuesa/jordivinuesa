@@ -65,8 +65,12 @@ export function useAICoach() {
 
   const { saveMealToDb, saveWorkoutToDb } = useDbSync();
 
-  // Load persisted messages on mount
+  // Load persisted messages on mount (wait for user to be available)
   useEffect(() => {
+    if (!user) {
+      setLoaded(false);
+      return;
+    }
     if (loaded) return;
     loadMessages().then((msgs) => {
       if (msgs.length > 0) {
@@ -74,7 +78,7 @@ export function useAICoach() {
       }
       setLoaded(true);
     });
-  }, [loadMessages, loaded]);
+  }, [user, loadMessages, loaded]);
 
   // Build historical context from DB
   const buildHistoricalContext = useCallback(async (): Promise<string> => {
