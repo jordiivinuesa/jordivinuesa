@@ -136,7 +136,8 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user: authUser }, error: authError } = await supabaseClient.auth.getUser();
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: authUser }, error: authError } = await supabaseClient.auth.getUser(token);
     if (authError || !authUser) {
       return new Response(
         JSON.stringify({ error: "Sesión inválida" }),
