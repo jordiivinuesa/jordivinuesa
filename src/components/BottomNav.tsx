@@ -1,10 +1,11 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Dumbbell, UtensilsCrossed, LayoutDashboard, History, Bot } from "lucide-react";
+import { Dumbbell, UtensilsCrossed, LayoutDashboard, History, Bot, Users } from "lucide-react";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Inicio" },
   { to: "/workout", icon: Dumbbell, label: "Entreno" },
   { to: "/coach", icon: Bot, label: "Coach" },
+  { to: "/social", icon: Users, label: "Social" },
   { to: "/nutrition", icon: UtensilsCrossed, label: "Nutrición" },
   { to: "/history", icon: History, label: "Historial" },
 ];

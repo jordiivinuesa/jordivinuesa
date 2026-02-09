@@ -2,6 +2,8 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { useDbSync } from "@/hooks/useDbSync";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { exercises } from "@/data/exercises";
 import { foods, type FoodItem } from "@/data/foods";
 import { toast } from "@/hooks/use-toast";
@@ -50,6 +52,7 @@ export function useAICoach() {
   const [loaded, setLoaded] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const { saveMessage, loadMessages } = useChatPersistence();
+  const { user } = useAuth();
 
   const {
     addMealEntry,
@@ -72,6 +75,83 @@ export function useAICoach() {
       setLoaded(true);
     });
   }, [loadMessages, loaded]);
+
+  // Build historical context from DB
+  const buildHistoricalContext = useCallback(async (): Promise<string> => {
+    if (!user) return "";
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 14);
+    const dateStr = sevenDaysAgo.toISOString().split("T")[0];
+
+    // Fetch profile, meals, and workouts in parallel
+    const [{ data: profile }, { data: meals }, { data: workouts }] = await Promise.all([
+      supabase.from("profiles").select("calorie_goal, protein_goal, carbs_goal, fat_goal, weight, height").eq("user_id", user.id).maybeSingle(),
+      supabase.from("meal_entries").select("*").eq("user_id", user.id).gte("date", dateStr).order("date", { ascending: false }).limit(200),
+      supabase.from("workouts").select("*").eq("user_id", user.id).gte("date", dateStr).order("date", { ascending: false }).limit(20),
+    ]);
+
+    let ctx = "## Datos del usuario\n\n";
+
+    // Profile info
+    if (profile) {
+      ctx += "### Objetivos:\n";
+      ctx += `- Calorías: ${profile.calorie_goal} kcal/día\n`;
+      ctx += `- Proteína: ${profile.protein_goal}g | Carbos: ${profile.carbs_goal}g | Grasa: ${profile.fat_goal}g\n`;
+      if (profile.weight) ctx += `- Peso: ${profile.weight}kg\n`;
+      if (profile.height) ctx += `- Altura: ${profile.height}cm\n`;
+      ctx += "\n";
+    }
+
+    // Workouts
+    if (workouts && workouts.length > 0) {
+      ctx += "### Entrenamientos recientes:\n";
+      for (const w of workouts) {
+        const { data: exs } = await supabase
+          .from("workout_exercises")
+          .select("exercise_name, id")
+          .eq("workout_id", w.id)
+          .order("order_index");
+
+        ctx += `- **${w.date}** — ${w.name}:`;
+        if (exs && exs.length > 0) {
+          const details: string[] = [];
+          for (const ex of exs) {
+            const { data: sets } = await supabase
+              .from("workout_sets")
+              .select("weight, reps")
+              .eq("workout_exercise_id", ex.id)
+              .order("set_index");
+            const setsStr = sets?.map((s) => `${Number(s.weight)}kg×${s.reps}`).join(", ") || "–";
+            details.push(`${ex.exercise_name} (${setsStr})`);
+          }
+          ctx += " " + details.join("; ");
+        }
+        ctx += "\n";
+      }
+      ctx += "\n";
+    }
+
+    // Meals grouped by date
+    if (meals && meals.length > 0) {
+      ctx += "### Comidas recientes:\n";
+      const byDate = new Map<string, typeof meals>();
+      for (const m of meals) {
+        const list = byDate.get(m.date) || [];
+        list.push(m);
+        byDate.set(m.date, list);
+      }
+      for (const [date, dayMeals] of byDate) {
+        const totalCal = dayMeals.reduce((s, m) => s + Number(m.calories), 0);
+        const totalProt = dayMeals.reduce((s, m) => s + Number(m.protein), 0);
+        ctx += `- **${date}** (${Math.round(totalCal)} kcal, ${Math.round(totalProt)}g prot): `;
+        ctx += dayMeals.map((m) => `${m.food_name} ${m.grams}g`).join(", ");
+        ctx += "\n";
+      }
+    }
+
+    return ctx;
+  }, [user]);
 
   const processToolCalls = useCallback(
     (toolCalls: ToolCallResult[]) => {
@@ -164,10 +244,25 @@ export function useAICoach() {
       let assistantContent = "";
       const collectedToolCalls: any[] = [];
 
-      const apiMessages = [...messages.filter((m) => m.id !== "welcome"), userMsg].map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
+      // Build historical context for personalized advice
+      let contextMessages: { role: string; content: string }[] = [];
+      try {
+        const ctx = await buildHistoricalContext();
+        if (ctx) {
+          contextMessages = [{ role: "system", content: `Datos del historial del usuario para personalizar tus respuestas:\n\n${ctx}` }];
+        }
+      } catch (e) {
+        console.error("Failed to build historical context:", e);
+      }
+
+      const apiMessages = [
+        ...contextMessages,
+        ...messages.filter((m) => m.id !== "welcome").map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        { role: userMsg.role, content: userMsg.content },
+      ];
 
       try {
         const resp = await fetch(CHAT_URL, {
@@ -342,7 +437,7 @@ export function useAICoach() {
         abortRef.current = null;
       }
     },
-    [messages, processToolCalls, saveMessage]
+    [messages, processToolCalls, saveMessage, buildHistoricalContext]
   );
 
   const stopGeneration = useCallback(() => {
