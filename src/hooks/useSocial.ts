@@ -194,9 +194,20 @@ export function useSocial() {
   const fetchFeed = useCallback(async (): Promise<Post[]> => {
     if (!user) return [];
 
+    // Get IDs of users being followed
+    const { data: follows } = await supabase
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", user.id);
+
+    const followedIds = follows?.map((f) => f.following_id) || [];
+    // Include current user's own posts in the feed
+    const relevantUserIds = [...followedIds, user.id];
+
     const { data: posts } = await supabase
       .from("posts")
       .select("*")
+      .in("user_id", relevantUserIds)
       .order("created_at", { ascending: false })
       .limit(50);
 
