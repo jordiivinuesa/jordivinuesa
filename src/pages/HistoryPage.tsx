@@ -1,21 +1,92 @@
-import { useState } from "react";
+
+import { useState, useCallback, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/useAppStore";
 import { useDbSync } from "@/hooks/useDbSync";
-import { Calendar, Dumbbell, Flame, TrendingUp, Pencil, Apple } from "lucide-react";
+import { Calendar, Dumbbell, Flame, TrendingUp, Pencil, Apple, Loader2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import EditWorkoutDialog from "@/components/workout/EditWorkoutDialog";
-import type { Workout } from "@/store/useAppStore";
+import type { Workout, WorkoutExercise, WorkoutSet } from "@/store/useAppStore";
 
 const HistoryPage = () => {
+  const { user } = useAuth();
   const { dayLogs } = useAppStore();
   const { loadWorkout } = useDbSync();
   const [editingWorkout, setEditingWorkout] = useState<{ workout: Workout; date: string } | null>(null);
+  const [historyWorkouts, setHistoryWorkouts] = useState<Workout[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchHistory = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data: workouts, error } = await supabase
+      .from("workouts")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("date", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching history:", error);
+      setLoading(false);
+      return;
+    }
+
+    const formattedWorkouts: Workout[] = [];
+
+    for (const workout of workouts || []) {
+      const { data: exercises } = await supabase
+        .from("workout_exercises")
+        .select("*")
+        .eq("workout_id", workout.id)
+        .order("order_index");
+
+      const workoutExercises: WorkoutExercise[] = [];
+
+      if (exercises) {
+        for (const ex of exercises) {
+          const { data: sets } = await supabase
+            .from("workout_sets")
+            .select("*")
+            .eq("workout_exercise_id", ex.id)
+            .order("set_index");
+
+          workoutExercises.push({
+            id: ex.id,
+            exerciseId: ex.exercise_id,
+            exerciseName: ex.exercise_name,
+            sets: (sets || []).map((s) => ({
+              id: s.id,
+              reps: s.reps,
+              weight: Number(s.weight),
+              completed: s.completed,
+            })),
+          });
+        }
+      }
+
+      formattedWorkouts.push({
+        id: workout.id,
+        date: workout.date,
+        name: workout.name,
+        exercises: workoutExercises,
+        duration: workout.duration ?? undefined,
+      });
+    }
+    setHistoryWorkouts(formattedWorkouts);
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   const sortedDays = Object.keys(dayLogs)
     .sort((a, b) => b.localeCompare(a))
     .map((date) => ({ date, log: dayLogs[date] }));
 
-  const workoutDays = sortedDays.filter(({ log }) => !!log.workout);
+  // Removed old workoutDays derivation based on dayLogs
+  // const workoutDays = sortedDays.filter(({ log }) => !!log.workout);
   const nutritionDays = sortedDays.filter(({ log }) => log.meals.length > 0);
 
   const formatDate = (date: string) => {
@@ -42,7 +113,11 @@ const HistoryPage = () => {
 
         {/* WORKOUTS TAB */}
         <TabsContent value="workouts">
-          {workoutDays.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : historyWorkouts.length === 0 ? (
             <div className="flex flex-col items-center py-20 animate-slide-up">
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
                 <Dumbbell className="h-8 w-8 text-muted-foreground" />
@@ -54,14 +129,14 @@ const HistoryPage = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {workoutDays.map(({ date, log }, idx) => {
-                const workout = log.workout!;
+              {historyWorkouts.map((workout, idx) => {
+                const date = workout.date;
                 const totalSets = workout.exercises.reduce(
                   (acc, ex) => acc + ex.sets.filter((s) => s.completed).length, 0
                 );
                 return (
                   <div
-                    key={date}
+                    key={workout.id}
                     className="rounded-2xl bg-card p-4 glow-border animate-fade-in"
                     style={{ animationDelay: `${idx * 0.05}s` }}
                   >
@@ -202,7 +277,10 @@ const HistoryPage = () => {
           onOpenChange={(open) => !open && setEditingWorkout(null)}
           workout={editingWorkout.workout}
           date={editingWorkout.date}
-          onSaved={() => loadWorkout(editingWorkout.date)}
+          onSaved={() => {
+            loadWorkout(editingWorkout.date);
+            fetchHistory(); // Refresh history list
+          }}
         />
       )}
     </div>
