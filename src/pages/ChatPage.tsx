@@ -56,7 +56,7 @@ const ChatPage = () => {
             <Bot className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-bold font-display">FitCoach IA</h1>
+            <h1 className="text-lg font-bold font-display">PeakCoach IA</h1>
             <p className="text-xs text-muted-foreground">Tu entrenador personal inteligente</p>
           </div>
         </div>
@@ -159,11 +159,10 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
         </div>
       )}
       <div
-        className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-          isUser
+        className={`max-w-[85%] rounded-2xl px-4 py-3 ${isUser
             ? "rounded-tr-sm bg-primary text-primary-foreground"
             : "rounded-tl-sm bg-card"
-        }`}
+          }`}
       >
         {isUser ? (
           <p className="text-sm whitespace-pre-wrap">{message.content}</p>

@@ -453,16 +453,18 @@ const HistoryPage = () => {
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center gap-1">
                                 <button
                                   onClick={() => setEditingMeal({ meal, date })}
                                   className="p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                                  title="Editar comida"
                                 >
                                   <Pencil className="h-3 w-3" />
                                 </button>
                                 <button
                                   onClick={() => setDeletingMealId(meal.id)}
                                   className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+                                  title="Eliminar comida"
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </button>
