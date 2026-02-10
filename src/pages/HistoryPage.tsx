@@ -1,5 +1,6 @@
 
 import { useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/useAppStore";
@@ -22,13 +23,15 @@ import EditMealDialog from "@/components/nutrition/EditMealDialog";
 import type { Workout, WorkoutExercise, WorkoutSet, MealEntry } from "@/store/useAppStore";
 
 const HistoryPage = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const { dayLogs } = useAppStore();
+  const { dayLogs, setCurrentDate } = useAppStore();
   const { loadWorkout } = useDbSync();
   const [editingWorkout, setEditingWorkout] = useState<{ workout: Workout; date: string } | null>(null);
   const [editingMeal, setEditingMeal] = useState<{ meal: MealEntry; date: string } | null>(null);
   const [deletingWorkoutId, setDeletingWorkoutId] = useState<string | null>(null);
   const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
+  const [deletingDayDate, setDeletingDayDate] = useState<string | null>(null);
   const [historyWorkouts, setHistoryWorkouts] = useState<Workout[]>([]);
   const [historyNutrition, setHistoryNutrition] = useState<{ date: string; meals: MealEntry[] }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -254,6 +257,43 @@ const HistoryPage = () => {
     }
   }
 
+  const handleEditDay = (date: string) => {
+    setCurrentDate(date);
+    navigate("/nutrition");
+  };
+
+  const handleDeleteDay = async (date: string) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from("meal_entries")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("date", date);
+
+      if (error) throw error;
+
+      // Update local state
+      setHistoryNutrition(prev => prev.filter(day => day.date !== date));
+
+      // Update dayLogs
+      useAppStore.setState((state) => ({
+        dayLogs: {
+          ...state.dayLogs,
+          [date]: {
+            ...state.dayLogs[date],
+            meals: []
+          },
+        },
+      }));
+
+    } catch (error) {
+      console.error("Error deleting full day:", error);
+    } finally {
+      setDeletingDayDate(null);
+    }
+  };
+
   useEffect(() => {
     fetchHistory();
     fetchNutrition();
@@ -427,6 +467,22 @@ const HistoryPage = () => {
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-semibold font-display capitalize">{formatDate(date)}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleEditDay(date)}
+                          className="p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                          title="Gestionar día completo"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setDeletingDayDate(date)}
+                          className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+                          title="Eliminar todo el día"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 mb-1">
@@ -539,6 +595,26 @@ const HistoryPage = () => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deletingDayDate} onOpenChange={(open) => !open && setDeletingDayDate(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar día completo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminarán todas las comidas registradas en esta fecha ({deletingDayDate ? formatDate(deletingDayDate) : ""}). Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingDayDate && handleDeleteDay(deletingDayDate)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar Todo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
