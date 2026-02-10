@@ -110,7 +110,7 @@ const OnboardingPage = () => {
       fatGoal: parseInt(fatGoal) || 80,
     });
 
-    toast({ title: "¡Perfil completado!", description: "Bienvenido a FitTracker 💪" });
+    toast({ title: "¡Perfil completado!", description: "Bienvenido a Peak 💪" });
     navigate("/", { replace: true });
   };
 
@@ -122,9 +122,8 @@ const OnboardingPage = () => {
           {steps.map((s, i) => (
             <div
               key={i}
-              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                i <= step ? "bg-primary" : "bg-secondary"
-              }`}
+              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i <= step ? "bg-primary" : "bg-secondary"
+                }`}
             />
           ))}
         </div>
@@ -157,11 +156,10 @@ const OnboardingPage = () => {
                 ].map((option) => (
                   <label
                     key={option.value}
-                    className={`flex items-center gap-3 rounded-2xl p-4 cursor-pointer transition-all ${
-                      sex === option.value
+                    className={`flex items-center gap-3 rounded-2xl p-4 cursor-pointer transition-all ${sex === option.value
                         ? "bg-primary/10 glow-border"
                         : "bg-card hover:bg-card/80"
-                    }`}
+                      }`}
                   >
                     <RadioGroupItem value={option.value} />
                     <span className="text-lg">{option.emoji}</span>
@@ -197,11 +195,10 @@ const OnboardingPage = () => {
                 {FITNESS_GOALS.map((goal) => (
                   <label
                     key={goal.value}
-                    className={`flex items-center gap-3 rounded-2xl p-4 cursor-pointer transition-all ${
-                      fitnessGoal === goal.value
+                    className={`flex items-center gap-3 rounded-2xl p-4 cursor-pointer transition-all ${fitnessGoal === goal.value
                         ? "bg-primary/10 glow-border"
                         : "bg-card hover:bg-card/80"
-                    }`}
+                      }`}
                   >
                     <RadioGroupItem value={goal.value} />
                     <span className="text-xl">{goal.icon}</span>
@@ -220,11 +217,10 @@ const OnboardingPage = () => {
                 {ACTIVITY_LEVELS.map((level) => (
                   <label
                     key={level.value}
-                    className={`flex items-center gap-3 rounded-2xl p-4 cursor-pointer transition-all ${
-                      activityLevel === level.value
+                    className={`flex items-center gap-3 rounded-2xl p-4 cursor-pointer transition-all ${activityLevel === level.value
                         ? "bg-primary/10 glow-border"
                         : "bg-card hover:bg-card/80"
-                    }`}
+                      }`}
                   >
                     <RadioGroupItem value={level.value} />
                     <div>

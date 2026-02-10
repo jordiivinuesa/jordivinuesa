@@ -42,7 +42,7 @@ const AuthPage = () => {
     } else if (!isLogin) {
       toast({
         title: "¡Cuenta creada!",
-        description: "Bienvenido a FitTracker 💪",
+        description: "Bienvenido a Peak 💪",
       });
     }
     setSubmitting(false);
@@ -54,7 +54,7 @@ const AuthPage = () => {
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-primary/10 animate-pulse-glow">
           <Dumbbell className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="text-3xl font-bold font-display">FitTracker</h1>
+        <h1 className="text-3xl font-bold font-display">Peak</h1>
         <p className="mt-1 text-sm text-muted-foreground">Tu progreso, tu control</p>
       </div>
 
