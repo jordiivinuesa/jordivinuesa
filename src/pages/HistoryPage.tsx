@@ -127,7 +127,7 @@ const HistoryPage = () => {
 
   // Removed old workoutDays derivation based on dayLogs
   // const workoutDays = sortedDays.filter(({ log }) => !!log.workout);
-  const nutritionDays = sortedDays.filter(({ log }) => log.meals.length > 0);
+  const nutritionDays = sortedDays.filter(({ log }) => (log.meals?.length ?? 0) > 0);
 
   const formatDate = (date: string) => {
     const dateObj = new Date(date + "T12:00:00");
