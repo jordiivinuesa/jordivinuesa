@@ -16,7 +16,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
 import EditWorkoutDialog from "@/components/workout/EditWorkoutDialog";
+import EditMealDialog from "@/components/nutrition/EditMealDialog";
 import type { Workout, WorkoutExercise, WorkoutSet, MealEntry } from "@/store/useAppStore";
 
 const HistoryPage = () => {
@@ -24,7 +26,9 @@ const HistoryPage = () => {
   const { dayLogs } = useAppStore();
   const { loadWorkout } = useDbSync();
   const [editingWorkout, setEditingWorkout] = useState<{ workout: Workout; date: string } | null>(null);
+  const [editingMeal, setEditingMeal] = useState<{ meal: MealEntry; date: string } | null>(null);
   const [deletingWorkoutId, setDeletingWorkoutId] = useState<string | null>(null);
+  const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
   const [historyWorkouts, setHistoryWorkouts] = useState<Workout[]>([]);
   const [historyNutrition, setHistoryNutrition] = useState<{ date: string; meals: MealEntry[] }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -161,6 +165,94 @@ const HistoryPage = () => {
       setDeletingWorkoutId(null);
     }
   };
+
+  const handleUpdateMeal = async (updatedMeal: MealEntry) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from("meal_entries")
+        .update({
+          grams: updatedMeal.grams,
+          calories: updatedMeal.calories,
+          protein: updatedMeal.protein,
+          carbs: updatedMeal.carbs,
+          fat: updatedMeal.fat,
+        })
+        .eq("id", updatedMeal.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setHistoryNutrition(prev => prev.map(day => {
+        if (day.date === editingMeal?.date) {
+          return {
+            ...day,
+            meals: day.meals.map(m => m.id === updatedMeal.id ? updatedMeal : m)
+          }
+        }
+        return day;
+      }));
+
+      // Update dayLogs if needed
+      if (editingMeal?.date) {
+        useAppStore.setState((state) => ({
+          dayLogs: {
+            ...state.dayLogs,
+            [editingMeal.date]: {
+              ...state.dayLogs[editingMeal.date],
+              meals: state.dayLogs[editingMeal.date]?.meals.map(m => m.id === updatedMeal.id ? updatedMeal : m) || []
+            },
+          },
+        }));
+      }
+
+    } catch (error) {
+      console.error("Error updating meal:", error);
+    }
+  };
+
+  const handleDeleteMeal = async (mealId: string) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase.from("meal_entries").delete().eq("id", mealId);
+      if (error) throw error;
+
+      // Find the date of the meal before deleting from state (optimistic update needs it? no, we can remove)
+      // Actually we need the date to update dayLogs properly if we want full consistency
+      let mealDate = "";
+
+      // Update local state
+      setHistoryNutrition(prev => prev.map(day => {
+        const hasMeal = day.meals.some(m => m.id === mealId);
+        if (hasMeal) {
+          mealDate = day.date;
+          return {
+            ...day,
+            meals: day.meals.filter(m => m.id !== mealId)
+          };
+        }
+        return day;
+      }).filter(day => day.meals.length > 0)); // Remove empty days if any
+
+      // Update dayLogs
+      if (mealDate) {
+        useAppStore.setState((state) => ({
+          dayLogs: {
+            ...state.dayLogs,
+            [mealDate]: {
+              ...state.dayLogs[mealDate],
+              meals: state.dayLogs[mealDate]?.meals.filter(m => m.id !== mealId) || []
+            },
+          },
+        }));
+      }
+
+    } catch (error) {
+      console.error("Error deleting meal:", error);
+    } finally {
+      setDeletingMealId(null);
+    }
+  }
 
   useEffect(() => {
     fetchHistory();
@@ -352,11 +444,29 @@ const HistoryPage = () => {
                             {mealTypeLabels[type] || type}
                           </p>
                           {meals.map((meal, i) => (
-                            <div key={i} className="flex items-center justify-between px-2 py-0.5">
-                              <span className="text-xs text-foreground">{meal.foodName}</span>
-                              <span className="text-[11px] text-muted-foreground">
-                                {meal.grams}g · {Math.round(meal.calories)} kcal
-                              </span>
+                            <div key={i} className="flex items-center justify-between px-2 py-0.5 hover:bg-secondary/20 rounded-lg transition-colors group">
+                              <div className="flex-1 min-w-0 mr-2">
+                                <div className="flex justify-between items-baseline">
+                                  <span className="text-xs text-foreground truncate">{meal.foodName}</span>
+                                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                                    {meal.grams}g · {Math.round(meal.calories)} kcal
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => setEditingMeal({ meal, date })}
+                                  className="p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => setDeletingMealId(meal.id)}
+                                  className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -383,6 +493,15 @@ const HistoryPage = () => {
         />
       )}
 
+      {editingMeal && (
+        <EditMealDialog
+          open={!!editingMeal}
+          onOpenChange={(open) => !open && setEditingMeal(null)}
+          meal={editingMeal.meal}
+          onSaved={handleUpdateMeal}
+        />
+      )}
+
       <AlertDialog open={!!deletingWorkoutId} onOpenChange={(open) => !open && setDeletingWorkoutId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -395,6 +514,26 @@ const HistoryPage = () => {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deletingWorkoutId && handleDeleteWorkout(deletingWorkoutId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deletingMealId} onOpenChange={(open) => !open && setDeletingMealId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar comida?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará permanentemente este registro de comida.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingMealId && handleDeleteMeal(deletingMealId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Eliminar
