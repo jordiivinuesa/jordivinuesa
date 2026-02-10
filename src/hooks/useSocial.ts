@@ -42,13 +42,21 @@ export interface UserProfile {
 }
 
 async function resolveSignedUrl(imageUrl: string): Promise<string> {
-  // If it's already a signed URL or external URL, return as-is
-  if (!imageUrl || !imageUrl.includes("post-images")) return imageUrl;
+  if (!imageUrl) return imageUrl;
+
+  // If it's already an external URL (http), check if it's our own public bucket
+  if (imageUrl.startsWith("http")) {
+    const bucketSegment = "/object/public/post-images/";
+    if (!imageUrl.includes(bucketSegment)) {
+      return imageUrl; // External image, return as-is
+    }
+  }
 
   // Extract the storage path from a full public URL or use as-is if it's a path
   let storagePath = imageUrl;
   const bucketSegment = "/object/public/post-images/";
   const idx = imageUrl.indexOf(bucketSegment);
+
   if (idx !== -1) {
     storagePath = imageUrl.substring(idx + bucketSegment.length);
   }
@@ -57,7 +65,11 @@ async function resolveSignedUrl(imageUrl: string): Promise<string> {
     .from("post-images")
     .createSignedUrl(storagePath, 3600); // 1 hour expiry
 
-  if (error || !data?.signedUrl) return imageUrl; // fallback
+  if (error || !data?.signedUrl) {
+    console.error("Error creating signed URL for:", storagePath, error);
+    return imageUrl; // fallback
+  }
+
   return data.signedUrl;
 }
 
