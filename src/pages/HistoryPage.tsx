@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import EditWorkoutDialog from "@/components/workout/EditWorkoutDialog";
-import type { Workout, WorkoutExercise, WorkoutSet } from "@/store/useAppStore";
+import type { Workout, WorkoutExercise, WorkoutSet, MealEntry } from "@/store/useAppStore";
 
 const HistoryPage = () => {
   const { user } = useAuth();
@@ -26,7 +26,9 @@ const HistoryPage = () => {
   const [editingWorkout, setEditingWorkout] = useState<{ workout: Workout; date: string } | null>(null);
   const [deletingWorkoutId, setDeletingWorkoutId] = useState<string | null>(null);
   const [historyWorkouts, setHistoryWorkouts] = useState<Workout[]>([]);
+  const [historyNutrition, setHistoryNutrition] = useState<{ date: string; meals: MealEntry[] }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingNutrition, setLoadingNutrition] = useState(true);
 
   const fetchHistory = useCallback(async () => {
     if (!user) return;
@@ -88,6 +90,49 @@ const HistoryPage = () => {
     setLoading(false);
   }, [user]);
 
+  const fetchNutrition = useCallback(async () => {
+    if (!user) return;
+    setLoadingNutrition(true);
+    const { data: meals, error } = await supabase
+      .from("meal_entries")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("date", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching nutrition history:", error);
+      setLoadingNutrition(false);
+      return;
+    }
+
+    const groupedMeals: Record<string, MealEntry[]> = {};
+    meals?.forEach((m) => {
+      const entry: MealEntry = {
+        id: m.id,
+        foodId: m.food_id,
+        foodName: m.food_name,
+        grams: Number(m.grams),
+        calories: Number(m.calories),
+        protein: Number(m.protein),
+        carbs: Number(m.carbs),
+        fat: Number(m.fat),
+        mealType: m.meal_type as MealEntry["mealType"],
+      };
+
+      if (!groupedMeals[m.date]) {
+        groupedMeals[m.date] = [];
+      }
+      groupedMeals[m.date].push(entry);
+    });
+
+    const sortedHistory = Object.entries(groupedMeals)
+      .map(([date, meals]) => ({ date, meals }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    setHistoryNutrition(sortedHistory);
+    setLoadingNutrition(false);
+  }, [user]);
+
   const handleDeleteWorkout = async (workoutId: string) => {
     if (!user) return;
     try {
@@ -119,7 +164,8 @@ const HistoryPage = () => {
 
   useEffect(() => {
     fetchHistory();
-  }, [fetchHistory]);
+    fetchNutrition();
+  }, [fetchHistory, fetchNutrition]);
 
   const sortedDays = Object.keys(dayLogs)
     .sort((a, b) => b.localeCompare(a))
@@ -127,7 +173,7 @@ const HistoryPage = () => {
 
   // Removed old workoutDays derivation based on dayLogs
   // const workoutDays = sortedDays.filter(({ log }) => !!log.workout);
-  const nutritionDays = sortedDays.filter(({ log }) => (log.meals?.length ?? 0) > 0);
+  // const nutritionDays = sortedDays.filter(({ log }) => (log.meals?.length ?? 0) > 0);
 
   const formatDate = (date: string) => {
     const dateObj = new Date(date + "T12:00:00");
@@ -237,7 +283,11 @@ const HistoryPage = () => {
 
         {/* NUTRITION TAB */}
         <TabsContent value="nutrition">
-          {nutritionDays.length === 0 ? (
+          {loadingNutrition ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : historyNutrition.length === 0 ? (
             <div className="flex flex-col items-center py-20 animate-slide-up">
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
                 <Apple className="h-8 w-8 text-muted-foreground" />
@@ -249,8 +299,8 @@ const HistoryPage = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {nutritionDays.map(({ date, log }, idx) => {
-                const totals = log.meals.reduce(
+              {historyNutrition.map(({ date, meals }, idx) => {
+                const totals = meals.reduce(
                   (acc, m) => ({
                     calories: acc.calories + m.calories,
                     protein: acc.protein + m.protein,
@@ -260,8 +310,8 @@ const HistoryPage = () => {
                   { calories: 0, protein: 0, carbs: 0, fat: 0 }
                 );
 
-                const mealsByType: Record<string, typeof log.meals> = {};
-                log.meals.forEach((m) => {
+                const mealsByType: Record<string, typeof meals> = {};
+                meals.forEach((m) => {
                   const type = m.mealType || "otros";
                   if (!mealsByType[type]) mealsByType[type] = [];
                   mealsByType[type].push(m);
