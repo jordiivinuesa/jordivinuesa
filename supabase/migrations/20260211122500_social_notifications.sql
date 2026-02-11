@@ -38,9 +38,6 @@ BEGIN
   
   -- Don't notify if liking own post
   IF post_owner_id != NEW.user_id THEN
-    -- Use UPSERT or check existence to avoid multiple notifications for same like?
-    -- Actually, post_likes has a unique constraint on (user_id, post_id).
-    -- So one insert = one notification.
     INSERT INTO public.notifications (user_id, actor_id, type, post_id)
     VALUES (post_owner_id, NEW.user_id, 'like', NEW.post_id);
   END IF;
@@ -70,3 +67,6 @@ FOR EACH ROW EXECUTE FUNCTION public.notify_follow();
 
 -- Index for performance
 CREATE INDEX idx_notifications_user_id_is_read ON public.notifications(user_id, is_read);
+
+-- Enable Realtime for notifications
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
