@@ -22,8 +22,8 @@ const Dashboard = () => {
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
 
-  const totalSets = workout?.exercises.reduce((acc, ex) => acc + ex.sets.filter(s => s.completed).length, 0) || 0;
-  const totalExercises = workout?.exercises.length || 0;
+  const totalSets = workout?.exercises?.reduce((acc, ex) => acc + (ex.sets?.filter(s => s.completed)?.length ?? 0), 0) ?? 0;
+  const totalExercises = workout?.exercises?.length ?? 0;
 
   const dateObj = new Date(currentDate + "T12:00:00");
   const dayName = dateObj.toLocaleDateString("es-ES", { weekday: "long" });
