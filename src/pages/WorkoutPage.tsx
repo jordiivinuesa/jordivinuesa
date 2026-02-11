@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { useDbSync } from "@/hooks/useDbSync";
-import { exercises, muscleGroupLabels, type MuscleGroup } from "@/data/exercises";
-import { Plus, Dumbbell, Check, X, Trash2, Search, ArrowLeft, Bookmark, ChevronDown } from "lucide-react";
+import { exercises, type MuscleGroup, muscleGroupLabels } from "@/data/exercises";
+import { Plus, Dumbbell, Check, X, Trash2, Search, ArrowLeft, Bookmark, ChevronDown, ChevronRight, CheckCircle2 } from "lucide-react";
+import { removeAccents } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useTemplateSharing, type SharedTemplate } from "@/hooks/useTemplateSharing";
+import ShareTemplateDialog from "@/components/workout/ShareTemplateDialog";
+import { Send, CheckCircle, XCircle } from "lucide-react";
+import type { WorkoutTemplate } from "@/store/useAppStore";
 
 const WorkoutPage = () => {
   const {
@@ -37,9 +42,13 @@ const WorkoutPage = () => {
   const [startMode, setStartMode] = useState<"workout" | "template">("workout");
   const [isTemplateSaved, setIsTemplateSaved] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
+  const { pendingShares, updateShareStatus, fetchPendingShares } = useTemplateSharing();
+  const [sharingTemplate, setSharingTemplate] = useState<WorkoutTemplate | null>(null);
 
   const filteredExercises = exercises.filter((e) => {
-    const matchSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const normalizedName = removeAccents(e.name.toLowerCase());
+    const normalizedQuery = removeAccents(searchQuery.toLowerCase());
+    const matchSearch = normalizedName.includes(normalizedQuery);
     const matchMuscle = selectedMuscle === "all" || e.muscleGroup === selectedMuscle;
     return matchSearch && matchMuscle;
   });
@@ -143,6 +152,28 @@ const WorkoutPage = () => {
     }
   }, [activeWorkout, activeTemplateId, updateTemplate, updateTemplateInDb]);
 
+  const handleAcceptShare = async (share: SharedTemplate) => {
+    const template: WorkoutTemplate = {
+      id: crypto.randomUUID(),
+      name: share.template_name,
+      exercises: share.template_data.exercises
+    };
+
+    // Add to store
+    addTemplate(template);
+    // Add to DB
+    await saveTemplateToDb(template);
+
+    // Update status in shared table
+    await updateShareStatus(share.id, "accepted");
+    toast.success(`Plantilla "${template.name}" añadida a tu biblioteca`);
+  };
+
+  const handleRejectShare = async (shareId: string) => {
+    await updateShareStatus(shareId, "rejected");
+    toast.info("Plantilla rechazada");
+  };
+
   // Dashboard View
   if (!activeWorkout || !showDetailView) {
     return (
@@ -200,6 +231,46 @@ const WorkoutPage = () => {
               </Button>
             </div>
 
+            {/* Pending Shares Notifications */}
+            {pendingShares.length > 0 && (
+              <div className="space-y-2 mb-2">
+                {pendingShares.map((share) => (
+                  <div key={share.id} className="rounded-2xl bg-primary/5 border border-primary/20 p-4 animate-scale-in">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold border border-primary/30">
+                        {share.sender_profile?.display_name?.[0].toUpperCase() || "U"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs">
+                          <span className="font-bold">{share.sender_profile?.display_name || "Un usuario"}</span> te ha compartido una plantilla
+                        </p>
+                        <p className="text-[10px] font-semibold text-primary truncate">"{share.template_name}"</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleRejectShare(share.id)}
+                        className="flex-1 h-8 rounded-xl text-[10px] hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <XCircle className="h-3 w-3 mr-1" />
+                        Rechazar
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleAcceptShare(share)}
+                        className="flex-1 h-8 rounded-xl text-[10px]"
+                      >
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Aceptar
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {templates.length > 0 ? (
               <div className="grid grid-cols-1 gap-3">
                 {templates.map((template) => (
@@ -210,7 +281,16 @@ const WorkoutPage = () => {
                         {template.exercises.length} ejercicios · {template.exercises.reduce((acc, ex) => acc + ex.sets.length, 0)} series
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSharingTemplate(template)}
+                        className="rounded-xl h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                        title="Compartir con un amigo"
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -245,6 +325,12 @@ const WorkoutPage = () => {
           </div>
         </div>
 
+        <ShareTemplateDialog
+          open={!!sharingTemplate}
+          onOpenChange={(open) => !open && setSharingTemplate(null)}
+          template={sharingTemplate}
+        />
+
         <Dialog open={showStartDialog} onOpenChange={setShowStartDialog}>
           <DialogContent className="bg-card border-border max-w-[340px] rounded-2xl">
             <DialogHeader>
@@ -271,7 +357,7 @@ const WorkoutPage = () => {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </div >
     );
   }
 
@@ -328,7 +414,7 @@ const WorkoutPage = () => {
 
       <div className="space-y-6">
         {activeWorkout.exercises.map((exercise, exerciseIndex) => (
-          <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-slide-up" style={{ animationDelay: `${exerciseIndex * 0.1}s` }}>
+          <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-slide-up" style={{ animationDelay: `${exerciseIndex * 0.1} s` }}>
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-semibold font-display">{exercise.exerciseName}</h3>
               <Button
@@ -366,7 +452,7 @@ const WorkoutPage = () => {
                     variant={set.completed ? "default" : "outline"}
                     size="sm"
                     onClick={() => updateSet(exerciseIndex, setIndex, { completed: !set.completed })}
-                    className={`h-10 w-10 rounded-xl transition-all ${set.completed ? "bg-primary text-primary-foreground scale-95" : "border-border text-muted-foreground hover:border-primary/50"}`}
+                    className={`h - 10 w - 10 rounded - xl transition - all ${set.completed ? "bg-primary text-primary-foreground scale-95" : "border-border text-muted-foreground hover:border-primary/50"} `}
                   >
                     <Check className="h-4 w-4" />
                   </Button>

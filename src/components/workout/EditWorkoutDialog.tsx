@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore, type Workout, type WorkoutExercise, type WorkoutSet } from "@/store/useAppStore";
 import { toast } from "@/hooks/use-toast";
+import { removeAccents } from "@/lib/utils";
 
 interface EditWorkoutDialogProps {
   open: boolean;
@@ -43,7 +44,9 @@ const EditWorkoutDialog = ({ open, onOpenChange, workout, date, onSaved }: EditW
   }, [open, workout]);
 
   const filteredExercises = exercises.filter((e) => {
-    const matchSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const normalizedName = removeAccents(e.name.toLowerCase());
+    const normalizedQuery = removeAccents(searchQuery.toLowerCase());
+    const matchSearch = normalizedName.includes(normalizedQuery);
     const matchMuscle = selectedMuscle === "all" || e.muscleGroup === selectedMuscle;
     return matchSearch && matchMuscle;
   });

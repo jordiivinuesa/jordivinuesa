@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MacroBar from "@/components/MacroBar";
+import { removeAccents } from "@/lib/utils";
 
 type MealType = MealEntry["mealType"];
 
@@ -43,7 +44,9 @@ const NutritionPage = () => {
   );
 
   const filteredFoods = foods.filter((f) => {
-    const matchSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const normalizedName = removeAccents(f.name.toLowerCase());
+    const normalizedQuery = removeAccents(searchQuery.toLowerCase());
+    const matchSearch = normalizedName.includes(normalizedQuery);
     const matchCat = selectedCategory === "all" || f.category === selectedCategory;
     return matchSearch && matchCat;
   });
