@@ -1,19 +1,28 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Dumbbell, History, Bot, UserCircle, Users, UtensilsCrossed, Heart, User } from "lucide-react";
+import { LayoutDashboard, Dumbbell, History, Bot, UserCircle, Users, UtensilsCrossed, Heart, User, Crown } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
-
-const navItems = [
-  { to: "/", icon: LayoutDashboard, label: "Inicio" },
-  { to: "/workout", icon: Dumbbell, label: "Entreno" },
-  { to: "/nutrition", icon: UtensilsCrossed, label: "Nutrición" },
-  { to: "/social", icon: Users, label: "Social" },
-  { to: "/coach", icon: Bot, label: "Coach" },
-  { to: "/profile", icon: UserCircle, label: "Perfil" },
-];
+import { useAuth } from "@/hooks/useAuth";
 
 const BottomNav = () => {
   const location = useLocation();
   const { hasLikes, hasFollows, hasShares, notifications } = useNotifications();
+  const { role } = useAuth();
+
+  console.log("%c>>> BOTTOM_NAV: Estado de notificaciones", "color: cyan;", { hasLikes, hasFollows, hasShares, count: notifications.length });
+
+  const navItems = [
+    { to: "/", icon: LayoutDashboard, label: "Inicio" },
+    { to: "/workout", icon: Dumbbell, label: "Entreno" },
+    { to: "/nutrition", icon: UtensilsCrossed, label: "Nutrición" },
+    { to: "/social", icon: Users, label: "Social" },
+    { to: "/coach", icon: Bot, label: "Coach" },
+    { to: "/profile", icon: UserCircle, label: "Perfil" },
+  ];
+
+  // Add admin link only for admins
+  if (role === 'admin') {
+    navItems.push({ to: "/admin", icon: Crown, label: "Admin" });
+  }
 
   console.log("%c>>> BOTTOM_NAV: Estado de notificaciones", "color: cyan;", { hasLikes, hasFollows, hasShares, count: notifications.length });
 

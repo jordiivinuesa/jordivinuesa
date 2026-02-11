@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store/useAppStore";
 import AppLayout from "./components/AppLayout";
+import AdminLayout from "./components/admin/AdminLayout";
 import Dashboard from "./pages/Dashboard";
 import WorkoutPage from "./pages/WorkoutPage";
 import NutritionPage from "./pages/NutritionPage";
@@ -17,6 +18,7 @@ import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
@@ -78,6 +80,27 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/auth" element={<AuthPage />} />
     <Route path="/onboarding" element={<OnboardingRoute />} />
+
+    {/* Admin Routes */}
+    <Route
+      path="/admin/*"
+      element={
+        <ProtectedRoute>
+          <AdminLayout>
+            <Routes>
+              <Route path="/" element={<AdminDashboard />} />
+              <Route path="/users" element={<div className="p-8"><h1 className="text-2xl font-bold">Usuarios - Próximamente</h1></div>} />
+              <Route path="/foods" element={<div className="p-8"><h1 className="text-2xl font-bold">Alimentos - Próximamente</h1></div>} />
+              <Route path="/templates" element={<div className="p-8"><h1 className="text-2xl font-bold">Plantillas - Próximamente</h1></div>} />
+              <Route path="/analytics" element={<div className="p-8"><h1 className="text-2xl font-bold">Analytics - Próximamente</h1></div>} />
+              <Route path="/system" element={<div className="p-8"><h1 className="text-2xl font-bold">Sistema - Próximamente</h1></div>} />
+            </Routes>
+          </AdminLayout>
+        </ProtectedRoute>
+      }
+    />
+
+    {/* App Routes */}
     <Route
       path="/*"
       element={
