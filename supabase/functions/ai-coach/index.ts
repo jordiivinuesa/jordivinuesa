@@ -109,6 +109,14 @@ serve(async (req) => {
 
     const { messages } = await req.json();
 
+    // Validate message count
+    if (!Array.isArray(messages) || messages.length < 1 || messages.length > 50) {
+      return new Response(
+        JSON.stringify({ error: "Se requieren entre 1 y 50 mensajes" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Transform messages to Gemini format
     // OpenAI: { role: "user" | "assistant" | "system", content: string }
     // Gemini: { role: "user" | "model", parts: [{ text: string }] }
