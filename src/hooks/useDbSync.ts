@@ -141,15 +141,6 @@ export function useDbSync() {
     }));
   }, [user]);
 
-  // Load data when user or date changes
-  useEffect(() => {
-    if (user && currentDate) {
-      loadProfile();
-      loadMeals(currentDate);
-      loadWorkout(currentDate);
-    }
-  }, [user, currentDate, loadProfile, loadMeals, loadWorkout]);
-
   // Save meal to DB
   const saveMealToDb = useCallback(async (entry: MealEntry) => {
     if (!user) return;
@@ -213,5 +204,126 @@ export function useDbSync() {
     }
   }, [user]);
 
-  return { saveMealToDb, deleteMealFromDb, saveWorkoutToDb, loadMeals, loadWorkout };
+  // Load templates
+  const loadTemplates = useCallback(async () => {
+    if (!user) return;
+    const { data: templatesData } = await (supabase as any)
+      .from("workout_templates")
+      .select("*")
+      .eq("user_id", user.id);
+
+    if (templatesData) {
+      const fullTemplates = [];
+      for (const t of templatesData) {
+        const { data: exercisesData } = await (supabase as any)
+          .from("template_exercises")
+          .select("*")
+          .eq("template_id", t.id)
+          .order("order_index");
+
+        const exercises = [];
+        if (exercisesData) {
+          for (const ex of exercisesData) {
+            const { data: setsData } = await (supabase as any)
+              .from("template_sets")
+              .select("*")
+              .eq("template_exercise_id", ex.id)
+              .order("set_index");
+
+            exercises.push({
+              id: ex.id,
+              exerciseId: ex.exercise_id,
+              exerciseName: ex.exercise_name,
+              sets: (setsData || []).map((s: any) => ({
+                id: s.id,
+                reps: s.reps,
+                weight: Number(s.weight),
+              })),
+            });
+          }
+        }
+
+        fullTemplates.push({
+          id: t.id,
+          name: t.name,
+          description: t.description,
+          exercises,
+        });
+      }
+      useAppStore.setState({ templates: fullTemplates });
+    }
+  }, [user]);
+
+  // Load data when user or date changes
+  useEffect(() => {
+    if (user && currentDate) {
+      loadProfile();
+      loadMeals(currentDate);
+      loadWorkout(currentDate);
+      loadTemplates();
+    }
+  }, [user, currentDate, loadProfile, loadMeals, loadWorkout, loadTemplates]);
+
+  // Save or Update template in DB
+  const saveTemplateToDb = useCallback(async (template: any) => {
+    if (!user) return;
+
+    // Upsert template
+    const { error: tError } = await (supabase as any).from("workout_templates").upsert({
+      id: template.id,
+      user_id: user.id,
+      name: template.name,
+      description: template.description || null,
+      updated_at: new Date().toISOString()
+    });
+
+    if (tError) return;
+
+    // To keep it simple, delete old exercises and re-insert (cascades to sets)
+    await (supabase as any).from("template_exercises").delete().eq("template_id", template.id);
+
+    // Insert exercises and sets
+    for (let i = 0; i < template.exercises.length; i++) {
+      const ex = template.exercises[i];
+      await (supabase as any).from("template_exercises").insert({
+        id: ex.id,
+        template_id: template.id,
+        exercise_id: ex.exerciseId,
+        exercise_name: ex.exerciseName,
+        order_index: i,
+      });
+
+      if (ex.sets.length > 0) {
+        await (supabase as any).from("template_sets").insert(
+          ex.sets.map((s: any, si: number) => ({
+            id: s.id,
+            template_exercise_id: ex.id,
+            set_index: si,
+            reps: s.reps,
+            weight: s.weight,
+          }))
+        );
+      }
+    }
+  }, [user]);
+
+  const updateTemplateInDb = saveTemplateToDb;
+
+  // Delete template from DB
+  const deleteTemplateFromDb = useCallback(async (templateId: string) => {
+    if (!user) return;
+    await (supabase as any).from("workout_templates").delete().eq("id", templateId);
+  }, [user]);
+
+  return {
+    saveMealToDb,
+    deleteMealFromDb,
+    saveWorkoutToDb,
+    saveTemplateToDb,
+    updateTemplateInDb,
+    deleteTemplateFromDb,
+    loadMeals,
+    loadWorkout,
+    loadTemplates
+  };
 }

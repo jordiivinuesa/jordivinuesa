@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { useDbSync } from "@/hooks/useDbSync";
 import { exercises, muscleGroupLabels, type MuscleGroup } from "@/data/exercises";
-import { Plus, Dumbbell, Check, X, Trash2, Search, ChevronDown } from "lucide-react";
+import { Plus, Dumbbell, Check, X, Trash2, Search, ArrowLeft, Bookmark, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const WorkoutPage = () => {
   const {
     activeWorkout,
+    activeTemplateId,
     startWorkout,
     addExerciseToWorkout,
     addSetToExercise,
@@ -17,15 +19,24 @@ const WorkoutPage = () => {
     removeExerciseFromWorkout,
     finishWorkout,
     cancelWorkout,
+    activeWorkoutType,
+    templates,
+    addTemplate,
+    updateTemplate,
+    deleteTemplate,
+    startWorkoutFromTemplate,
   } = useAppStore();
 
-  const { saveWorkoutToDb } = useDbSync();
+  const { saveWorkoutToDb, saveTemplateToDb, updateTemplateInDb, deleteTemplateFromDb } = useDbSync();
 
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | "all">("all");
   const [workoutName, setWorkoutName] = useState("");
   const [showStartDialog, setShowStartDialog] = useState(false);
+  const [startMode, setStartMode] = useState<"workout" | "template">("workout");
+  const [isTemplateSaved, setIsTemplateSaved] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
 
   const filteredExercises = exercises.filter((e) => {
     const matchSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -36,10 +47,27 @@ const WorkoutPage = () => {
   const muscleGroups = Object.entries(muscleGroupLabels) as [MuscleGroup, string][];
 
   const handleStartWorkout = () => {
-    if (workoutName.trim()) {
-      startWorkout(workoutName.trim());
+    const name = workoutName.trim();
+    if (name) {
+      if (startMode === "template") {
+        const templateId = crypto.randomUUID();
+        const template = {
+          id: templateId,
+          name,
+          exercises: []
+        };
+        addTemplate(template);
+        saveTemplateToDb(template);
+        startWorkout(name, "template");
+        useAppStore.setState({ activeTemplateId: templateId });
+        setIsTemplateSaved(true);
+      } else {
+        startWorkout(name);
+        setIsTemplateSaved(false);
+      }
       setShowStartDialog(false);
       setWorkoutName("");
+      setShowDetailView(true);
     }
   };
 
@@ -52,44 +80,165 @@ const WorkoutPage = () => {
 
   const handleFinishWorkout = () => {
     const workout = useAppStore.getState().activeWorkout;
+    const type = useAppStore.getState().activeWorkoutType;
+
     finishWorkout();
-    if (workout) {
+
+    if (type === "workout" && workout) {
       saveWorkoutToDb(workout);
+      toast.success("¡Entrenamiento finalizado!");
+    } else {
+      toast.success("¡Plantilla creada!");
     }
+    setShowDetailView(false);
   };
 
-  if (!activeWorkout) {
+  const handleSaveAsTemplate = () => {
+    if (!activeWorkout) return;
+    const templateId = crypto.randomUUID();
+    const template = {
+      id: templateId,
+      name: activeWorkout.name,
+      exercises: activeWorkout.exercises.map(ex => ({
+        id: ex.id || crypto.randomUUID(),
+        exerciseId: ex.exerciseId,
+        exerciseName: ex.exerciseName,
+        sets: ex.sets.map(s => ({
+          id: s.id || crypto.randomUUID(),
+          reps: s.reps,
+          weight: s.weight
+        }))
+      }))
+    };
+    addTemplate(template);
+    saveTemplateToDb(template);
+    setIsTemplateSaved(true);
+    // Link the current workout to this template for auto-sync
+    useAppStore.setState({ activeTemplateId: templateId });
+    toast.success("Plantilla guardada correctamente");
+  };
+
+  // Auto-sync active workout to template if linked
+  useEffect(() => {
+    if (activeWorkout && activeTemplateId) {
+      const timer = setTimeout(() => {
+        const fullTemplate = {
+          id: activeTemplateId,
+          name: activeWorkout.name,
+          exercises: activeWorkout.exercises.map(ex => ({
+            id: ex.id,
+            exerciseId: ex.exerciseId,
+            exerciseName: ex.exerciseName,
+            sets: ex.sets.map(s => ({
+              id: s.id,
+              reps: s.reps,
+              weight: s.weight
+            }))
+          }))
+        };
+        updateTemplate(fullTemplate);
+        updateTemplateInDb(fullTemplate);
+      }, 1000); // 1 second debounce
+      return () => clearTimeout(timer);
+    }
+  }, [activeWorkout, activeTemplateId, updateTemplate, updateTemplateInDb]);
+
+  // Dashboard View
+  if (!activeWorkout || !showDetailView) {
     return (
-      <div className="px-4 pt-6">
+      <div className="px-4 pt-6 pb-20">
         <h1 className="mb-2 text-2xl font-bold font-display animate-fade-in">Entrenamiento</h1>
         <p className="mb-8 text-sm text-muted-foreground animate-fade-in">Registra tus ejercicios y pesos</p>
 
-        <div className="flex flex-col items-center justify-center py-16 animate-slide-up">
-          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 animate-pulse-glow">
-            <Dumbbell className="h-10 w-10 text-primary" />
+        <div className="flex flex-col gap-6 animate-slide-up">
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              onClick={() => {
+                if (activeWorkout) {
+                  setShowDetailView(true);
+                } else {
+                  setStartMode("workout");
+                  setShowStartDialog(true);
+                }
+              }}
+              className="h-28 flex flex-col items-center justify-center gap-2 rounded-2xl bg-primary px-4 text-primary-foreground font-semibold shadow-lg hover:bg-primary/90 transition-all glow-border"
+              style={{ boxShadow: "0 0 20px hsl(82 85% 50% / 0.15)" }}
+            >
+              <div className="p-2 bg-white/20 rounded-xl">
+                {activeWorkout ? <Dumbbell className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+              </div>
+              <span className="text-xs text-center leading-tight">
+                {activeWorkout ? "Continuar Entrenamiento" : "Iniciar Entrenamiento"}
+              </span>
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => {
+                setStartMode("template");
+                setShowStartDialog(true);
+              }}
+              className="h-28 flex flex-col items-center justify-center gap-2 rounded-2xl bg-card px-4 border-border glow-border hover:bg-secondary/50 transition-all"
+            >
+              <div className="p-2 bg-primary/10 rounded-xl">
+                <Bookmark className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xs">Crear Plantilla</span>
+            </Button>
           </div>
-          <h2 className="mb-2 text-lg font-semibold font-display">Empieza tu entreno</h2>
-          <p className="mb-8 text-center text-sm text-muted-foreground max-w-[240px]">
-            Registra ejercicios, series y pesos para hacer seguimiento de tu progreso
-          </p>
-          <Button
-            onClick={() => setShowStartDialog(true)}
-            className="h-12 rounded-2xl bg-primary px-8 text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all shadow-lg"
-            style={{ boxShadow: "0 0 20px hsl(82 85% 50% / 0.25)" }}
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            Nuevo Entrenamiento
-          </Button>
+
+          {templates.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground px-1">Tus Plantillas</h3>
+              <div className="grid grid-cols-1 gap-3">
+                {templates.map((template) => (
+                  <div key={template.id} className="rounded-2xl bg-card p-4 glow-border flex items-center justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium">{template.name}</h4>
+                      <p className="text-[11px] text-muted-foreground">
+                        {template.exercises.length} ejercicios · {template.exercises.reduce((acc, ex) => acc + ex.sets.length, 0)} series
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          deleteTemplate(template.id);
+                          deleteTemplateFromDb(template.id);
+                        }}
+                        className="rounded-xl h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          startWorkoutFromTemplate(template);
+                          setShowDetailView(true);
+                        }}
+                        className="rounded-xl h-8 px-4 text-xs"
+                      >
+                        Empezar
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <Dialog open={showStartDialog} onOpenChange={setShowStartDialog}>
           <DialogContent className="bg-card border-border max-w-[340px] rounded-2xl">
             <DialogHeader>
-              <DialogTitle className="font-display">Nombre del entrenamiento</DialogTitle>
+              <DialogTitle className="font-display">
+                {startMode === "template" ? "Nombre de la plantilla" : "Nombre del entrenamiento"}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <Input
-                placeholder="Ej: Pecho y tríceps, Piernas..."
+                placeholder={startMode === "template" ? "Ej: Full Body, Push Day..." : "Ej: Pecho y tríceps, Piernas..."}
                 value={workoutName}
                 onChange={(e) => setWorkoutName(e.target.value)}
                 className="bg-secondary border-border"
@@ -101,7 +250,7 @@ const WorkoutPage = () => {
                 disabled={!workoutName.trim()}
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                Empezar
+                {startMode === "template" ? "Crear Plantilla" : "Empezar"}
               </Button>
             </div>
           </DialogContent>
@@ -110,14 +259,39 @@ const WorkoutPage = () => {
     );
   }
 
+  // Active Session View
   return (
-    <div className="px-4 pt-6">
-      <div className="mb-4 flex items-center justify-between animate-fade-in">
-        <div>
-          <h1 className="text-xl font-bold font-display">{activeWorkout.name}</h1>
-          <p className="text-xs text-muted-foreground">{activeWorkout.exercises.length} ejercicios</p>
+    <div className="px-4 pt-6 pb-20 animate-fade-in">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowDetailView(false)}
+            className="h-8 w-8 p-0 rounded-xl"
+          >
+            <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+          </Button>
+          <div>
+            <h1 className="text-xl font-bold font-display">{activeWorkout.name}</h1>
+            <p className="text-xs text-muted-foreground">
+              {activeWorkoutType === 'template' ? 'Creando plantilla...' : 'Entrenamiento en curso'}
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveAsTemplate}
+            className={`rounded-xl border-primary/30 transition-all ${(isTemplateSaved || activeTemplateId)
+              ? "bg-primary/20 text-primary border-primary shadow-[0_0_10px_rgba(132,204,22,0.3)]"
+              : "text-primary hover:bg-primary/10"
+              }`}
+            title={(isTemplateSaved || activeTemplateId) ? "Plantilla guardada y sincronizada" : "Guardar como plantilla"}
+          >
+            <Bookmark className={`h-4 w-4 ${(isTemplateSaved || activeTemplateId) ? "fill-primary" : ""}`} />
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -131,148 +305,138 @@ const WorkoutPage = () => {
             onClick={handleFinishWorkout}
             className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            <Check className="mr-1 h-4 w-4" />
-            Terminar
+            <Check className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {activeWorkout.exercises.map((exercise, exIdx) => (
-          <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-fade-in">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">{exercise.exerciseName}</h3>
-              <button
-                onClick={() => removeExerciseFromWorkout(exIdx)}
-                className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+      <div className="space-y-6">
+        {activeWorkout.exercises.map((exercise, exerciseIndex) => (
+          <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-slide-up" style={{ animationDelay: `${exerciseIndex * 0.1}s` }}>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-semibold font-display">{exercise.exerciseName}</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeExerciseFromWorkout(exerciseIndex)}
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
 
-            <div className="space-y-1.5">
-              <div className="grid grid-cols-[32px_1fr_1fr_40px] gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1">
-                <span>Serie</span>
-                <span>Peso (kg)</span>
-                <span>Reps</span>
-                <span></span>
-              </div>
-              {exercise.sets.map((set, setIdx) => (
-                <div
-                  key={set.id}
-                  className={`grid grid-cols-[32px_1fr_1fr_40px] gap-2 items-center rounded-xl px-1 py-1.5 transition-colors ${
-                    set.completed ? "bg-primary/10" : ""
-                  }`}
-                >
-                  <span className="text-xs font-semibold text-muted-foreground text-center">{setIdx + 1}</span>
+            <div className="mb-3 grid grid-cols-[1fr,1fr,auto] gap-4 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <span>Peso (kg)</span>
+              <span>Reps</span>
+              <span className="w-8"></span>
+            </div>
+
+            <div className="space-y-2">
+              {exercise.sets.map((set, setIndex) => (
+                <div key={set.id} className="grid grid-cols-[1fr,1fr,auto] gap-4 items-center">
                   <Input
                     type="number"
                     value={set.weight || ""}
-                    onChange={(e) =>
-                      updateSet(exIdx, setIdx, { weight: parseFloat(e.target.value) || 0 })
-                    }
-                    className="h-8 bg-secondary border-none text-center text-sm rounded-lg"
-                    placeholder="0"
+                    onChange={(e) => updateSet(exerciseIndex, setIndex, { weight: parseFloat(e.target.value) || 0 })}
+                    className="h-10 rounded-xl border-border bg-secondary/50 text-center font-medium focus:ring-primary"
                   />
                   <Input
                     type="number"
                     value={set.reps || ""}
-                    onChange={(e) =>
-                      updateSet(exIdx, setIdx, { reps: parseInt(e.target.value) || 0 })
-                    }
-                    className="h-8 bg-secondary border-none text-center text-sm rounded-lg"
-                    placeholder="0"
+                    onChange={(e) => updateSet(exerciseIndex, setIndex, { reps: parseInt(e.target.value) || 0 })}
+                    className="h-10 rounded-xl border-border bg-secondary/50 text-center font-medium focus:ring-primary"
                   />
-                  <button
-                    onClick={() => updateSet(exIdx, setIdx, { completed: !set.completed })}
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
-                      set.completed
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-secondary text-muted-foreground hover:bg-secondary/80"
-                    }`}
+                  <Button
+                    variant={set.completed ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => updateSet(exerciseIndex, setIndex, { completed: !set.completed })}
+                    className={`h-10 w-10 rounded-xl transition-all ${set.completed ? "bg-primary text-primary-foreground scale-95" : "border-border text-muted-foreground hover:border-primary/50"}`}
                   >
                     <Check className="h-4 w-4" />
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
 
-            <button
-              onClick={() => addSetToExercise(exIdx)}
-              className="mt-2 flex w-full items-center justify-center gap-1 rounded-xl py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => addSetToExercise(exerciseIndex)}
+              className="mt-4 w-full rounded-xl border border-dashed border-border py-2 text-xs text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
             >
-              <Plus className="h-3.5 w-3.5" />
-              Añadir serie
-            </button>
+              <Plus className="mr-2 h-3 w-3" />
+              Añadir Serie
+            </Button>
           </div>
         ))}
+
+        <Button
+          onClick={() => setShowExercisePicker(true)}
+          className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/40 transition-all font-display font-semibold"
+        >
+          <Plus className="mr-2 h-5 w-5" />
+          Añadir Ejercicio
+        </Button>
       </div>
 
-      <button
-        onClick={() => setShowExercisePicker(true)}
-        className="mt-4 mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border py-4 text-sm font-medium text-muted-foreground hover:border-primary/40 hover:text-primary transition-all"
-      >
-        <Plus className="h-5 w-5" />
-        Añadir ejercicio
-      </button>
-
       <Dialog open={showExercisePicker} onOpenChange={setShowExercisePicker}>
-        <DialogContent className="bg-card border-border max-w-[380px] max-h-[80vh] rounded-2xl p-0 overflow-hidden">
-          <div className="p-4 pb-2">
-            <DialogHeader>
-              <DialogTitle className="font-display">Seleccionar ejercicio</DialogTitle>
+        <DialogContent className="bg-card border-border h-[80vh] flex flex-col p-0 overflow-hidden rounded-t-3xl sm:rounded-2xl">
+          <div className="p-6 pb-2">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="font-display text-xl">Añadir Ejercicio</DialogTitle>
             </DialogHeader>
-            <div className="mt-3 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar ejercicio..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-secondary border-none pl-9 rounded-xl"
-                autoFocus
-              />
-            </div>
-            <div className="mt-3 flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-              <button
-                onClick={() => setSelectedMuscle("all")}
-                className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                  selectedMuscle === "all"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-muted-foreground"
-                }`}
-              >
-                Todos
-              </button>
-              {muscleGroups.map(([key, label]) => (
-                <button
-                  key={key}
-                  onClick={() => setSelectedMuscle(key)}
-                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                    selectedMuscle === key
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-muted-foreground"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar ejercicio..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-secondary pl-9 h-11 rounded-xl border-border"
+                />
+              </div>
+              <div className="mt-4 -mx-6 overflow-x-auto pb-2 no-scrollbar touch-pan-x">
+                <div className="flex gap-2 px-6 whitespace-nowrap">
+                  <Button
+                    variant={selectedMuscle === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedMuscle("all")}
+                    className="rounded-xl h-8 px-4 text-xs shrink-0"
+                  >
+                    Todos
+                  </Button>
+                  {muscleGroups.map(([key, label]) => (
+                    <Button
+                      key={key}
+                      variant={selectedMuscle === key ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedMuscle(key)}
+                      className="rounded-xl h-8 px-4 text-xs shrink-0"
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="max-h-[50vh] overflow-y-auto px-4 pb-4 space-y-1">
-            {filteredExercises.map((exercise) => (
+          <div className="flex-1 overflow-y-auto p-6 pt-0 space-y-3 no-scrollbar">
+            {filteredExercises.map((ex) => (
               <button
-                key={exercise.id}
-                onClick={() => handleSelectExercise(exercise.id, exercise.name)}
-                className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left hover:bg-secondary/70 transition-colors"
+                key={ex.id}
+                onClick={() => handleSelectExercise(ex.id, ex.name)}
+                className="flex w-full items-center justify-between rounded-2xl bg-secondary/50 p-4 text-left transition-all hover:bg-secondary active:scale-[0.98] glow-border"
               >
                 <div>
-                  <p className="text-sm font-medium text-foreground">{exercise.name}</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {muscleGroupLabels[exercise.muscleGroup]} · {exercise.type}
+                  <h4 className="font-semibold text-sm">{ex.name}</h4>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
+                    {muscleGroupLabels[ex.muscleGroup]}
                   </p>
                 </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground rotate-[-90deg]" />
+                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Plus className="h-4 w-4 text-primary" />
+                </div>
               </button>
             ))}
             {filteredExercises.length === 0 && (

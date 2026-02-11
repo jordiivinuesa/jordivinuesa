@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppStore, type MealEntry } from "@/store/useAppStore";
 import { useDbSync } from "@/hooks/useDbSync";
 import { foods, foodCategoryLabels, foodCategoryIcons, type FoodCategory, type FoodItem } from "@/data/foods";
-import { Plus, Search, Trash2, X } from "lucide-react";
+import { Plus, Search, Trash2, X, ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -176,33 +176,31 @@ const NutritionPage = () => {
                     autoFocus
                   />
                 </div>
-                <div className="mt-3 flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-                  <button
-                    onClick={() => setSelectedCategory("all")}
-                    className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                      selectedCategory === "all"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-muted-foreground"
-                    }`}
-                  >
-                    Todos
-                  </button>
-                  {categories.map(([key, label]) => (
-                    <button
-                      key={key}
-                      onClick={() => setSelectedCategory(key)}
-                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
-                        selectedCategory === key
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-muted-foreground"
-                      }`}
+                <div className="mt-4 -mx-4 overflow-x-auto no-scrollbar pb-2 touch-pan-x">
+                  <div className="flex gap-2 px-4 whitespace-nowrap">
+                    <Button
+                      variant={selectedCategory === "all" ? "default" : "secondary"}
+                      size="sm"
+                      onClick={() => setSelectedCategory("all")}
+                      className="rounded-xl h-8 px-4 text-xs shrink-0"
                     >
-                      {foodCategoryIcons[key]} {label}
-                    </button>
-                  ))}
+                      Todos
+                    </Button>
+                    {categories.map(([key, label]) => (
+                      <Button
+                        key={key}
+                        variant={selectedCategory === key ? "default" : "secondary"}
+                        size="sm"
+                        onClick={() => setSelectedCategory(key)}
+                        className="rounded-xl h-8 px-4 text-xs shrink-0"
+                      >
+                        {foodCategoryIcons[key]} {label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="max-h-[50vh] overflow-y-auto px-4 pb-4 space-y-0.5">
+              <div className="max-h-[50vh] overflow-y-auto px-4 pb-4 space-y-0.5 no-scrollbar">
                 {filteredFoods.map((food) => (
                   <button
                     key={food.id}
@@ -227,7 +225,7 @@ const NutritionPage = () => {
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <button onClick={() => setSelectedFood(null)} className="text-muted-foreground hover:text-foreground">
-                  <X className="h-5 w-5" />
+                  <ArrowLeft className="h-5 w-5" />
                 </button>
                 <DialogTitle className="font-display text-base">{selectedFood.name}</DialogTitle>
                 <div className="w-5" />

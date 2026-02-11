@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { exercises, muscleGroupLabels, type MuscleGroup } from "@/data/exercises";
-import { Plus, Trash2, Check, X, Search, ChevronDown, Loader2, Save } from "lucide-react";
+import { Plus, Trash2, Check, X, Search, ChevronRight, Loader2, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore, type Workout, type WorkoutExercise, type WorkoutSet } from "@/store/useAppStore";
@@ -243,7 +243,7 @@ const EditWorkoutDialog = ({ open, onOpenChange, workout, date, onSaved }: EditW
             />
           </div>
 
-          <div className="overflow-y-auto max-h-[55vh] px-4 pb-2 space-y-3">
+          <div className="overflow-y-auto max-h-[55vh] px-4 pb-2 space-y-3 no-scrollbar">
             {editedExercises.map((exercise, exIdx) => (
               <div key={exercise.id} className="rounded-xl bg-secondary/50 p-3">
                 <div className="flex items-center justify-between mb-2">
@@ -267,9 +267,8 @@ const EditWorkoutDialog = ({ open, onOpenChange, workout, date, onSaved }: EditW
                   {exercise.sets.map((set, setIdx) => (
                     <div
                       key={set.id}
-                      className={`grid grid-cols-[28px_1fr_1fr_32px_32px] gap-1.5 items-center rounded-lg px-0.5 py-1 transition-colors ${
-                        set.completed ? "bg-primary/10" : ""
-                      }`}
+                      className={`grid grid-cols-[28px_1fr_1fr_32px_32px] gap-1.5 items-center rounded-lg px-0.5 py-1 transition-colors ${set.completed ? "bg-primary/10" : ""
+                        }`}
                     >
                       <span className="text-xs text-muted-foreground text-center">{setIdx + 1}</span>
                       <Input
@@ -288,11 +287,10 @@ const EditWorkoutDialog = ({ open, onOpenChange, workout, date, onSaved }: EditW
                       />
                       <button
                         onClick={() => updateSet(exIdx, setIdx, { completed: !set.completed })}
-                        className={`flex h-7 w-7 items-center justify-center rounded-md transition-all ${
-                          set.completed
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-background text-muted-foreground"
-                        }`}
+                        className={`flex h-7 w-7 items-center justify-center rounded-md transition-all ${set.completed
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background text-muted-foreground"
+                          }`}
                       >
                         <Check className="h-3.5 w-3.5" />
                       </button>
@@ -357,30 +355,32 @@ const EditWorkoutDialog = ({ open, onOpenChange, workout, date, onSaved }: EditW
                 autoFocus
               />
             </div>
-            <div className="mt-3 flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-              <button
-                onClick={() => setSelectedMuscle("all")}
-                className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                  selectedMuscle === "all" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                }`}
-              >
-                Todos
-              </button>
-              {muscleGroups.map(([key, label]) => (
-                <button
-                  key={key}
-                  onClick={() => setSelectedMuscle(key)}
-                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                    selectedMuscle === key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                  }`}
+            <div className="mt-4 -mx-4 overflow-x-auto pb-2 no-scrollbar touch-pan-x">
+              <div className="flex gap-2 px-4 whitespace-nowrap">
+                <Button
+                  variant={selectedMuscle === "all" ? "default" : "secondary"}
+                  size="sm"
+                  onClick={() => setSelectedMuscle("all")}
+                  className="rounded-xl h-8 px-4 text-xs shrink-0"
                 >
-                  {label}
-                </button>
-              ))}
+                  Todos
+                </Button>
+                {muscleGroups.map(([key, label]) => (
+                  <Button
+                    key={key}
+                    variant={selectedMuscle === key ? "default" : "secondary"}
+                    size="sm"
+                    onClick={() => setSelectedMuscle(key)}
+                    className="rounded-xl h-8 px-4 text-xs shrink-0"
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="max-h-[50vh] overflow-y-auto px-4 pb-4 space-y-1">
+          <div className="max-h-[50vh] overflow-y-auto px-4 pb-4 space-y-1 no-scrollbar">
             {filteredExercises.map((exercise) => (
               <button
                 key={exercise.id}
@@ -393,7 +393,7 @@ const EditWorkoutDialog = ({ open, onOpenChange, workout, date, onSaved }: EditW
                     {muscleGroupLabels[exercise.muscleGroup]} · {exercise.type}
                   </p>
                 </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground rotate-[-90deg]" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
             ))}
             {filteredExercises.length === 0 && (
