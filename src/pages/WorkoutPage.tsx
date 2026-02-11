@@ -27,7 +27,7 @@ const WorkoutPage = () => {
     startWorkoutFromTemplate,
   } = useAppStore();
 
-  const { saveWorkoutToDb, saveTemplateToDb, updateTemplateInDb, deleteTemplateFromDb, loadTemplates } = useDbSync();
+  const { saveWorkoutToDb, saveTemplateToDb, updateTemplateInDb, deleteTemplateFromDb, loadTemplates, pushAllTemplatesToDb } = useDbSync();
 
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -198,6 +198,16 @@ const WorkoutPage = () => {
               >
                 Actualizar
               </Button>
+              {templates.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => pushAllTemplatesToDb()}
+                  className="h-7 px-2 text-[10px] border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  Sincronizar Cloud
+                </Button>
+              )}
             </div>
 
             {templates.length > 0 ? (

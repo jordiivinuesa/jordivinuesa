@@ -258,7 +258,16 @@ export function useDbSync() {
       }));
 
       console.log(`Sync: Successfully loaded ${fullTemplates.length} templates`);
-      useAppStore.setState({ templates: fullTemplates });
+
+      const localTemplates = useAppStore.getState().templates;
+
+      // If remote is empty but local has data, it's likely a first-time sync
+      // We don't overwrite local data with empty remote to avoid data loss
+      if (fullTemplates.length === 0 && localTemplates.length > 0) {
+        console.log('Sync: Remote is empty but local has templates. Preserving local data.');
+      } else {
+        useAppStore.setState({ templates: fullTemplates });
+      }
     } catch (error: any) {
       console.error('Sync: Error loading templates:', error);
       if (error?.code === 'PGRST116' || error?.message?.includes('not found') || error?.status === 404) {
@@ -269,6 +278,26 @@ export function useDbSync() {
         });
       }
     }
+  }, [user]);
+
+  // Push all local templates to DB (Migration utility)
+  const pushAllTemplatesToDb = useCallback(async () => {
+    const localTemplates = useAppStore.getState().templates;
+    if (localTemplates.length === 0) return;
+
+    toast({
+      title: "Sincronizando...",
+      description: `Subiendo ${localTemplates.length} plantillas a la nube...`,
+    });
+
+    for (const template of localTemplates) {
+      await saveTemplateToDb(template);
+    }
+
+    toast({
+      title: "Sincronización completada",
+      description: "Todas tus plantillas locales están ahora en la nube.",
+    });
   }, [user]);
 
   // Load data when user or date changes
@@ -357,6 +386,7 @@ export function useDbSync() {
     saveTemplateToDb,
     updateTemplateInDb,
     deleteTemplateFromDb,
+    pushAllTemplatesToDb,
     loadMeals,
     loadWorkout,
     loadTemplates
