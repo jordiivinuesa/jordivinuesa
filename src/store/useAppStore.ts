@@ -15,11 +15,22 @@ export interface WorkoutExercise {
   sets: WorkoutSet[];
 }
 
+export interface ActivitySession {
+  id: string;
+  activityId: string;
+  activityName: string;
+  duration: number; // minutes
+  intensity?: 'baja' | 'media' | 'alta';
+  notes?: string;
+}
+
 export interface Workout {
   id: string;
   date: string;
   name: string;
-  exercises: WorkoutExercise[];
+  type: 'ejercicios' | 'actividad'; // Type of workout
+  exercises?: WorkoutExercise[]; // For traditional gym workouts
+  activity?: ActivitySession; // For sports and group classes
   duration?: number; // minutes
 }
 
@@ -90,6 +101,10 @@ export interface AppState {
   finishWorkout: () => void;
   cancelWorkout: () => void;
 
+  // Activity actions
+  startActivity: (activityId: string, activityName: string) => void;
+  updateActivity: (updates: Partial<ActivitySession>) => void;
+
   // Template actions
   addTemplate: (template: WorkoutTemplate) => void;
   updateTemplate: (template: WorkoutTemplate) => void;
@@ -152,6 +167,7 @@ export const useAppStore = create<AppState>()(
           id: generateId(),
           date: get().currentDate,
           name,
+          type: 'ejercicios', // Default to exercise-based workout
           exercises: []
         },
         activeTemplateId: null,
@@ -237,6 +253,38 @@ export const useAppStore = create<AppState>()(
 
       cancelWorkout: () => set({ activeWorkout: null, activeTemplateId: null, activeWorkoutType: null }),
 
+      startActivity: (activityId, activityName) => set({
+        activeWorkout: {
+          id: generateId(),
+          date: get().currentDate,
+          name: activityName,
+          type: 'actividad',
+          activity: {
+            id: generateId(),
+            activityId,
+            activityName,
+            duration: 0,
+          }
+        },
+        activeTemplateId: null,
+        activeWorkoutType: 'workout'
+      }),
+
+      updateActivity: (updates) => set((state) => {
+        if (!state.activeWorkout || state.activeWorkout.type !== 'actividad' || !state.activeWorkout.activity) {
+          return state;
+        }
+        return {
+          activeWorkout: {
+            ...state.activeWorkout,
+            activity: {
+              ...state.activeWorkout.activity,
+              ...updates
+            }
+          }
+        };
+      }),
+
       addTemplate: (template) => set((state) => ({
         templates: [...state.templates, template]
       })),
@@ -255,6 +303,7 @@ export const useAppStore = create<AppState>()(
             id: generateId(),
             date: get().currentDate,
             name: template.name,
+            type: 'ejercicios', // Templates are exercise-based
             exercises: template.exercises.map(te => ({
               id: generateId(),
               exerciseId: te.exerciseId,

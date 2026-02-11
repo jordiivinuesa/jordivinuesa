@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useTemplateSharing, type SharedTemplate } from "@/hooks/useTemplateSharing";
 import ShareTemplateDialog from "@/components/workout/ShareTemplateDialog";
-import { Send, CheckCircle, XCircle } from "lucide-react";
+import ActivityPicker from "@/components/workout/ActivityPicker";
+import { Send, CheckCircle, XCircle, Activity } from "lucide-react";
 import type { WorkoutTemplate } from "@/store/useAppStore";
 import { useNotifications } from "@/hooks/useNotifications";
 
@@ -34,6 +35,8 @@ const WorkoutPage = () => {
     updateTemplate,
     deleteTemplate,
     startWorkoutFromTemplate,
+    startActivity,
+    updateActivity,
   } = useAppStore();
 
   const { saveWorkoutToDb, saveTemplateToDb, updateTemplateInDb, deleteTemplateFromDb, loadTemplates } = useDbSync();
@@ -47,6 +50,7 @@ const WorkoutPage = () => {
   const [startMode, setStartMode] = useState<"workout" | "template">("workout");
   const [isTemplateSaved, setIsTemplateSaved] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
+  const [showActivityPicker, setShowActivityPicker] = useState(false);
   const { pendingShares, updateShareStatus, fetchPendingShares } = useTemplateSharing();
   const [sharingTemplate, setSharingTemplate] = useState<WorkoutTemplate | null>(null);
 
@@ -105,6 +109,12 @@ const WorkoutPage = () => {
     setShowExercisePicker(false);
     setSearchQuery("");
     setSelectedMuscle("all");
+  };
+
+  const handleSelectActivity = (activityId: string, activityName: string) => {
+    startActivity(activityId, activityName);
+    setShowActivityPicker(false);
+    setShowDetailView(true);
   };
 
   const handleFinishWorkout = () => {
@@ -269,6 +279,17 @@ const WorkoutPage = () => {
                 <Bookmark className="h-5 w-5 text-primary" />
               </div>
               <span className="text-xs">Crear Plantilla</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => setShowActivityPicker(true)}
+              className="h-28 flex flex-col items-center justify-center gap-2 rounded-2xl bg-card px-4 border-border glow-border hover:bg-secondary/50 transition-all"
+            >
+              <div className="p-2 bg-primary/10 rounded-xl">
+                <Activity className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xs text-center leading-tight">Registrar Actividad</span>
             </Button>
           </div>
 
@@ -467,7 +488,7 @@ const WorkoutPage = () => {
       </div>
 
       <div className="space-y-6">
-        {activeWorkout.exercises.map((exercise, exerciseIndex) => (
+        {activeWorkout.type === 'ejercicios' && activeWorkout.exercises && activeWorkout.exercises.map((exercise, exerciseIndex) => (
           <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-slide-up" style={{ animationDelay: `${exerciseIndex * 0.1} s` }}>
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-semibold font-display">{exercise.exerciseName}</h3>
@@ -526,13 +547,60 @@ const WorkoutPage = () => {
           </div>
         ))}
 
-        <Button
-          onClick={() => setShowExercisePicker(true)}
-          className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/40 transition-all font-display font-semibold"
-        >
-          <Plus className="mr-2 h-5 w-5" />
-          Añadir Ejercicio
-        </Button>
+        {/* Activity-based workout */}
+        {activeWorkout.type === 'actividad' && activeWorkout.activity && (
+          <div className="rounded-2xl bg-card p-6 glow-border animate-slide-up space-y-6">
+            {/* Duration */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Duración (minutos)</label>
+              <Input
+                type="number"
+                value={activeWorkout.activity.duration || ""}
+                onChange={(e) => updateActivity({ duration: parseInt(e.target.value) || 0 })}
+                placeholder="60"
+                className="h-12 rounded-xl border-border bg-secondary/50 text-center text-2xl font-bold focus:ring-primary"
+              />
+            </div>
+
+            {/* Intensity */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Intensidad</label>
+              <div className="grid grid-cols-3 gap-3">
+                {(['baja', 'media', 'alta'] as const).map((intensity) => (
+                  <Button
+                    key={intensity}
+                    variant={activeWorkout.activity?.intensity === intensity ? "default" : "outline"}
+                    onClick={() => updateActivity({ intensity })}
+                    className="rounded-xl h-12 capitalize"
+                  >
+                    {intensity}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Notas (opcional)</label>
+              <Input
+                value={activeWorkout.activity.notes || ""}
+                onChange={(e) => updateActivity({ notes: e.target.value })}
+                placeholder="Ej: Partido amistoso, clase avanzada..."
+                className="h-10 rounded-xl border-border bg-secondary/50 focus:ring-primary"
+              />
+            </div>
+          </div>
+        )}
+
+        {activeWorkout.type === 'ejercicios' && (
+          <Button
+            onClick={() => setShowExercisePicker(true)}
+            className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/40 transition-all font-display font-semibold"
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            Añadir Ejercicio
+          </Button>
+        )}
       </div>
 
       <Dialog open={showExercisePicker} onOpenChange={setShowExercisePicker}>
@@ -599,6 +667,16 @@ const WorkoutPage = () => {
               <p className="py-8 text-center text-sm text-muted-foreground">No se encontraron ejercicios</p>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Activity Picker Dialog */}
+      <Dialog open={showActivityPicker} onOpenChange={setShowActivityPicker}>
+        <DialogContent className="bg-card border-border max-w-[500px] h-[600px] p-0 rounded-2xl">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="font-display">Seleccionar Actividad</DialogTitle>
+          </DialogHeader>
+          <ActivityPicker onSelect={handleSelectActivity} />
         </DialogContent>
       </Dialog>
     </div>
