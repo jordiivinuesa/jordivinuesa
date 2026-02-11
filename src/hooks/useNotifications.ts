@@ -37,15 +37,20 @@ export function useNotifications() {
     const markAsRead = useCallback(async () => {
         if (!user) return;
 
-        // No comprobamos notifications.length para que ProfilePage 
-        // pueda limpiar la DB aunque su copia local esté vacía al cargar
+        if (notifications.length > 0) {
+            console.log("Intentando marcar como leídas:", notifications.length, "notificaciones");
+        }
+
         const { error } = await supabase
             .from("notifications")
             .update({ is_read: true })
             .eq("user_id", user.id)
             .eq("is_read", false);
 
-        if (!error) {
+        if (error) {
+            console.error("Error al marcar como leídas:", error);
+        } else {
+            if (notifications.length > 0) console.log("Notificaciones marcadas como leídas en BD");
             setNotifications([]);
         }
     }, [user]);
@@ -67,6 +72,7 @@ export function useNotifications() {
                     filter: `user_id=eq.${user.id}`,
                 },
                 (payload) => {
+                    console.log("Evento Realtime recibido:", payload.eventType, payload);
                     if (payload.eventType === "INSERT") {
                         const newNotif = payload.new as Notification;
                         if (!newNotif.is_read) {
