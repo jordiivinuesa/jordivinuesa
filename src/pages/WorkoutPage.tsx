@@ -283,7 +283,10 @@ const WorkoutPage = () => {
 
             <Button
               variant="outline"
-              onClick={() => setShowActivityPicker(true)}
+              onClick={() => {
+                console.log('Registrar Actividad clicked');
+                setShowActivityPicker(true);
+              }}
               className="h-28 flex flex-col items-center justify-center gap-2 rounded-2xl bg-card px-4 border-border glow-border hover:bg-secondary/50 transition-all"
             >
               <div className="p-2 bg-primary/10 rounded-xl">
@@ -488,7 +491,8 @@ const WorkoutPage = () => {
       </div>
 
       <div className="space-y-6">
-        {activeWorkout.type === 'ejercicios' && activeWorkout.exercises && activeWorkout.exercises.map((exercise, exerciseIndex) => (
+        {/* Exercise-based workout (default for backward compatibility) */}
+        {activeWorkout.type !== 'actividad' && activeWorkout.exercises && activeWorkout.exercises.map((exercise, exerciseIndex) => (
           <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-slide-up" style={{ animationDelay: `${exerciseIndex * 0.1} s` }}>
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-semibold font-display">{exercise.exerciseName}</h3>
@@ -592,7 +596,7 @@ const WorkoutPage = () => {
           </div>
         )}
 
-        {activeWorkout.type === 'ejercicios' && (
+        {activeWorkout.type !== 'actividad' && (
           <Button
             onClick={() => setShowExercisePicker(true)}
             className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/40 transition-all font-display font-semibold"
