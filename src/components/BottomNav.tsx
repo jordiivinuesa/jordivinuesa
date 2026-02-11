@@ -34,12 +34,9 @@ const BottomNav = () => {
                 <span className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary" />
               )}
               {item.label === "Perfil" && (hasLikes || hasFollows) && (
-                <div className="absolute -top-1 -right-1 flex animate-pulse">
-                  {hasLikes ? (
-                    <Heart className="h-3 w-3 fill-primary text-primary" />
-                  ) : (
-                    <User className="h-3 w-3 text-primary fill-primary" />
-                  )}
+                <div className="absolute -top-1.5 -right-2 flex gap-0.5 animate-pulse bg-background/50 rounded-full px-0.5">
+                  {hasLikes && <Heart className="h-2.5 w-2.5 fill-primary text-primary" />}
+                  {hasFollows && <User className="h-2.5 w-2.5 text-primary fill-primary" />}
                 </div>
               )}
             </div>

@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
-export type NotificationType = "like" | "follow";
+export type NotificationType = "like" | "follow" | "comment";
 
 export interface Notification {
     id: string;
     user_id: string;
     actor_id: string;
-    type: NotificationType;
-    post_id?: string;
+    type: string;
+    post_id: string | null;
     is_read: boolean;
     created_at: string;
 }
@@ -22,11 +22,11 @@ export function useNotifications() {
     const fetchNotifications = useCallback(async () => {
         if (!user) return;
 
-        const { data, error } = await (supabase
-            .from("notifications" as any)
+        const { data, error } = await supabase
+            .from("notifications")
             .select("*")
             .eq("user_id", user.id)
-            .eq("is_read", false) as any);
+            .eq("is_read", false);
 
         if (!error && data) {
             setNotifications(data as Notification[]);
@@ -37,11 +37,11 @@ export function useNotifications() {
     const markAsRead = useCallback(async () => {
         if (!user || notifications.length === 0) return;
 
-        const { error } = await (supabase
-            .from("notifications" as any)
-            .update({ is_read: true } as any)
+        const { error } = await supabase
+            .from("notifications")
+            .update({ is_read: true })
             .eq("user_id", user.id)
-            .eq("is_read", false) as any);
+            .eq("is_read", false);
 
         if (!error) {
             setNotifications([]);
@@ -57,7 +57,7 @@ export function useNotifications() {
         const channel = supabase
             .channel(`user-notifications-${user.id}`)
             .on(
-                "postgres_changes" as any,
+                "postgres_changes",
                 {
                     event: "INSERT",
                     schema: "public",
