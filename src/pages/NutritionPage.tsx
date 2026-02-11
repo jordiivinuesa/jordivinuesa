@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppStore, type MealEntry } from "@/store/useAppStore";
 import { useDbSync } from "@/hooks/useDbSync";
 import { foods, foodCategoryLabels, foodCategoryIcons, type FoodCategory, type FoodItem } from "@/data/foods";
-import { Plus, Search, Trash2, X, ArrowLeft } from "lucide-react";
+import { Plus, Search, Trash2, X, ArrowLeft, History } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,10 @@ const mealTypeLabels: Record<MealType, string> = {
   snack: "🍫 Snack",
 };
 
+import { useNavigate } from "react-router-dom";
+
 const NutritionPage = () => {
+  const navigate = useNavigate();
   const { currentDate, dayLogs, addMealEntry, removeMealEntry, calorieGoal, proteinGoal, carbsGoal, fatGoal } = useAppStore();
   const { saveMealToDb, deleteMealFromDb } = useDbSync();
   const dayLog = dayLogs[currentDate];
@@ -93,7 +96,20 @@ const NutritionPage = () => {
 
   return (
     <div className="px-4 pt-6">
-      <h1 className="mb-2 text-2xl font-bold font-display animate-fade-in">Nutrición</h1>
+      <div className="flex items-center justify-between mb-2 animate-fade-in text-foreground">
+        <div>
+          <h1 className="text-2xl font-bold font-display">Nutrición</h1>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/history?tab=nutrition")}
+          className="rounded-xl h-9 w-9 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          title="Ver historial de nutrición"
+        >
+          <History className="h-5 w-5" />
+        </Button>
+      </div>
       <p className="mb-4 text-sm text-muted-foreground animate-fade-in">Controla tus calorías y macros</p>
 
       {/* Summary Bar */}
@@ -311,7 +327,7 @@ const NutritionPage = () => {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 };
 

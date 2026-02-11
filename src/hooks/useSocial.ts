@@ -358,6 +358,42 @@ export function useSocial() {
     [user]
   );
 
+  const fetchFollowers = useCallback(
+    async (userId: string) => {
+      const { data: follows } = await supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("following_id", userId);
+
+      if (!follows?.length) return [];
+
+      const { data: profiles } = await supabase.rpc("get_public_profiles", {
+        user_ids: follows.map(f => f.follower_id)
+      });
+
+      return profiles || [];
+    },
+    []
+  );
+
+  const fetchFollowing = useCallback(
+    async (userId: string) => {
+      const { data: follows } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", userId);
+
+      if (!follows?.length) return [];
+
+      const { data: profiles } = await supabase.rpc("get_public_profiles", {
+        user_ids: follows.map(f => f.following_id)
+      });
+
+      return profiles || [];
+    },
+    []
+  );
+
   const searchUsers = useCallback(
     async (query: string) => {
       if (!user || !query.trim()) return [];
@@ -385,6 +421,8 @@ export function useSocial() {
     followUser,
     unfollowUser,
     fetchUserProfile,
+    fetchFollowers,
+    fetchFollowing,
     searchUsers,
   };
 }

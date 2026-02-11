@@ -171,14 +171,14 @@ const SettingsPage = () => {
   return (
     <div className="px-4 pt-6 pb-24 animate-fade-in max-w-lg mx-auto">
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => navigate("/profile")}
         className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        <span className="text-sm">Volver</span>
+        <span className="text-sm">Volver al perfil</span>
       </button>
 
-      <h1 className="text-xl font-bold font-display text-foreground mb-6">Mi perfil</h1>
+      <h1 className="text-xl font-bold font-display text-foreground mb-6">Configuración de cuenta</h1>
 
       <div className="space-y-8">
         {/* Nombre de usuario */}
@@ -213,9 +213,8 @@ const SettingsPage = () => {
                 ].map((opt) => (
                   <label
                     key={opt.value}
-                    className={`flex items-center gap-3 rounded-2xl p-3 cursor-pointer transition-all ${
-                      form.sex === opt.value ? "bg-primary/10 glow-border" : "bg-card hover:bg-card/80"
-                    }`}
+                    className={`flex items-center gap-3 rounded-2xl p-3 cursor-pointer transition-all ${form.sex === opt.value ? "bg-primary/10 glow-border" : "bg-card hover:bg-card/80"
+                      }`}
                   >
                     <RadioGroupItem value={opt.value} />
                     <span>{opt.emoji}</span>
@@ -245,9 +244,8 @@ const SettingsPage = () => {
             {FITNESS_GOALS.map((goal) => (
               <label
                 key={goal.value}
-                className={`flex items-center gap-3 rounded-2xl p-3 cursor-pointer transition-all ${
-                  form.fitness_goal === goal.value ? "bg-primary/10 glow-border" : "bg-card hover:bg-card/80"
-                }`}
+                className={`flex items-center gap-3 rounded-2xl p-3 cursor-pointer transition-all ${form.fitness_goal === goal.value ? "bg-primary/10 glow-border" : "bg-card hover:bg-card/80"
+                  }`}
               >
                 <RadioGroupItem value={goal.value} />
                 <span className="text-lg">{goal.icon}</span>
@@ -266,9 +264,8 @@ const SettingsPage = () => {
             {ACTIVITY_LEVELS.map((level) => (
               <label
                 key={level.value}
-                className={`flex items-center gap-3 rounded-2xl p-3 cursor-pointer transition-all ${
-                  form.activity_level === level.value ? "bg-primary/10 glow-border" : "bg-card hover:bg-card/80"
-                }`}
+                className={`flex items-center gap-3 rounded-2xl p-3 cursor-pointer transition-all ${form.activity_level === level.value ? "bg-primary/10 glow-border" : "bg-card hover:bg-card/80"
+                  }`}
               >
                 <RadioGroupItem value={level.value} />
                 <div>

@@ -13,6 +13,7 @@ import HistoryPage from "./pages/HistoryPage";
 import ChatPage from "./pages/ChatPage";
 import SocialFeedPage from "./pages/SocialFeedPage";
 import UserProfilePage from "./pages/UserProfilePage";
+import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -90,6 +91,7 @@ const AppRoutes = () => (
               <Route path="/social/user/:userId" element={<UserProfilePage />} />
               <Route path="/nutrition" element={<NutritionPage />} />
               <Route path="/history" element={<HistoryPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

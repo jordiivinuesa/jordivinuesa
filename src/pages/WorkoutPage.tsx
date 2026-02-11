@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { useDbSync } from "@/hooks/useDbSync";
 import { exercises, type MuscleGroup, muscleGroupLabels } from "@/data/exercises";
-import { Plus, Dumbbell, Check, X, Trash2, Search, ArrowLeft, Bookmark, ChevronDown, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Plus, Dumbbell, Check, X, Trash2, Search, ArrowLeft, Bookmark, ChevronDown, ChevronRight, CheckCircle2, History } from "lucide-react";
 import { removeAccents } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,10 @@ import ShareTemplateDialog from "@/components/workout/ShareTemplateDialog";
 import { Send, CheckCircle, XCircle } from "lucide-react";
 import type { WorkoutTemplate } from "@/store/useAppStore";
 
+import { useNavigate } from "react-router-dom";
+
 const WorkoutPage = () => {
+  const navigate = useNavigate();
   const {
     activeWorkout,
     activeTemplateId,
@@ -178,7 +181,20 @@ const WorkoutPage = () => {
   if (!activeWorkout || !showDetailView) {
     return (
       <div className="px-4 pt-6 pb-20">
-        <h1 className="mb-2 text-2xl font-bold font-display animate-fade-in">Entrenamiento</h1>
+        <div className="flex items-center justify-between mb-2 animate-fade-in text-foreground">
+          <div>
+            <h1 className="text-2xl font-bold font-display">Entrenamiento</h1>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/history?tab=workouts")}
+            className="rounded-xl h-9 w-9 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+            title="Ver historial de entrenamientos"
+          >
+            <History className="h-5 w-5" />
+          </Button>
+        </div>
         <p className="mb-8 text-sm text-muted-foreground animate-fade-in">Registra tus ejercicios y pesos</p>
 
         <div className="flex flex-col gap-6 animate-slide-up">

@@ -6,6 +6,7 @@ import { useSocial, type Post, type UserProfile } from "@/hooks/useSocial";
 import { useAuth } from "@/hooks/useAuth";
 import PostCard from "@/components/social/PostCard";
 import CommentSheet from "@/components/social/CommentSheet";
+import FollowListSheet from "@/components/social/FollowListSheet";
 
 const UserProfilePage = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -21,12 +22,18 @@ const UserProfilePage = () => {
     addComment,
     deleteComment,
     deletePost,
+    fetchFollowers,
+    fetchFollowing,
   } = useSocial();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentPostId, setCommentPostId] = useState<string | null>(null);
+  const [followList, setFollowList] = useState<{ open: boolean; type: "followers" | "following" }>({
+    open: false,
+    type: "followers",
+  });
   const isOwnProfile = user?.id === userId;
 
   const loadData = useCallback(async () => {
@@ -124,14 +131,20 @@ const UserProfilePage = () => {
                 <p className="text-sm font-bold text-foreground">{profile.posts_count}</p>
                 <p className="text-[10px] text-muted-foreground">Posts</p>
               </div>
-              <div className="text-center">
+              <button
+                onClick={() => setFollowList({ open: true, type: "followers" })}
+                className="text-center hover:opacity-70 transition-opacity"
+              >
                 <p className="text-sm font-bold text-foreground">{profile.followers}</p>
                 <p className="text-[10px] text-muted-foreground">Seguidores</p>
-              </div>
-              <div className="text-center">
+              </button>
+              <button
+                onClick={() => setFollowList({ open: true, type: "following" })}
+                className="text-center hover:opacity-70 transition-opacity"
+              >
                 <p className="text-sm font-bold text-foreground">{profile.following}</p>
                 <p className="text-[10px] text-muted-foreground">Siguiendo</p>
-              </div>
+              </button>
             </div>
           </div>
         </div>
@@ -188,6 +201,21 @@ const UserProfilePage = () => {
         onUserClick={(uid) => {
           setCommentPostId(null);
           navigate(`/social/user/${uid}`);
+        }}
+      />
+
+      <FollowListSheet
+        open={followList.open}
+        onOpenChange={(open) => setFollowList((prev) => ({ ...prev, open }))}
+        userId={userId || ""}
+        type={followList.type}
+        fetchUsers={followList.type === "followers" ? fetchFollowers : fetchFollowing}
+        onUserClick={(uid) => {
+          if (uid === user?.id) {
+            navigate("/profile");
+          } else {
+            navigate(`/social/user/${uid}`);
+          }
         }}
       />
     </div>

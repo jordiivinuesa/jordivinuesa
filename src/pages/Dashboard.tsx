@@ -1,9 +1,12 @@
 import { useAppStore } from "@/store/useAppStore";
 import CalorieRing from "@/components/CalorieRing";
 import MacroBar from "@/components/MacroBar";
-import { Dumbbell, Flame, Target, TrendingUp } from "lucide-react";
+import { Dumbbell, Flame, Target, TrendingUp, History } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { currentDate, dayLogs, calorieGoal, proteinGoal, carbsGoal, fatGoal } = useAppStore();
   const dayLog = dayLogs[currentDate];
   const meals = dayLog?.meals || [];
@@ -29,9 +32,20 @@ const Dashboard = () => {
   return (
     <div className="px-4 pt-6">
       {/* Header */}
-      <div className="mb-6 animate-fade-in">
-        <p className="text-sm text-muted-foreground capitalize">{dayName}</p>
-        <h1 className="text-2xl font-bold font-display text-foreground capitalize">{dayMonth}</h1>
+      <div className="mb-6 animate-fade-in flex items-center justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground capitalize">{dayName}</p>
+          <h1 className="text-2xl font-bold font-display text-foreground capitalize">{dayMonth}</h1>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/history")}
+          className="rounded-xl h-9 w-9 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          title="Ver historial completo"
+        >
+          <History className="h-5 w-5" />
+        </Button>
       </div>
 
       {/* Calorie Ring Card */}

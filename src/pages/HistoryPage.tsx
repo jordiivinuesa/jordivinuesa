@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/useAppStore";
@@ -24,6 +24,8 @@ import type { Workout, WorkoutExercise, WorkoutSet, MealEntry } from "@/store/us
 
 const HistoryPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "workouts";
   const { user } = useAuth();
   const { dayLogs, setCurrentDate } = useAppStore();
   const { loadWorkout } = useDbSync();
@@ -317,7 +319,7 @@ const HistoryPage = () => {
       <h1 className="mb-2 text-2xl font-bold font-display animate-fade-in">Historial</h1>
       <p className="mb-4 text-sm text-muted-foreground animate-fade-in">Tu progreso día a día</p>
 
-      <Tabs defaultValue="workouts" className="animate-fade-in">
+      <Tabs defaultValue={defaultTab} className="animate-fade-in">
         <TabsList className="w-full mb-4">
           <TabsTrigger value="workouts" className="flex-1 gap-1.5">
             <Dumbbell className="h-4 w-4" />
