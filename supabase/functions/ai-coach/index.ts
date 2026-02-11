@@ -1,11 +1,56 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+// SECURITY: Allowed origins whitelist (no wildcards)
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  Deno.env.get("PRODUCTION_URL") || "https://peak-fitness.app"
+];
+
+// SECURITY: In-memory rate limiter
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const limit = rateLimitMap.get(userId);
+
+  // Clean up expired entries
+  if (limit && now > limit.resetAt) {
+    rateLimitMap.delete(userId);
+  }
+
+  const current = rateLimitMap.get(userId);
+
+  if (!current) {
+    // First request in window
+    rateLimitMap.set(userId, { count: 1, resetAt: now + 60000 }); // 1 minute window
+    return true;
+  }
+
+  if (current.count >= 10) {
+    // Limit exceeded
+    return false;
+  }
+
+  // Increment counter
+  current.count++;
+  return true;
+}
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin)
+    ? origin
+    : ALLOWED_ORIGINS[0];
+
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "Access-Control-Allow-Credentials": "true",
+  };
+}
 
 const SYSTEM_INSTRUCTION = `Eres FitCoach, un entrenador personal y nutricionista virtual experto en español. Tu objetivo es ayudar al usuario a alcanzar sus metas de fitness y nutrición.
 
@@ -102,6 +147,9 @@ const tools = [
 ];
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -134,6 +182,15 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // SECURITY: Rate limiting check (10 requests per minute per user)
+    const userId = claimsData.claims.sub || "unknown";
+    if (!checkRateLimit(userId)) {
+      return new Response(
+        JSON.stringify({ error: "Demasiadas solicitudes. Espera un minuto antes de intentar de nuevo." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const { messages } = await req.json();

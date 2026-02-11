@@ -29,6 +29,39 @@ const AuthPage = () => {
     e.preventDefault();
     setSubmitting(true);
 
+    // SECURITY: Password strength validation for signups
+    if (!isLogin) {
+      if (password.length < 8) {
+        toast({
+          variant: "destructive",
+          title: "Contraseña débil",
+          description: "La contraseña debe tener al menos 8 caracteres.",
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      if (!/[A-Z]/.test(password)) {
+        toast({
+          variant: "destructive",
+          title: "Contraseña débil",
+          description: "La contraseña debe contener al menos una mayúscula.",
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      if (!/[0-9]/.test(password)) {
+        toast({
+          variant: "destructive",
+          title: "Contraseña débil",
+          description: "La contraseña debe contener al menos un número.",
+        });
+        setSubmitting(false);
+        return;
+      }
+    }
+
     const { error } = isLogin
       ? await signIn(email, password)
       : await signUp(email, password, displayName);
@@ -95,7 +128,8 @@ const AuthPage = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="bg-secondary border-none pl-10 rounded-xl h-11"
               required
-              minLength={6}
+              minLength={8}
+              title="Mínimo 8 caracteres, 1 mayúscula y 1 número"
             />
           </div>
 

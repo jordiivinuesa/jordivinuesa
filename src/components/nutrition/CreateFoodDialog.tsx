@@ -287,28 +287,32 @@ export const CreateFoodDialog = ({ open, onOpenChange, initialBarcode = "", onFo
                                 <Label htmlFor="calories">Calorías (kcal)</Label>
                                 <Input
                                     id="calories" name="calories" type="number" placeholder="0"
-                                    value={formData.calories} onChange={handleChange} required
+                                    value={formData.calories} onChange={handleChange}
+                                    min="0" max="9999" step="0.1" required
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="protein">Proteínas (g)</Label>
                                 <Input
                                     id="protein" name="protein" type="number" placeholder="0"
-                                    value={formData.protein} onChange={handleChange} required
+                                    value={formData.protein} onChange={handleChange}
+                                    min="0" max="999" step="0.1" required
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="carbs">Carbohidratos (g)</Label>
                                 <Input
                                     id="carbs" name="carbs" type="number" placeholder="0"
-                                    value={formData.carbs} onChange={handleChange} required
+                                    value={formData.carbs} onChange={handleChange}
+                                    min="0" max="999" step="0.1" required
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="fat">Grasas (g)</Label>
                                 <Input
                                     id="fat" name="fat" type="number" placeholder="0"
-                                    value={formData.fat} onChange={handleChange} required
+                                    value={formData.fat} onChange={handleChange}
+                                    min="0" max="999" step="0.1" required
                                 />
                             </div>
                         </div>
