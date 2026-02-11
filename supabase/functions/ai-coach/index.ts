@@ -1,13 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
 const SYSTEM_INSTRUCTION = `Eres FitCoach, un entrenador personal y nutricionista virtual experto en español. Tu objetivo es ayudar al usuario a alcanzar sus metas de fitness y nutrición.
 
@@ -39,60 +36,66 @@ Alimentos con macros por 100g disponibles en la app.
 
 const tools = [
   {
-    name: "log_exercises",
-    description: "Registra ejercicios que el usuario ha realizado o quiere registrar.",
-    parameters: {
-      type: "OBJECT",
-      properties: {
-        exercises: {
-          type: "ARRAY",
-          items: {
-            type: "OBJECT",
-            properties: {
-              name: { type: "STRING", description: "Nombre del ejercicio" },
-              sets: {
-                type: "ARRAY",
-                items: {
-                  type: "OBJECT",
-                  properties: {
-                    reps: { type: "NUMBER", description: "Número de repeticiones" },
-                    weight: { type: "NUMBER", description: "Peso en kg" },
+    type: "function",
+    function: {
+      name: "log_exercises",
+      description: "Registra ejercicios que el usuario ha realizado o quiere registrar.",
+      parameters: {
+        type: "object",
+        properties: {
+          exercises: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Nombre del ejercicio" },
+                sets: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      reps: { type: "number", description: "Número de repeticiones" },
+                      weight: { type: "number", description: "Peso en kg" },
+                    },
+                    required: ["reps", "weight"],
                   },
-                  required: ["reps", "weight"],
                 },
               },
+              required: ["name", "sets"],
             },
-            required: ["name", "sets"],
           },
         },
+        required: ["exercises"],
       },
-      required: ["exercises"],
     },
   },
   {
-    name: "log_meals",
-    description: "Registra alimentos que el usuario ha comido.",
-    parameters: {
-      type: "OBJECT",
-      properties: {
-        meals: {
-          type: "ARRAY",
-          items: {
-            type: "OBJECT",
-            properties: {
-              food_name: { type: "STRING", description: "Nombre del alimento" },
-              grams: { type: "NUMBER", description: "Cantidad en gramos" },
-              meal_type: {
-                type: "STRING",
-                enum: ["desayuno", "almuerzo", "comida", "merienda", "cena", "snack"],
-                description: "Tipo de comida",
+    type: "function",
+    function: {
+      name: "log_meals",
+      description: "Registra alimentos que el usuario ha comido.",
+      parameters: {
+        type: "object",
+        properties: {
+          meals: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                food_name: { type: "string", description: "Nombre del alimento" },
+                grams: { type: "number", description: "Cantidad en gramos" },
+                meal_type: {
+                  type: "string",
+                  enum: ["desayuno", "almuerzo", "comida", "merienda", "cena", "snack"],
+                  description: "Tipo de comida",
+                },
               },
+              required: ["food_name", "grams", "meal_type"],
             },
-            required: ["food_name", "grams", "meal_type"],
           },
         },
+        required: ["meals"],
       },
-      required: ["meals"],
     },
   },
 ];
@@ -103,8 +106,9 @@ serve(async (req) => {
   }
 
   try {
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     const { messages } = await req.json();
@@ -117,104 +121,44 @@ serve(async (req) => {
       );
     }
 
-    // Transform messages to Gemini format
-    // OpenAI: { role: "user" | "assistant" | "system", content: string }
-    // Gemini: { role: "user" | "model", parts: [{ text: string }] }
-    const geminiContent = messages
-      .filter((m: any) => m.role !== "system") // System prompt is passed separately
-      .map((m: any) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: geminiContent,
-          systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-          tools: [{ functionDeclarations: tools }],
-        }),
-      }
-    );
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: SYSTEM_INSTRUCTION },
+          ...messages,
+        ],
+        tools,
+        stream: true,
+      }),
+    });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini API Error:", errorText);
-      throw new Error(`Gemini API Error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    const candidate = data.candidates?.[0];
-    const content = candidate?.content;
-    const parts = content?.parts || [];
-
-    // Construct OpenAI-compatible response for client compatibility
-    let assistantContent = "";
-    const toolCalls: any[] = [];
-
-    for (const part of parts) {
-      if (part.text) {
-        assistantContent += part.text;
-      }
-      if (part.functionCall) {
-        toolCalls.push({
-          id: Math.random().toString(36).substring(7),
-          type: "function",
-          function: {
-            name: part.functionCall.name,
-            arguments: JSON.stringify(part.functionCall.args),
-          },
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Demasiadas solicitudes, intenta de nuevo en unos segundos." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "Créditos agotados. Añade fondos en la configuración de tu workspace." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const errorText = await response.text();
+      console.error("AI Gateway Error:", response.status, errorText);
+      throw new Error(`AI Gateway Error: ${response.statusText}`);
     }
 
-    // Return in a format the client expects (simulating OpenAI stream or simple JSON)
-    // To simplify for now, we'll return a JSON response, but the client expects stream.
-    // Let's mimic the stream format or adjust the client. 
-    // Adjusting the client is harder strictly from backend.
-    // Let's stream the response manually.
-
-    const stream = new ReadableStream({
-      start(controller) {
-        const encoder = new TextEncoder();
-
-        // Send content
-        if (assistantContent) {
-          const chunk = {
-            choices: [{ delta: { content: assistantContent } }]
-          };
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-        }
-
-        // Send tool calls
-        if (toolCalls.length > 0) {
-          const chunk = {
-            choices: [{
-              delta: {
-                tool_calls: toolCalls.map((tc, index) => ({
-                  index,
-                  id: tc.id,
-                  type: "function",
-                  function: { name: tc.function.name, arguments: tc.function.arguments }
-                }))
-              }
-            }]
-          };
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-        }
-
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
-      }
-    });
-
-    return new Response(stream, {
+    return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
-
   } catch (error: any) {
     console.error("Edge Function Error:", error);
     return new Response(
