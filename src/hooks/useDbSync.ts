@@ -207,50 +207,59 @@ export function useDbSync() {
   // Load templates
   const loadTemplates = useCallback(async () => {
     if (!user) return;
-    const { data: templatesData } = await (supabase as any)
-      .from("workout_templates")
-      .select("*")
-      .eq("user_id", user.id);
 
-    if (templatesData) {
-      const fullTemplates = [];
-      for (const t of templatesData) {
-        const { data: exercisesData } = await (supabase as any)
+    try {
+      console.log('Sync: Loading templates for user', user.id);
+      const { data: templatesData, error: tError } = await (supabase as any)
+        .from("workout_templates")
+        .select("*")
+        .eq("user_id", user.id);
+
+      if (tError) throw tError;
+      if (!templatesData) return;
+
+      const fullTemplates = await Promise.all(templatesData.map(async (t) => {
+        const { data: exercisesData, error: eError } = await (supabase as any)
           .from("template_exercises")
           .select("*")
           .eq("template_id", t.id)
           .order("order_index");
 
-        const exercises = [];
-        if (exercisesData) {
-          for (const ex of exercisesData) {
-            const { data: setsData } = await (supabase as any)
-              .from("template_sets")
-              .select("*")
-              .eq("template_exercise_id", ex.id)
-              .order("set_index");
+        if (eError) throw eError;
 
-            exercises.push({
-              id: ex.id,
-              exerciseId: ex.exercise_id,
-              exerciseName: ex.exercise_name,
-              sets: (setsData || []).map((s: any) => ({
-                id: s.id,
-                reps: s.reps,
-                weight: Number(s.weight),
-              })),
-            });
-          }
-        }
+        const exercises = await Promise.all((exercisesData || []).map(async (ex) => {
+          const { data: setsData, error: sError } = await (supabase as any)
+            .from("template_sets")
+            .select("*")
+            .eq("template_exercise_id", ex.id)
+            .order("set_index");
 
-        fullTemplates.push({
+          if (sError) throw sError;
+
+          return {
+            id: ex.id,
+            exerciseId: ex.exercise_id,
+            exerciseName: ex.exercise_name,
+            sets: (setsData || []).map((s) => ({
+              id: s.id,
+              reps: s.reps,
+              weight: Number(s.weight),
+            })),
+          };
+        }));
+
+        return {
           id: t.id,
           name: t.name,
           description: t.description,
           exercises,
-        });
-      }
+        };
+      }));
+
+      console.log(`Sync: Successfully loaded ${fullTemplates.length} templates`);
       useAppStore.setState({ templates: fullTemplates });
+    } catch (error) {
+      console.error('Sync: Error loading templates:', error);
     }
   }, [user]);
 
@@ -268,42 +277,51 @@ export function useDbSync() {
   const saveTemplateToDb = useCallback(async (template: any) => {
     if (!user) return;
 
-    // Upsert template
-    const { error: tError } = await (supabase as any).from("workout_templates").upsert({
-      id: template.id,
-      user_id: user.id,
-      name: template.name,
-      description: template.description || null,
-      updated_at: new Date().toISOString()
-    });
-
-    if (tError) return;
-
-    // To keep it simple, delete old exercises and re-insert (cascades to sets)
-    await (supabase as any).from("template_exercises").delete().eq("template_id", template.id);
-
-    // Insert exercises and sets
-    for (let i = 0; i < template.exercises.length; i++) {
-      const ex = template.exercises[i];
-      await (supabase as any).from("template_exercises").insert({
-        id: ex.id,
-        template_id: template.id,
-        exercise_id: ex.exerciseId,
-        exercise_name: ex.exerciseName,
-        order_index: i,
+    try {
+      console.log('Sync: Saving template', template.id);
+      const { error: tError } = await (supabase as any).from("workout_templates").upsert({
+        id: template.id,
+        user_id: user.id,
+        name: template.name,
+        description: template.description || null,
+        updated_at: new Date().toISOString()
       });
 
-      if (ex.sets.length > 0) {
-        await (supabase as any).from("template_sets").insert(
-          ex.sets.map((s: any, si: number) => ({
-            id: s.id,
-            template_exercise_id: ex.id,
-            set_index: si,
-            reps: s.reps,
-            weight: s.weight,
-          }))
-        );
+      if (tError) throw tError;
+
+      // To keep it simple, delete old exercises and re-insert (cascades to sets)
+      const { error: dError } = await (supabase as any).from("template_exercises").delete().eq("template_id", template.id);
+      if (dError) throw dError;
+
+      // Insert exercises and sets
+      for (let i = 0; i < template.exercises.length; i++) {
+        const ex = template.exercises[i];
+        const { error: eError } = await (supabase as any).from("template_exercises").insert({
+          id: ex.id,
+          template_id: template.id,
+          exercise_id: ex.exerciseId,
+          exercise_name: ex.exerciseName,
+          order_index: i,
+        });
+
+        if (eError) throw eError;
+
+        if (ex.sets.length > 0) {
+          const { error: sError } = await (supabase as any).from("template_sets").insert(
+            ex.sets.map((s: any, si: number) => ({
+              id: s.id,
+              template_exercise_id: ex.id,
+              set_index: si,
+              reps: s.reps,
+              weight: s.weight,
+            }))
+          );
+          if (sError) throw sError;
+        }
       }
+      console.log('Sync: Template saved successfully');
+    } catch (error) {
+      console.error('Sync: Error saving template:', error);
     }
   }, [user]);
 
