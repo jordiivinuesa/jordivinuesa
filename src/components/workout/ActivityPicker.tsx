@@ -23,7 +23,7 @@ const ActivityPicker = ({ onSelect }: ActivityPickerProps) => {
     const categories: ActivityCategory[] = ["deporte", "clase_dirigida"];
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col">
             {/* Category Tabs */}
             <div className="flex gap-2 p-4 border-b border-border overflow-x-auto">
                 {categories.map((category) => (
@@ -31,8 +31,8 @@ const ActivityPicker = ({ onSelect }: ActivityPickerProps) => {
                         key={category}
                         onClick={() => setSelectedCategory(category)}
                         className={`px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all ${selectedCategory === category
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-muted-foreground hover:bg-secondary/80"
                             }`}
                     >
                         {activityCategoryLabels[category]}
@@ -55,15 +55,15 @@ const ActivityPicker = ({ onSelect }: ActivityPickerProps) => {
             </div>
 
             {/* Activities Grid */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="overflow-y-auto p-4 no-scrollbar" style={{ maxHeight: '400px' }}>
                 <div className="grid grid-cols-2 gap-3">
                     {filteredActivities.map((activity) => (
                         <button
                             key={activity.id}
                             onClick={() => onSelect(activity.id, activity.name)}
-                            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all active:scale-95 border border-border"
+                            className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all active:scale-95 border border-border"
                         >
-                            <span className="text-4xl">{activity.icon}</span>
+                            <span className="text-3xl">{activity.icon}</span>
                             <span className="text-sm font-medium text-center">{activity.name}</span>
                             <span className="text-xs text-muted-foreground text-center line-clamp-2">
                                 {activity.description}

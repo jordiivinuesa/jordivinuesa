@@ -50,7 +50,7 @@ const WorkoutPage = () => {
   const [startMode, setStartMode] = useState<"workout" | "template">("workout");
   const [isTemplateSaved, setIsTemplateSaved] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
-  const [showActivityPicker, setShowActivityPicker] = useState(false);
+  const [showActivityDialog, setShowActivityDialog] = useState(false);
   const { pendingShares, updateShareStatus, fetchPendingShares } = useTemplateSharing();
   const [sharingTemplate, setSharingTemplate] = useState<WorkoutTemplate | null>(null);
 
@@ -113,7 +113,7 @@ const WorkoutPage = () => {
 
   const handleSelectActivity = (activityId: string, activityName: string) => {
     startActivity(activityId, activityName);
-    setShowActivityPicker(false);
+    setShowActivityDialog(false);
     setShowDetailView(true);
   };
 
@@ -283,10 +283,7 @@ const WorkoutPage = () => {
 
             <Button
               variant="outline"
-              onClick={() => {
-                console.log('Registrar Actividad clicked');
-                setShowActivityPicker(true);
-              }}
+              onClick={() => setShowActivityDialog(true)}
               className="h-28 flex flex-col items-center justify-center gap-2 rounded-2xl bg-card px-4 border-border glow-border hover:bg-secondary/50 transition-all"
             >
               <div className="p-2 bg-primary/10 rounded-xl">
@@ -402,6 +399,18 @@ const WorkoutPage = () => {
             )}
           </div>
         </div>
+
+        {/* Activity Picker Dialog */}
+        <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
+          <DialogContent className="bg-card border-border max-w-[500px] max-h-[80vh] flex flex-col p-0 overflow-hidden rounded-2xl">
+            <DialogHeader className="p-6 pb-4">
+              <DialogTitle className="font-display">Seleccionar Actividad</DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-hidden">
+              <ActivityPicker onSelect={handleSelectActivity} />
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <ShareTemplateDialog
           open={!!sharingTemplate}
@@ -675,12 +684,14 @@ const WorkoutPage = () => {
       </Dialog>
 
       {/* Activity Picker Dialog */}
-      <Dialog open={showActivityPicker} onOpenChange={setShowActivityPicker}>
-        <DialogContent className="bg-card border-border max-w-[500px] h-[600px] p-0 rounded-2xl">
-          <DialogHeader className="p-6 pb-0">
+      <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
+        <DialogContent className="bg-card border-border max-w-[500px] max-h-[80vh] flex flex-col p-0 overflow-hidden rounded-2xl">
+          <DialogHeader className="p-6 pb-4">
             <DialogTitle className="font-display">Seleccionar Actividad</DialogTitle>
           </DialogHeader>
-          <ActivityPicker onSelect={handleSelectActivity} />
+          <div className="flex-1 overflow-hidden">
+            <ActivityPicker onSelect={handleSelectActivity} />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
