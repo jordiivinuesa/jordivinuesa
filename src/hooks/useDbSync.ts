@@ -91,6 +91,47 @@ export function useDbSync() {
     }
 
     const workout = workouts[0];
+    const workoutType = (workout.type as Workout['type']) || 'ejercicios';
+
+    // Handle activity-based workouts
+    if (workoutType === 'actividad') {
+      const { data: activityData } = await supabase
+        .from("workout_activities")
+        .select("*")
+        .eq("workout_id", workout.id)
+        .maybeSingle();
+
+      const fullWorkout: Workout = {
+        id: workout.id,
+        date: workout.date,
+        name: workout.name,
+        type: 'actividad',
+        activity: activityData ? {
+          id: activityData.id,
+          activityId: activityData.activity_id,
+          activityName: activityData.activity_name,
+          duration: activityData.duration,
+          intensity: activityData.intensity,
+          notes: activityData.notes,
+        } : undefined,
+        duration: workout.duration ?? undefined,
+      };
+
+      useAppStore.setState((state) => ({
+        dayLogs: {
+          ...state.dayLogs,
+          [date]: {
+            ...state.dayLogs[date],
+            date,
+            meals: state.dayLogs[date]?.meals || [],
+            workout: fullWorkout,
+          },
+        },
+      }));
+      return;
+    }
+
+    // Handle exercise-based workouts
     const { data: exercises } = await supabase
       .from("workout_exercises")
       .select("*")
@@ -125,7 +166,7 @@ export function useDbSync() {
       id: workout.id,
       date: workout.date,
       name: workout.name,
-      type: (workout.type as Workout['type']) || 'ejercicios',
+      type: workoutType,
       exercises: workoutExercises,
       duration: workout.duration ?? undefined,
     };
@@ -171,37 +212,54 @@ export function useDbSync() {
   const saveWorkoutToDb = useCallback(async (workout: Workout) => {
     if (!user) return;
 
-    // Insert workout
+    // Insert workout with type
     await supabase.from("workouts").insert({
       id: workout.id,
       user_id: user.id,
       date: workout.date,
       name: workout.name,
+      type: workout.type || 'ejercicios',
       duration: workout.duration ?? null,
     });
 
-    // Insert exercises and sets
-    for (let i = 0; i < workout.exercises.length; i++) {
-      const ex = workout.exercises[i];
-      await supabase.from("workout_exercises").insert({
-        id: ex.id,
+    // Handle activity-based workouts
+    if (workout.type === 'actividad' && workout.activity) {
+      await supabase.from("workout_activities").insert({
         workout_id: workout.id,
-        exercise_id: ex.exerciseId,
-        exercise_name: ex.exerciseName,
-        order_index: i,
+        activity_id: workout.activity.activityId,
+        activity_name: workout.activity.activityName,
+        duration: workout.activity.duration,
+        intensity: workout.activity.intensity ?? null,
+        notes: workout.activity.notes ?? null,
       });
+      return; // Don't process exercises for activity workouts
+    }
 
-      if (ex.sets.length > 0) {
-        await supabase.from("workout_sets").insert(
-          ex.sets.map((s, si) => ({
-            id: s.id,
-            workout_exercise_id: ex.id,
-            set_index: si,
-            reps: s.reps,
-            weight: s.weight,
-            completed: s.completed,
-          }))
-        );
+    // Handle exercise-based workouts
+    if (workout.exercises && workout.exercises.length > 0) {
+      // Insert exercises and sets
+      for (let i = 0; i < workout.exercises.length; i++) {
+        const ex = workout.exercises[i];
+        await supabase.from("workout_exercises").insert({
+          id: ex.id,
+          workout_id: workout.id,
+          exercise_id: ex.exerciseId,
+          exercise_name: ex.exerciseName,
+          order_index: i,
+        });
+
+        if (ex.sets.length > 0) {
+          await supabase.from("workout_sets").insert(
+            ex.sets.map((s, si) => ({
+              id: s.id,
+              workout_exercise_id: ex.id,
+              set_index: si,
+              reps: s.reps,
+              weight: s.weight,
+              completed: s.completed,
+            }))
+          );
+        }
       }
     }
   }, [user]);
