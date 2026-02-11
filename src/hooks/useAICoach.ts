@@ -274,6 +274,10 @@ export function useAICoach() {
           throw new Error("No hay sesión activa. Inicia sesión para usar el coach.");
         }
 
+        if (import.meta.env.DEV) {
+          console.log("Sending messages to AI Coach:", apiMessages);
+        }
+
         const resp = await fetch(CHAT_URL, {
           method: "POST",
           headers: {
@@ -382,7 +386,7 @@ export function useAICoach() {
                 assistantContent += content;
                 upsertAssistant(assistantContent);
               }
-            } catch {}
+            } catch { }
           }
         }
 

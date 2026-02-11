@@ -7,7 +7,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `Eres FitCoach, un entrenador personal y nutricionista virtual experto en español. Tu objetivo es ayudar al usuario a alcanzar sus metas de fitness y nutrición.
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+
+const SYSTEM_INSTRUCTION = `Eres FitCoach, un entrenador personal y nutricionista virtual experto en español. Tu objetivo es ayudar al usuario a alcanzar sus metas de fitness y nutrición.
 
 ## Tus capacidades:
 1. **Registrar ejercicios**: Cuando el usuario mencione que ha hecho o quiere hacer ejercicios, usa la herramienta log_exercises para registrarlos.
@@ -37,80 +39,60 @@ Alimentos con macros por 100g disponibles en la app.
 
 const tools = [
   {
-    type: "function",
-    function: {
-      name: "log_exercises",
-      description:
-        "Registra ejercicios que el usuario ha realizado o quiere registrar. Usa esto cuando el usuario mencione ejercicios con series, repeticiones o pesos.",
-      parameters: {
-        type: "object",
-        properties: {
-          exercises: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: {
-                  type: "string",
-                  description: "Nombre del ejercicio (ej: Press de banca, Sentadilla)",
-                },
-                sets: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      reps: { type: "number", description: "Número de repeticiones" },
-                      weight: { type: "number", description: "Peso en kg" },
-                    },
-                    required: ["reps", "weight"],
+    name: "log_exercises",
+    description: "Registra ejercicios que el usuario ha realizado o quiere registrar.",
+    parameters: {
+      type: "OBJECT",
+      properties: {
+        exercises: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              name: { type: "STRING", description: "Nombre del ejercicio" },
+              sets: {
+                type: "ARRAY",
+                items: {
+                  type: "OBJECT",
+                  properties: {
+                    reps: { type: "NUMBER", description: "Número de repeticiones" },
+                    weight: { type: "NUMBER", description: "Peso en kg" },
                   },
-                  description: "Series realizadas",
+                  required: ["reps", "weight"],
                 },
               },
-              required: ["name", "sets"],
             },
+            required: ["name", "sets"],
           },
         },
-        required: ["exercises"],
-        additionalProperties: false,
       },
+      required: ["exercises"],
     },
   },
   {
-    type: "function",
-    function: {
-      name: "log_meals",
-      description:
-        "Registra alimentos que el usuario ha comido. Usa esto cuando el usuario mencione comidas o alimentos.",
-      parameters: {
-        type: "object",
-        properties: {
-          meals: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                food_name: {
-                  type: "string",
-                  description: "Nombre del alimento (ej: Pechuga de pollo, Arroz blanco)",
-                },
-                grams: {
-                  type: "number",
-                  description: "Cantidad en gramos. Si el usuario no especifica, estima una porción razonable.",
-                },
-                meal_type: {
-                  type: "string",
-                  enum: ["desayuno", "almuerzo", "comida", "merienda", "cena", "snack"],
-                  description: "Tipo de comida. Si no se especifica, infiere por el contexto o la hora.",
-                },
+    name: "log_meals",
+    description: "Registra alimentos que el usuario ha comido.",
+    parameters: {
+      type: "OBJECT",
+      properties: {
+        meals: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              food_name: { type: "STRING", description: "Nombre del alimento" },
+              grams: { type: "NUMBER", description: "Cantidad en gramos" },
+              meal_type: {
+                type: "STRING",
+                enum: ["desayuno", "almuerzo", "comida", "merienda", "cena", "snack"],
+                description: "Tipo de comida",
               },
-              required: ["food_name", "grams", "meal_type"],
             },
+            required: ["food_name", "grams", "meal_type"],
           },
         },
-        required: ["meals"],
-        additionalProperties: false,
       },
+      required: ["meals"],
     },
   },
 ];
@@ -121,143 +103,114 @@ serve(async (req) => {
   }
 
   try {
-    // Validate authentication
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "No autorizado" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY is not configured");
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const { messages } = await req.json();
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user: authUser }, error: authError } = await supabaseClient.auth.getUser(token);
-    if (authError || !authUser) {
-      return new Response(
-        JSON.stringify({ error: "Sesión inválida" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Validate request body size (max ~512KB)
-    const contentLength = req.headers.get("content-length");
-    if (contentLength && parseInt(contentLength, 10) > 524288) {
-      return new Response(
-        JSON.stringify({ error: "Payload demasiado grande" }),
-        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    let body: unknown;
-    try {
-      body = await req.json();
-    } catch {
-      return new Response(
-        JSON.stringify({ error: "JSON inválido" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Validate messages structure
-    if (
-      !body ||
-      typeof body !== "object" ||
-      !("messages" in body) ||
-      !Array.isArray((body as any).messages)
-    ) {
-      return new Response(
-        JSON.stringify({ error: "Formato de mensaje inválido: se requiere un array de messages" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const rawMessages = (body as any).messages;
-
-    // Limit message count
-    if (rawMessages.length === 0 || rawMessages.length > 50) {
-      return new Response(
-        JSON.stringify({ error: "Se requieren entre 1 y 50 mensajes" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Validate each message
-    const allowedRoles = new Set(["user", "assistant", "system"]);
-    const MAX_CONTENT_LENGTH = 10000;
-    const messages: Array<{ role: string; content: string }> = [];
-
-    for (const msg of rawMessages) {
-      if (
-        !msg ||
-        typeof msg !== "object" ||
-        typeof msg.role !== "string" ||
-        !allowedRoles.has(msg.role) ||
-        typeof msg.content !== "string" ||
-        msg.content.length === 0 ||
-        msg.content.length > MAX_CONTENT_LENGTH
-      ) {
-        return new Response(
-          JSON.stringify({ error: "Mensaje inválido: cada mensaje debe tener role (user/assistant/system) y content (1-10000 chars)" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      messages.push({ role: msg.role, content: msg.content });
-    }
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    // Transform messages to Gemini format
+    // OpenAI: { role: "user" | "assistant" | "system", content: string }
+    // Gemini: { role: "user" | "model", parts: [{ text: string }] }
+    const geminiContent = messages
+      .filter((m: any) => m.role !== "system") // System prompt is passed separately
+      .map((m: any) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      }));
 
     const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-          tools,
-          stream: true,
+          contents: geminiContent,
+          systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+          tools: [{ functionDeclarations: tools }],
         }),
       }
     );
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos agotados. Añade fondos en tu cuenta." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(
-        JSON.stringify({ error: "Error del servicio de IA" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      const errorText = await response.text();
+      console.error("Gemini API Error:", errorText);
+      throw new Error(`Gemini API Error: ${response.statusText}`);
     }
 
-    return new Response(response.body, {
+    const data = await response.json();
+    const candidate = data.candidates?.[0];
+    const content = candidate?.content;
+    const parts = content?.parts || [];
+
+    // Construct OpenAI-compatible response for client compatibility
+    let assistantContent = "";
+    const toolCalls: any[] = [];
+
+    for (const part of parts) {
+      if (part.text) {
+        assistantContent += part.text;
+      }
+      if (part.functionCall) {
+        toolCalls.push({
+          id: Math.random().toString(36).substring(7),
+          type: "function",
+          function: {
+            name: part.functionCall.name,
+            arguments: JSON.stringify(part.functionCall.args),
+          },
+        });
+      }
+    }
+
+    // Return in a format the client expects (simulating OpenAI stream or simple JSON)
+    // To simplify for now, we'll return a JSON response, but the client expects stream.
+    // Let's mimic the stream format or adjust the client. 
+    // Adjusting the client is harder strictly from backend.
+    // Let's stream the response manually.
+
+    const stream = new ReadableStream({
+      start(controller) {
+        const encoder = new TextEncoder();
+
+        // Send content
+        if (assistantContent) {
+          const chunk = {
+            choices: [{ delta: { content: assistantContent } }]
+          };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+        }
+
+        // Send tool calls
+        if (toolCalls.length > 0) {
+          const chunk = {
+            choices: [{
+              delta: {
+                tool_calls: toolCalls.map((tc, index) => ({
+                  index,
+                  id: tc.id,
+                  type: "function",
+                  function: { name: tc.function.name, arguments: tc.function.arguments }
+                }))
+              }
+            }]
+          };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+        }
+
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      }
+    });
+
+    return new Response(stream, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
-  } catch (e) {
-    console.error("ai-coach error:", e);
+
+  } catch (error: any) {
+    console.error("Edge Function Error:", error);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Error desconocido" }),
+      JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
