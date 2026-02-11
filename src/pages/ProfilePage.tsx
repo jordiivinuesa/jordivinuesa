@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Loader2, Grid, List } from "lucide-react";
+import { Settings, Loader2, Dumbbell, Flame, Calendar, Users, TrendingUp, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSocial, type Post, type UserProfile } from "@/hooks/useSocial";
@@ -33,7 +33,7 @@ const ProfilePage = () => {
         queryKey: ['user-profile', user?.id],
         queryFn: () => user ? fetchUserProfile(user.id) : null,
         enabled: !!user,
-        staleTime: 60000, // Profile data fresh for 1 minute
+        staleTime: 60000,
     });
 
     const { data: posts = [], isLoading: postsLoading } = useQuery({
@@ -45,7 +45,6 @@ const ProfilePage = () => {
 
     const loading = profileLoading || postsLoading;
 
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [commentPostId, setCommentPostId] = useState<string | null>(null);
     const [followList, setFollowList] = useState<{ open: boolean; type: "followers" | "following" }>({
         open: false,
@@ -62,7 +61,6 @@ const ProfilePage = () => {
     }, [user, markAsRead]);
 
     const handleLike = async (postId: string, isLiked: boolean) => {
-        // Optimistic update in cache
         queryClient.setQueryData<Post[]>(['user-posts', user?.id], (old = []) =>
             old.map((p) =>
                 p.id === postId
@@ -74,7 +72,6 @@ const ProfilePage = () => {
     };
 
     const handleDelete = async (postId: string) => {
-        // Optimistic update in cache
         queryClient.setQueryData<Post[]>(['user-posts', user?.id], (old = []) =>
             old.filter((p) => p.id !== postId)
         );
@@ -94,122 +91,180 @@ const ProfilePage = () => {
     const initial = (profile.display_name || "U")[0].toUpperCase();
 
     return (
-        <div className="min-h-[calc(100vh-80px)] pb-10">
-            {/* Header */}
-            <div className="px-4 pt-6 pb-4 animate-fade-in text-foreground">
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-xl font-bold font-display">Mi Perfil</h1>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate("/settings")}
-                        className="rounded-xl h-9 w-9 p-0 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <Settings className="h-5 w-5" />
-                    </Button>
-                </div>
+        <div className="min-h-[calc(100vh-80px)] pb-10 bg-background">
+            {/* Header with Settings */}
+            <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+                <h1 className="text-xl font-bold font-display">Mi Perfil</h1>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate("/settings")}
+                    className="rounded-xl h-9 w-9 p-0 text-muted-foreground hover:text-primary transition-colors"
+                >
+                    <Settings className="h-5 w-5" />
+                </Button>
+            </div>
 
-                <div className="flex items-center gap-6">
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-2xl font-bold border-2 border-background shadow-xl">
-                        {profile.avatar_url ? (
-                            <img src={profile.avatar_url} className="h-full w-full rounded-full object-cover" />
-                        ) : (
-                            initial
-                        )}
-                    </div>
-
-                    <div className="flex-1">
-                        <h2 className="text-xl font-bold font-display leading-tight mb-3">
-                            {profile.display_name || "Usuario"}
-                        </h2>
-
-                        <div className="flex items-center gap-6">
-                            <div className="text-center">
-                                <p className="text-lg font-bold">{profile.posts_count}</p>
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Posts</p>
-                            </div>
-                            <button
-                                onClick={() => setFollowList({ open: true, type: "followers" })}
-                                className="text-center hover:opacity-70 transition-opacity"
-                            >
-                                <p className="text-lg font-bold">{profile.followers}</p>
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Seguidores</p>
-                            </button>
-                            <button
-                                onClick={() => setFollowList({ open: true, type: "following" })}
-                                className="text-center hover:opacity-70 transition-opacity"
-                            >
-                                <p className="text-lg font-bold">{profile.following}</p>
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Siguiendo</p>
-                            </button>
+            {/* Profile Header - Centered Avatar */}
+            <div className="px-4 pt-4 pb-6 flex flex-col items-center text-center animate-fade-in">
+                <div className="relative mb-4">
+                    <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 p-1">
+                        <div className="h-full w-full rounded-full bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold overflow-hidden">
+                            {profile.avatar_url ? (
+                                <img src={profile.avatar_url} className="h-full w-full object-cover" alt="" />
+                            ) : (
+                                initial
+                            )}
                         </div>
                     </div>
                 </div>
+                <h2 className="text-2xl font-bold font-display mb-1">
+                    {profile.display_name || "Usuario"}
+                </h2>
             </div>
 
-            {/* Tabs / View Switches */}
-            <div className="flex border-t border-border mt-4">
+            {/* Stats Cards Grid */}
+            <div className="px-4 pb-6 grid grid-cols-3 gap-3">
+                {/* Workouts Card */}
+                <div className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl p-4 border border-primary/10 backdrop-blur-sm">
+                    <div className="flex flex-col items-center">
+                        <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center mb-2">
+                            <Dumbbell className="h-5 w-5 text-primary" />
+                        </div>
+                        <p className="text-2xl font-bold">{profile.posts_count}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mt-1">
+                            Posts
+                        </p>
+                    </div>
+                </div>
+
+                {/* Followers Card */}
                 <button
-                    onClick={() => setViewMode("grid")}
-                    className={`flex-1 flex items-center justify-center py-3 border-b-2 transition-colors ${viewMode === "grid" ? "border-primary text-primary" : "border-transparent text-muted-foreground"
-                        }`}
+                    onClick={() => setFollowList({ open: true, type: "followers" })}
+                    className="bg-gradient-to-br from-blue-500/20 to-blue-500/5 rounded-2xl p-4 border border-blue-500/10 backdrop-blur-sm hover:scale-105 transition-transform active:scale-95"
                 >
-                    <Grid className="h-5 w-5" />
+                    <div className="flex flex-col items-center">
+                        <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center mb-2">
+                            <Users className="h-5 w-5 text-blue-400" />
+                        </div>
+                        <p className="text-2xl font-bold">{profile.followers}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mt-1">
+                            Seguidores
+                        </p>
+                    </div>
                 </button>
+
+                {/* Following Card */}
                 <button
-                    onClick={() => setViewMode("list")}
-                    className={`flex-1 flex items-center justify-center py-3 border-b-2 transition-colors ${viewMode === "list" ? "border-primary text-primary" : "border-transparent text-muted-foreground"
-                        }`}
+                    onClick={() => setFollowList({ open: true, type: "following" })}
+                    className="bg-gradient-to-br from-purple-500/20 to-purple-500/5 rounded-2xl p-4 border border-purple-500/10 backdrop-blur-sm hover:scale-105 transition-transform active:scale-95"
                 >
-                    <List className="h-5 w-5" />
+                    <div className="flex flex-col items-center">
+                        <div className="h-10 w-10 rounded-full bg-purple-500/20 flex items-center justify-center mb-2">
+                            <TrendingUp className="h-5 w-5 text-purple-400" />
+                        </div>
+                        <p className="text-2xl font-bold">{profile.following}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mt-1">
+                            Siguiendo
+                        </p>
+                    </div>
                 </button>
             </div>
 
-            {/* Content */}
-            <div className="px-1 pt-1">
+            {/* Recent Activity Section */}
+            <div className="px-4 pb-4">
+                <h3 className="text-lg font-bold font-display mb-4 flex items-center gap-2">
+                    <Flame className="h-5 w-5 text-primary" />
+                    Actividad Reciente
+                </h3>
+
                 {posts.length === 0 ? (
-                    <div className="text-center py-20 px-4">
-                        <p className="text-muted-foreground text-sm">No has publicado nada todavía</p>
+                    <div className="text-center py-12 px-4 bg-secondary/30 rounded-2xl border border-border">
+                        <p className="text-muted-foreground text-sm mb-2">No has publicado nada todavía</p>
                         <Button
                             variant="link"
                             onClick={() => navigate("/social")}
-                            className="text-primary mt-2"
+                            className="text-primary"
                         >
                             Ir al feed social
                         </Button>
                     </div>
-                ) : viewMode === "grid" ? (
-                    <div className="grid grid-cols-3 gap-1 animate-fade-in">
-                        {posts.map((post) => (
+                ) : (
+                    <div className="space-y-4">
+                        {posts.slice(0, 3).map((post) => (
                             <div
                                 key={post.id}
-                                className="aspect-square bg-secondary/30 relative group cursor-pointer overflow-hidden"
-                                onClick={() => setViewMode("list")}
+                                onClick={() => setCommentPostId(post.id)}
+                                className="bg-secondary/30 rounded-2xl border border-border overflow-hidden hover:border-primary/30 transition-all cursor-pointer active:scale-[0.98]"
                             >
-                                <img
-                                    src={post.image_url}
-                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                    alt=""
-                                />
-                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="flex gap-3 p-3">
+                                    <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-secondary">
+                                        <img
+                                            src={post.image_url}
+                                            className="w-full h-full object-cover"
+                                            alt=""
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold line-clamp-2 mb-1">
+                                            {post.caption || "Sin descripción"}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mb-2">
+                                            {new Date(post.created_at).toLocaleDateString('es-ES', {
+                                                day: 'numeric',
+                                                month: 'short'
+                                            })}
+                                        </p>
+                                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                            <span className="flex items-center gap-1">
+                                                ❤️ {post.likes_count}
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                💬 {post.comments_count}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         ))}
-                    </div>
-                ) : (
-                    <div className="px-3 space-y-6 pt-4 animate-fade-in">
-                        {posts.map((post) => (
-                            <PostCard
-                                key={post.id}
-                                post={post}
-                                onLike={handleLike}
-                                onComment={setCommentPostId}
-                                onUserClick={(uid) => navigate(`/social/user/${uid}`)}
-                                onDelete={handleDelete}
-                            />
-                        ))}
+
+                        {posts.length > 3 && (
+                            <Button
+                                variant="outline"
+                                className="w-full rounded-xl"
+                                onClick={() => {
+                                    // Show all posts in full view
+                                    navigate("/social");
+                                }}
+                            >
+                                Ver todas las publicaciones ({posts.length})
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
+
+            {/* Full Post View Modal */}
+            {commentPostId && (
+                <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                        <PostCard
+                            post={posts.find(p => p.id === commentPostId)!}
+                            onLike={handleLike}
+                            onComment={setCommentPostId}
+                            onUserClick={(uid) => navigate(`/social/user/${uid}`)}
+                            onDelete={handleDelete}
+                        />
+                        <Button
+                            variant="outline"
+                            className="w-full mt-4 rounded-xl"
+                            onClick={() => setCommentPostId(null)}
+                        >
+                            Cerrar
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Comment sheet */}
             <CommentSheet
@@ -224,6 +279,7 @@ const ProfilePage = () => {
                     navigate(`/social/user/${uid}`);
                 }}
             />
+
             {/* Follow list sheet */}
             <FollowListSheet
                 open={followList.open}
