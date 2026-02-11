@@ -256,7 +256,7 @@ export function useAICoach() {
           contextMessages = [{ role: "system", content: `Datos del historial del usuario para personalizar tus respuestas:\n\n${ctx}` }];
         }
       } catch (e) {
-        console.error("Failed to build historical context:", e);
+        if (import.meta.env.DEV) console.error("Failed to build historical context:", e);
       }
 
       const apiMessages = [
@@ -394,7 +394,7 @@ export function useAICoach() {
               const data = JSON.parse(tc.arguments);
               processedToolCalls.push({ name: tc.name, data });
             } catch (e) {
-              console.error("Failed to parse tool call arguments:", e);
+              if (import.meta.env.DEV) console.error("Failed to parse tool call arguments:", e);
             }
           }
         }
@@ -436,7 +436,7 @@ export function useAICoach() {
         }
       } catch (err: any) {
         if (err.name === "AbortError") return;
-        console.error("Chat error:", err);
+        if (import.meta.env.DEV) console.error("Chat error:", err);
         toast({
           variant: "destructive",
           title: "Error",
