@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, Users, Loader2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSocial, type Post } from "@/hooks/useSocial";
 import PostCard from "@/components/social/PostCard";
 import CreatePostDialog from "@/components/social/CreatePostDialog";
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input";
 
 const SocialFeedPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const {
     fetchFeed,
     createPost,
@@ -20,29 +22,23 @@ const SocialFeedPage = () => {
     searchUsers,
   } = useSocial();
 
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Use React Query for feed data - cached for instant loading
+  const { data: posts = [], isLoading: loading } = useQuery({
+    queryKey: ['social-feed'],
+    queryFn: fetchFeed,
+    staleTime: 30000, // Consider data fresh for 30 seconds
+  });
+
   const [showCreate, setShowCreate] = useState(false);
   const [commentPostId, setCommentPostId] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
-  const loadFeed = useCallback(async () => {
-    setLoading(true);
-    const data = await fetchFeed();
-    setPosts(data);
-    setLoading(false);
-  }, [fetchFeed]);
-
-  useEffect(() => {
-    loadFeed();
-  }, [loadFeed]);
-
   const handleLike = async (postId: string, isLiked: boolean) => {
-    // Optimistic update
-    setPosts((prev) =>
-      prev.map((p) =>
+    // Optimistic update in cache
+    queryClient.setQueryData<Post[]>(['social-feed'], (old = []) =>
+      old.map((p) =>
         p.id === postId
           ? { ...p, is_liked: !isLiked, likes_count: p.likes_count + (isLiked ? -1 : 1) }
           : p
@@ -52,13 +48,19 @@ const SocialFeedPage = () => {
   };
 
   const handleDelete = async (postId: string) => {
-    setPosts((prev) => prev.filter((p) => p.id !== postId));
+    // Optimistic update in cache
+    queryClient.setQueryData<Post[]>(['social-feed'], (old = []) =>
+      old.filter((p) => p.id !== postId)
+    );
     await deletePost(postId);
   };
 
   const handleCreatePost = async (file: File, caption: string, isPublic: boolean) => {
     const result = await createPost(file, caption, isPublic);
-    if (result) loadFeed();
+    if (result) {
+      // Invalidate cache to refetch with new post
+      queryClient.invalidateQueries({ queryKey: ['social-feed'] });
+    }
     return result;
   };
 

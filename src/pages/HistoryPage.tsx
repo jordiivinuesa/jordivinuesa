@@ -1,6 +1,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/useAppStore";
@@ -29,19 +30,15 @@ const HistoryPage = () => {
   const { user } = useAuth();
   const { dayLogs, setCurrentDate } = useAppStore();
   const { loadWorkout } = useDbSync();
+  const queryClient = useQueryClient();
   const [editingWorkout, setEditingWorkout] = useState<{ workout: Workout; date: string } | null>(null);
   const [editingMeal, setEditingMeal] = useState<{ meal: MealEntry; date: string } | null>(null);
   const [deletingWorkoutId, setDeletingWorkoutId] = useState<string | null>(null);
   const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
   const [deletingDayDate, setDeletingDayDate] = useState<string | null>(null);
-  const [historyWorkouts, setHistoryWorkouts] = useState<Workout[]>([]);
-  const [historyNutrition, setHistoryNutrition] = useState<{ date: string; meals: MealEntry[] }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingNutrition, setLoadingNutrition] = useState(true);
 
   const fetchHistory = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
+    if (!user) return [];
     const { data: workouts, error } = await supabase
       .from("workouts")
       .select("*")
@@ -50,8 +47,7 @@ const HistoryPage = () => {
 
     if (error) {
       console.error("Error fetching history:", error);
-      setLoading(false);
-      return;
+      return [];
     }
 
     const formattedWorkouts: Workout[] = [];
@@ -95,13 +91,19 @@ const HistoryPage = () => {
         duration: workout.duration ?? undefined,
       });
     }
-    setHistoryWorkouts(formattedWorkouts);
-    setLoading(false);
+    return formattedWorkouts;
   }, [user]);
 
+  // Use React Query for workout history - longer stale time since history changes less
+  const { data: historyWorkouts = [], isLoading: loading } = useQuery({
+    queryKey: ['workout-history', user?.id],
+    queryFn: fetchHistory,
+    enabled: !!user,
+    staleTime: 300000, // 5 minutes - history doesn't change often
+  });
+
   const fetchNutrition = useCallback(async () => {
-    if (!user) return;
-    setLoadingNutrition(true);
+    if (!user) return [];
     const { data: meals, error } = await supabase
       .from("meal_entries")
       .select("*")
@@ -110,8 +112,7 @@ const HistoryPage = () => {
 
     if (error) {
       console.error("Error fetching nutrition history:", error);
-      setLoadingNutrition(false);
-      return;
+      return [];
     }
 
     const groupedMeals: Record<string, MealEntry[]> = {};
@@ -138,9 +139,16 @@ const HistoryPage = () => {
       .map(([date, meals]) => ({ date, meals }))
       .sort((a, b) => b.date.localeCompare(a.date));
 
-    setHistoryNutrition(sortedHistory);
-    setLoadingNutrition(false);
+    return sortedHistory;
   }, [user]);
+
+  // Use React Query for nutrition history
+  const { data: historyNutrition = [], isLoading: loadingNutrition } = useQuery({
+    queryKey: ['nutrition-history', user?.id],
+    queryFn: fetchNutrition,
+    enabled: !!user,
+    staleTime: 300000, // 5 minutes
+  });
 
   const handleDeleteWorkout = async (workoutId: string) => {
     if (!user) return;
@@ -148,8 +156,8 @@ const HistoryPage = () => {
       const { error } = await supabase.from("workouts").delete().eq("id", workoutId);
       if (error) throw error;
 
-      // Update local state without refetching for faster UI
-      setHistoryWorkouts(prev => prev.filter(w => w.id !== workoutId));
+      // Invalidate cache to refetch
+      queryClient.invalidateQueries({ queryKey: ['workout-history', user.id] });
 
       // Also update dayLogs if it's currently loaded there
       const workoutDate = historyWorkouts.find(w => w.id === workoutId)?.date;
@@ -187,16 +195,8 @@ const HistoryPage = () => {
 
       if (error) throw error;
 
-      // Update local state
-      setHistoryNutrition(prev => prev.map(day => {
-        if (day.date === editingMeal?.date) {
-          return {
-            ...day,
-            meals: day.meals.map(m => m.id === updatedMeal.id ? updatedMeal : m)
-          }
-        }
-        return day;
-      }));
+      // Invalidate cache to refetch
+      queryClient.invalidateQueries({ queryKey: ['nutrition-history', user.id] });
 
       // Update dayLogs if needed
       if (editingMeal?.date) {
@@ -222,22 +222,16 @@ const HistoryPage = () => {
       const { error } = await supabase.from("meal_entries").delete().eq("id", mealId);
       if (error) throw error;
 
-      // Find the date of the meal before deleting from state (optimistic update needs it? no, we can remove)
-      // Actually we need the date to update dayLogs properly if we want full consistency
-      let mealDate = "";
+      // Invalidate cache to refetch
+      queryClient.invalidateQueries({ queryKey: ['nutrition-history', user.id] });
 
-      // Update local state
-      setHistoryNutrition(prev => prev.map(day => {
-        const hasMeal = day.meals.some(m => m.id === mealId);
-        if (hasMeal) {
+      // Find the date of the meal to update dayLogs
+      let mealDate = "";
+      historyNutrition.forEach(day => {
+        if (day.meals.some(m => m.id === mealId)) {
           mealDate = day.date;
-          return {
-            ...day,
-            meals: day.meals.filter(m => m.id !== mealId)
-          };
         }
-        return day;
-      }).filter(day => day.meals.length > 0)); // Remove empty days if any
+      });
 
       // Update dayLogs
       if (mealDate) {
@@ -257,7 +251,7 @@ const HistoryPage = () => {
     } finally {
       setDeletingMealId(null);
     }
-  }
+  };
 
   const handleEditDay = (date: string) => {
     setCurrentDate(date);
@@ -275,8 +269,8 @@ const HistoryPage = () => {
 
       if (error) throw error;
 
-      // Update local state
-      setHistoryNutrition(prev => prev.filter(day => day.date !== date));
+      // Invalidate cache to refetch
+      queryClient.invalidateQueries({ queryKey: ['nutrition-history', user.id] });
 
       // Update dayLogs
       useAppStore.setState((state) => ({

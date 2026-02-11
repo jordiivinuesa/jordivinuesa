@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Settings, Loader2, Grid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSocial, type Post, type UserProfile } from "@/hooks/useSocial";
 import { useAuth } from "@/hooks/useAuth";
 import PostCard from "@/components/social/PostCard";
@@ -14,6 +15,7 @@ const ProfilePage = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { markAsRead } = useNotifications();
+    const queryClient = useQueryClient();
     const {
         fetchUserProfile,
         fetchUserPosts,
@@ -26,27 +28,29 @@ const ProfilePage = () => {
         fetchFollowing,
     } = useSocial();
 
-    const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [posts, setPosts] = useState<Post[]>([]);
-    const [loading, setLoading] = useState(true);
+    // Use React Query for profile and posts data
+    const { data: profile = null, isLoading: profileLoading } = useQuery({
+        queryKey: ['user-profile', user?.id],
+        queryFn: () => user ? fetchUserProfile(user.id) : null,
+        enabled: !!user,
+        staleTime: 60000, // Profile data fresh for 1 minute
+    });
+
+    const { data: posts = [], isLoading: postsLoading } = useQuery({
+        queryKey: ['user-posts', user?.id],
+        queryFn: () => user ? fetchUserPosts(user.id) : [],
+        enabled: !!user,
+        staleTime: 30000,
+    });
+
+    const loading = profileLoading || postsLoading;
+
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [commentPostId, setCommentPostId] = useState<string | null>(null);
     const [followList, setFollowList] = useState<{ open: boolean; type: "followers" | "following" }>({
         open: false,
         type: "followers",
     });
-
-    const loadData = useCallback(async () => {
-        if (!user) return;
-        setLoading(true);
-        const [profileData, postsData] = await Promise.all([
-            fetchUserProfile(user.id),
-            fetchUserPosts(user.id),
-        ]);
-        setProfile(profileData);
-        setPosts(postsData);
-        setLoading(false);
-    }, [user, fetchUserProfile, fetchUserPosts]);
 
     useEffect(() => {
         if (user) {
@@ -57,13 +61,10 @@ const ProfilePage = () => {
         }
     }, [user, markAsRead]);
 
-    useEffect(() => {
-        loadData();
-    }, [loadData]);
-
     const handleLike = async (postId: string, isLiked: boolean) => {
-        setPosts((prev) =>
-            prev.map((p) =>
+        // Optimistic update in cache
+        queryClient.setQueryData<Post[]>(['user-posts', user?.id], (old = []) =>
+            old.map((p) =>
                 p.id === postId
                     ? { ...p, is_liked: !isLiked, likes_count: p.likes_count + (isLiked ? -1 : 1) }
                     : p
@@ -73,7 +74,10 @@ const ProfilePage = () => {
     };
 
     const handleDelete = async (postId: string) => {
-        setPosts((prev) => prev.filter((p) => p.id !== postId));
+        // Optimistic update in cache
+        queryClient.setQueryData<Post[]>(['user-posts', user?.id], (old = []) =>
+            old.filter((p) => p.id !== postId)
+        );
         await deletePost(postId);
     };
 
