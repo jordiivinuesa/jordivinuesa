@@ -159,7 +159,7 @@ const NutritionPage = () => {
 
       {/* Food Picker Dialog - same as before */}
       <Dialog open={showFoodPicker} onOpenChange={setShowFoodPicker}>
-        <DialogContent className="bg-card border-border max-w-[380px] max-h-[85vh] rounded-2xl p-0 overflow-hidden">
+        <DialogContent className="bg-card border-border max-w-[380px] max-h-[85vh] rounded-2xl p-0 flex flex-col">
           {!selectedFood ? (
             <>
               <div className="p-4 pb-2">
@@ -176,28 +176,28 @@ const NutritionPage = () => {
                     autoFocus
                   />
                 </div>
-                <div className="mt-4 -mx-4 overflow-x-auto no-scrollbar pb-2 touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
-                  <div className="inline-flex gap-2 px-4 whitespace-nowrap min-w-max">
+              </div>
+              <div className="overflow-x-auto no-scrollbar pb-2 px-4 touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <div className="flex gap-2 w-max">
+                  <Button
+                    variant={selectedCategory === "all" ? "default" : "secondary"}
+                    size="sm"
+                    onClick={() => setSelectedCategory("all")}
+                    className="rounded-xl h-8 px-4 text-xs shrink-0"
+                  >
+                    Todos
+                  </Button>
+                  {categories.map(([key, label]) => (
                     <Button
-                      variant={selectedCategory === "all" ? "default" : "secondary"}
+                      key={key}
+                      variant={selectedCategory === key ? "default" : "secondary"}
                       size="sm"
-                      onClick={() => setSelectedCategory("all")}
+                      onClick={() => setSelectedCategory(key)}
                       className="rounded-xl h-8 px-4 text-xs shrink-0"
                     >
-                      Todos
+                      {foodCategoryIcons[key]} {label}
                     </Button>
-                    {categories.map(([key, label]) => (
-                      <Button
-                        key={key}
-                        variant={selectedCategory === key ? "default" : "secondary"}
-                        size="sm"
-                        onClick={() => setSelectedCategory(key)}
-                        className="rounded-xl h-8 px-4 text-xs shrink-0"
-                      >
-                        {foodCategoryIcons[key]} {label}
-                      </Button>
-                    ))}
-                  </div>
+                  ))}
                 </div>
               </div>
               <div className="max-h-[50vh] overflow-y-auto px-4 pb-4 space-y-0.5 no-scrollbar">
