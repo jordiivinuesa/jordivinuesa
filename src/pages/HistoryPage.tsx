@@ -87,6 +87,7 @@ const HistoryPage = () => {
         id: workout.id,
         date: workout.date,
         name: workout.name,
+        type: (workout.type as Workout['type']) || 'ejercicios',
         exercises: workoutExercises,
         duration: workout.duration ?? undefined,
       });

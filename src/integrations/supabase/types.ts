@@ -376,6 +376,50 @@ export type Database = {
           },
         ]
       }
+      workout_activities: {
+        Row: {
+          activity_id: string
+          activity_name: string
+          created_at: string | null
+          duration: number
+          id: string
+          intensity: string | null
+          notes: string | null
+          updated_at: string | null
+          workout_id: string
+        }
+        Insert: {
+          activity_id: string
+          activity_name: string
+          created_at?: string | null
+          duration: number
+          id?: string
+          intensity?: string | null
+          notes?: string | null
+          updated_at?: string | null
+          workout_id: string
+        }
+        Update: {
+          activity_id?: string
+          activity_name?: string
+          created_at?: string | null
+          duration?: number
+          id?: string
+          intensity?: string | null
+          notes?: string | null
+          updated_at?: string | null
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_activities_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_exercises: {
         Row: {
           exercise_id: string
@@ -477,6 +521,7 @@ export type Database = {
           duration: number | null
           id: string
           name: string
+          type: string | null
           user_id: string
         }
         Insert: {
@@ -485,6 +530,7 @@ export type Database = {
           duration?: number | null
           id?: string
           name: string
+          type?: string | null
           user_id: string
         }
         Update: {
@@ -493,6 +539,7 @@ export type Database = {
           duration?: number | null
           id?: string
           name?: string
+          type?: string | null
           user_id?: string
         }
         Relationships: []
