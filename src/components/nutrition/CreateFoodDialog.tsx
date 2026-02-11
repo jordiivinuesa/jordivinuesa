@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FoodItem } from "@/data/foods";
-import { Camera, Save, X } from "lucide-react";
+import { Camera, Save, X, Loader2, ScanText } from "lucide-react";
 import { useDbSync } from "@/hooks/useDbSync";
 import { useAppStore } from "@/store/useAppStore";
 import { toast } from "@/hooks/use-toast";
+import { createWorker } from "tesseract.js";
 
 interface CreateFoodDialogProps {
     open: boolean;
@@ -17,10 +18,11 @@ interface CreateFoodDialogProps {
 }
 
 export const CreateFoodDialog = ({ open, onOpenChange, initialBarcode = "", onFoodCreated }: CreateFoodDialogProps) => {
-    const { addCustomFood } = useAppStore();
+    const { addCustomFood, removeCustomFood } = useAppStore();
     const { saveCustomFoodToDb } = useDbSync();
     const [photoMode, setPhotoMode] = useState(false);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -36,6 +38,66 @@ export const CreateFoodDialog = ({ open, onOpenChange, initialBarcode = "", onFo
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const extractNutritionalData = (text: string) => {
+        const normalize = (str: string) => str.toLowerCase().replace(/,/g, ".").replace(/\s+/g, " ");
+        const textLower = normalize(text);
+
+        const findValue = (keywords: string[]) => {
+            for (const keyword of keywords) {
+                // Regex looks for the keyword, followed by optional non-digit chars (like : or space), 
+                // then captures a number (integer or decimal), 
+                // and optionally followed by units like g, kj, kcal.
+                const regex = new RegExp(`${keyword}[^0-9]*([0-9]+\\.?[0-9]*)`, "i");
+                const match = textLower.match(regex);
+                if (match && match[1]) {
+                    return match[1];
+                }
+            }
+            return "";
+        };
+
+        return {
+            calories: findValue(["valor energ", "energ", "calor", "kcal", "energy"]),
+            protein: findValue(["prote", "prot"]),
+            carbs: findValue(["hidratos", "carbohidratos", "carb", "h. de carbono"]),
+            fat: findValue(["grasas", "grasa", "fat", "lipidos"]),
+        };
+    };
+
+    const analyzeImage = async () => {
+        if (!capturedImage) return;
+
+        setIsAnalyzing(true);
+        try {
+            const worker = await createWorker("spa"); // Load Spanish language data
+            const { data: { text } } = await worker.recognize(capturedImage);
+            await worker.terminate();
+
+            console.log("OCR Text:", text); // For debugging
+            const extracted = extractNutritionalData(text);
+
+            setFormData(prev => ({
+                ...prev,
+                calories: extracted.calories || prev.calories,
+                protein: extracted.protein || prev.protein,
+                carbs: extracted.carbs || prev.carbs,
+                fat: extracted.fat || prev.fat,
+            }));
+
+            const foundCount = Object.values(extracted).filter(Boolean).length;
+            if (foundCount > 0) {
+                toast({ title: "Datos extraídos", description: `Se han detectado ${foundCount} valores nutricionales.` });
+            } else {
+                toast({ title: "Sin resultados", description: "No se pudieron detectar valores claros en la imagen." });
+            }
+        } catch (error) {
+            console.error("OCR Error:", error);
+            toast({ title: "Error", description: "Falló el análisis de la imagen.", variant: "destructive" });
+        } finally {
+            setIsAnalyzing(false);
+        }
     };
 
     const startCamera = async () => {
@@ -94,16 +156,28 @@ export const CreateFoodDialog = ({ open, onOpenChange, initialBarcode = "", onFo
             fiber: 0
         };
 
-        addCustomFood(newFood);
-        await saveCustomFoodToDb(newFood);
+        try {
+            addCustomFood(newFood);
+            await saveCustomFoodToDb(newFood);
 
-        if (onFoodCreated) onFoodCreated(newFood);
-        onOpenChange(false);
+            if (onFoodCreated) onFoodCreated(newFood);
+            onOpenChange(false);
 
-        // Reset form
-        setFormData({ name: "", brand: "", calories: "", protein: "", carbs: "", fat: "" });
-        setCapturedImage(null);
-        toast({ title: "Guardado", description: "Alimento personalizado creado con éxito" });
+            // Reset form
+            setFormData({ name: "", brand: "", calories: "", protein: "", carbs: "", fat: "" });
+            setCapturedImage(null);
+            toast({ title: "Guardado", description: "Alimento personalizado creado con éxito" });
+        } catch (error: any) {
+            if (error.message === "NAME_EXISTS") {
+                toast({ title: "Error", description: "Ya existe un alimento con ese nombre. Por favor, elige otro nombre.", variant: "destructive" });
+                // Revert local store add if db save failed
+                removeCustomFood(newFood.id);
+            } else {
+                toast({ title: "Error", description: "Error al guardar el alimento.", variant: "destructive" });
+                // Optional: revert here too if we want strict consistency
+                removeCustomFood(newFood.id);
+            }
+        }
     };
 
     return (
@@ -141,8 +215,43 @@ export const CreateFoodDialog = ({ open, onOpenChange, initialBarcode = "", onFo
                                 <canvas ref={canvasRef} className="hidden" />
                             </div>
                         ) : capturedImage ? (
-                            <div className="rounded-lg overflow-hidden bg-black aspect-video relative">
+                            <div className="rounded-lg overflow-hidden bg-black aspect-video relative group">
                                 <img src={capturedImage} alt="Referencia" className="w-full h-full object-contain" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                    <Button
+                                        size="sm"
+                                        onClick={analyzeImage}
+                                        disabled={isAnalyzing}
+                                        className="bg-white text-black hover:bg-white/90 font-medium"
+                                    >
+                                        {isAnalyzing ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Analizando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ScanText className="mr-2 h-4 w-4" />
+                                                Extraer Datos
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                                {/* Mobile friendly always visible button if needed, but group-hover is fine for now usually. 
+                                    Actually for mobile touch, hover isn't great. Let's make it always visible or visible on tap. 
+                                    Better yet, place it clearly below or as an overlay that is always there.
+                                */}
+                                <div className="absolute bottom-2 right-2 flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        onClick={analyzeImage}
+                                        disabled={isAnalyzing}
+                                        className="bg-primary text-primary-foreground shadow-lg h-8 px-3 text-xs"
+                                    >
+                                        {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <ScanText className="h-3 w-3 mr-1" />}
+                                        {isAnalyzing ? "Analizando..." : "Extraer"}
+                                    </Button>
+                                </div>
                             </div>
                         ) : (
                             <Button onClick={startCamera} variant="outline" className="w-full gap-2 py-8 bg-background/50 border-dashed">

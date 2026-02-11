@@ -457,8 +457,8 @@ export function useDbSync() {
     if (!user) return;
     const { data } = await (supabase as any)
       .from("custom_foods")
-      .select("*")
-      .eq("user_id", user.id);
+      .select("*");
+    // .eq("user_id", user.id); // Removed to allow global read access
 
     if (data) {
       const foods: FoodItem[] = data.map((f: any) => ({
@@ -479,7 +479,7 @@ export function useDbSync() {
   const saveCustomFoodToDb = useCallback(async (food: FoodItem) => {
     if (!user) return;
 
-    await (supabase as any).from("custom_foods").insert({
+    const { error } = await (supabase as any).from("custom_foods").insert({
       id: food.id,
       user_id: user.id,
       name: food.name,
@@ -490,6 +490,13 @@ export function useDbSync() {
       // Store brands/barcode if available in ID (e.g. from OpenFoodFacts)
       barcode: food.id.startsWith('off_') ? food.id.replace('off_', '') : null,
     });
+
+    if (error) {
+      if (error.code === '23505') { // Unique violation
+        throw new Error("NAME_EXISTS");
+      }
+      throw error;
+    }
   }, [user]);
 
   // Delete custom food
