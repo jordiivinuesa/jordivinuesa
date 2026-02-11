@@ -45,8 +45,13 @@ const ProfilePage = () => {
         setProfile(profileData);
         setPosts(postsData);
         setLoading(false);
-        markAsRead();
-    }, [user, fetchUserProfile, fetchUserPosts, markAsRead]);
+    }, [user, fetchUserProfile, fetchUserPosts]);
+
+    useEffect(() => {
+        if (user) {
+            markAsRead();
+        }
+    }, [user, markAsRead]);
 
     useEffect(() => {
         loadData();

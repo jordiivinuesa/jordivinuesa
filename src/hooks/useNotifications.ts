@@ -29,7 +29,6 @@ export function useNotifications() {
             .eq("is_read", false);
 
         if (!error && data) {
-            console.log("Notificaciones pendientes:", data);
             setNotifications(data as Notification[]);
         }
         setLoading(false);
