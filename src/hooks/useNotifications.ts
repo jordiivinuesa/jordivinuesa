@@ -35,8 +35,10 @@ export function useNotifications() {
     }, [user]);
 
     const markAsRead = useCallback(async () => {
-        if (!user || notifications.length === 0) return;
+        if (!user) return;
 
+        // No comprobamos notifications.length para que ProfilePage 
+        // pueda limpiar la DB aunque su copia local esté vacía al cargar
         const { error } = await supabase
             .from("notifications")
             .update({ is_read: true })
@@ -46,26 +48,43 @@ export function useNotifications() {
         if (!error) {
             setNotifications([]);
         }
-    }, [user, notifications]);
+    }, [user]);
 
     useEffect(() => {
         if (!user) return;
 
         fetchNotifications();
 
-        // Subscribe to new notifications
+        // Subscribe to ALL changes in notifications for this user
         const channel = supabase
             .channel(`user-notifications-${user.id}`)
             .on(
                 "postgres_changes",
                 {
-                    event: "INSERT",
+                    event: "*",
                     schema: "public",
                     table: "notifications",
                     filter: `user_id=eq.${user.id}`,
                 },
                 (payload) => {
-                    setNotifications((prev) => [payload.new as Notification, ...prev]);
+                    if (payload.eventType === "INSERT") {
+                        const newNotif = payload.new as Notification;
+                        if (!newNotif.is_read) {
+                            setNotifications((prev) => {
+                                // Evitar duplicados si fetch y realtime coinciden
+                                if (prev.some(n => n.id === newNotif.id)) return prev;
+                                return [newNotif, ...prev];
+                            });
+                        }
+                    } else if (payload.eventType === "UPDATE") {
+                        const updatedNotif = payload.new as Notification;
+                        if (updatedNotif.is_read) {
+                            // Si se marcó como leída (desde cualquier instancia), la quitamos
+                            setNotifications((prev) => prev.filter(n => n.id !== updatedNotif.id));
+                        }
+                    } else if (payload.eventType === "DELETE") {
+                        setNotifications((prev) => prev.filter(n => n.id !== payload.old.id));
+                    }
                 }
             )
             .subscribe();
