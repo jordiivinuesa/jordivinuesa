@@ -35,11 +35,15 @@ const BottomNav = () => {
               {isActive && (
                 <span className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary" />
               )}
-              {item.label === "Perfil" && (hasLikes || hasFollows || hasShares) && (
+              {item.label === "Perfil" && (hasLikes || hasFollows) && (
                 <div className="absolute -top-1.5 -right-1.5 flex items-center gap-0.5 animate-pulse bg-card/95 border border-primary/30 rounded-full px-1 py-0.5 shadow-xl z-20 backdrop-blur-md">
                   {hasLikes && <Heart className="h-2.5 w-2.5 fill-primary text-primary" />}
                   {hasFollows && <User className="h-2.5 w-2.5 text-primary fill-primary" />}
-                  {hasShares && <History className="h-2.5 w-2.5 text-primary fill-primary" />}
+                </div>
+              )}
+              {item.label === "Entreno" && hasShares && (
+                <div className="absolute -top-1.5 -right-1.5 flex items-center gap-0.5 animate-pulse bg-card/95 border border-primary/30 rounded-full px-1 py-0.5 shadow-xl z-20 backdrop-blur-md">
+                  <History className="h-2.5 w-2.5 text-primary fill-primary" />
                 </div>
               )}
             </div>
