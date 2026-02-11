@@ -122,6 +122,7 @@ export function useNotifications() {
         unreadCount: notifications.length,
         hasLikes: notifications.some((n) => n.type === "like"),
         hasFollows: notifications.some((n) => n.type === "follow"),
+        hasShares: notifications.some((n) => n.type === "share"),
         loading,
         markAsRead,
     };
