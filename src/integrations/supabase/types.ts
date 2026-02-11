@@ -38,42 +38,6 @@ export type Database = {
         }
         Relationships: []
       }
-      custom_foods: {
-        Row: {
-          barcode: string | null
-          calories: number
-          carbs: number
-          created_at: string | null
-          fat: number
-          id: string
-          name: string
-          protein: number
-          user_id: string
-        }
-        Insert: {
-          barcode?: string | null
-          calories: number
-          carbs: number
-          created_at?: string | null
-          fat: number
-          id: string
-          name: string
-          protein: number
-          user_id: string
-        }
-        Update: {
-          barcode?: string | null
-          calories?: number
-          carbs?: number
-          created_at?: string | null
-          fat?: number
-          id?: string
-          name?: string
-          protein?: number
-          user_id?: string
-        }
-        Relationships: []
-      }
       follows: {
         Row: {
           created_at: string
