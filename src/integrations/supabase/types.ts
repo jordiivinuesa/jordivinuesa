@@ -252,6 +252,36 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_templates: {
+        Row: {
+          created_at: string
+          id: string
+          receiver_id: string
+          sender_id: string
+          status: string
+          template_data: Json
+          template_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          receiver_id: string
+          sender_id: string
+          status?: string
+          template_data: Json
+          template_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          receiver_id?: string
+          sender_id?: string
+          status?: string
+          template_data?: Json
+          template_name?: string
+        }
+        Relationships: []
+      }
       template_exercises: {
         Row: {
           exercise_id: string
