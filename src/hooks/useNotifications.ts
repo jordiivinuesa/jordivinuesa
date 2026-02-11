@@ -14,14 +14,21 @@ export interface Notification {
     created_at: string;
 }
 
-// Canal para comunicar instancias del hook en la misma pestaña
-const NOTIFICATION_CHANNEL = "peak_notifications_internal";
-const broadcast = typeof window !== "undefined" ? new BroadcastChannel(NOTIFICATION_CHANNEL) : null;
+// SHARED STATE SYSTEM
+let globalNotifications: Notification[] = [];
+let globalLoading = true;
+const listeners = new Set<(data: { notifications: Notification[], loading: boolean }) => void>();
+
+function notifyListeners() {
+    listeners.forEach(listener => listener({
+        notifications: [...globalNotifications],
+        loading: globalLoading
+    }));
+}
 
 export function useNotifications() {
     const { user } = useAuth();
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [state, setState] = useState({ notifications: globalNotifications, loading: globalLoading });
 
     const fetchNotifications = useCallback(async () => {
         if (!user) return;
@@ -33,20 +40,21 @@ export function useNotifications() {
             .eq("is_read", false);
 
         if (!error && data) {
-            console.log(">>> NOTIFICACIONES ACTIVAS:", data.length);
-            setNotifications(data as Notification[]);
+            console.log("%c>>> HOOK: Notificaciones cargadas de BD:", "color: #00ff00", data.length);
+            globalNotifications = data as Notification[];
+            globalLoading = false;
+            notifyListeners();
         }
-        setLoading(false);
     }, [user]);
 
     const markAsRead = useCallback(async () => {
         if (!user) return;
 
-        console.log(">>> EJECUTANDO LIMPIEZA DE NOTIFICACIONES...");
+        console.log("%c>>> HOOK: markAsRead ejecutado", "color: #00ffff; font-weight: bold;");
 
-        // Notificar a otras instancias en la misma pestaña inmediatamente
-        broadcast?.postMessage({ type: "CLEAR_ALL" });
-        setNotifications([]);
+        // Optimistic update: limpiar localmente e informar a todos
+        globalNotifications = [];
+        notifyListeners();
 
         const { error } = await supabase
             .from("notifications")
@@ -55,27 +63,27 @@ export function useNotifications() {
             .eq("is_read", false);
 
         if (error) {
-            console.error(">>> ERROR AL LIMPIAR EN BD:", error);
+            console.error(">>> HOOK: Error al limpiar en BD:", error);
         } else {
-            console.log(">>> LIMPIEZA COMPLETADA EN BASE DE DATOS");
+            console.log(">>> HOOK: Limpieza confirmada en BD");
         }
     }, [user]);
 
     useEffect(() => {
         if (!user) return;
 
-        fetchNotifications();
-
-        // Escuchar limpieza interna (entre instancias del hook)
-        const handleInternalMessage = (event: MessageEvent) => {
-            if (event.data?.type === "CLEAR_ALL") {
-                console.log(">>> LIMPIEZA INTERNA RECIBIDA (Broadcast)");
-                setNotifications([]);
-            }
+        // Suscribirse a cambios locales
+        const handleChange = (newState: { notifications: Notification[], loading: boolean }) => {
+            setState(newState);
         };
-        broadcast?.addEventListener("message", handleInternalMessage);
+        listeners.add(handleChange);
 
-        // Suscribirse a cambios en Realtime (desde otros dispositivos/pestañas)
+        // Si es la primera vez o no hay datos, cargar
+        if (globalLoading) {
+            fetchNotifications();
+        }
+
+        // Suscribirse a Realtime
         const channel = supabase
             .channel(`user-notifications-${user.id}`)
             .on(
@@ -87,39 +95,42 @@ export function useNotifications() {
                     filter: `user_id=eq.${user.id}`,
                 },
                 (payload) => {
-                    console.log(">>> EVENTO REALTIME:", payload.eventType, payload);
+                    console.log(">>> HOOK: Cambio detectado en Realtime:", payload.eventType);
+
                     if (payload.eventType === "INSERT") {
                         const newNotif = payload.new as Notification;
-                        if (!newNotif.is_read) {
-                            setNotifications((prev) => {
-                                if (prev.some(n => n.id === newNotif.id)) return prev;
-                                return [newNotif, ...prev];
-                            });
+                        if (!newNotif.is_read && !globalNotifications.some(n => n.id === newNotif.id)) {
+                            globalNotifications = [newNotif, ...globalNotifications];
+                            notifyListeners();
                         }
                     } else if (payload.eventType === "UPDATE") {
-                        const updatedNotif = payload.new as Notification;
-                        if (updatedNotif.is_read) {
-                            setNotifications((prev) => prev.filter(n => n.id !== updatedNotif.id));
+                        const updated = payload.new as Notification;
+                        if (updated.is_read) {
+                            globalNotifications = globalNotifications.filter(n => n.id !== updated.id);
+                            notifyListeners();
                         }
                     } else if (payload.eventType === "DELETE") {
-                        setNotifications((prev) => prev.filter(n => n.id !== payload.old.id));
+                        globalNotifications = globalNotifications.filter(n => n.id !== payload.old.id);
+                        notifyListeners();
                     }
                 }
             )
-            .subscribe();
+            .subscribe((status) => {
+                console.log(">>> HOOK: Estado suscripción Realtime:", status);
+            });
 
         return () => {
-            broadcast?.removeEventListener("message", handleInternalMessage);
+            listeners.delete(handleChange);
             supabase.removeChannel(channel);
         };
     }, [user, fetchNotifications]);
 
     return {
-        notifications,
-        unreadCount: notifications.length,
-        hasLikes: notifications.some((n) => n.type === "like"),
-        hasFollows: notifications.some((n) => n.type === "follow"),
-        loading,
+        notifications: state.notifications,
+        unreadCount: state.notifications.length,
+        hasLikes: state.notifications.some((n) => n.type === "like"),
+        hasFollows: state.notifications.some((n) => n.type === "follow"),
+        loading: state.loading,
         markAsRead,
     };
 }
