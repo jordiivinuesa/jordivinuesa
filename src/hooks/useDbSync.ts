@@ -377,11 +377,19 @@ export function useDbSync() {
       });
     } catch (error: any) {
       console.error('Sync: Error saving template:', error);
-      toast({
-        title: "Error al guardar",
-        description: "No se pudo sincronizar la plantilla con la nube.",
-        variant: "destructive",
-      });
+      if (error?.code === '23505') {
+        toast({
+          title: "Error al guardar",
+          description: "Ya existe una plantilla con este nombre.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error al guardar",
+          description: "No se pudo sincronizar la plantilla con la nube.",
+          variant: "destructive",
+        });
+      }
     }
   }, [user]);
 

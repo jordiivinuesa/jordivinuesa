@@ -45,6 +45,7 @@ const ProfilePage = () => {
 
     const loading = profileLoading || postsLoading;
 
+    const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
     const [commentPostId, setCommentPostId] = useState<string | null>(null);
     const [followList, setFollowList] = useState<{ open: boolean; type: "followers" | "following" }>({
         open: false,
@@ -194,7 +195,7 @@ const ProfilePage = () => {
                         {posts.slice(0, 3).map((post) => (
                             <div
                                 key={post.id}
-                                onClick={() => setCommentPostId(post.id)}
+                                onClick={() => setSelectedPostId(post.id)}
                                 className="bg-secondary/30 rounded-2xl border border-border overflow-hidden hover:border-primary/30 transition-all cursor-pointer active:scale-[0.98]"
                             >
                                 <div className="flex gap-3 p-3">
@@ -245,20 +246,22 @@ const ProfilePage = () => {
             </div>
 
             {/* Full Post View Modal */}
-            {commentPostId && (
+            {selectedPostId && (
                 <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-fade-in">
                     <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
                         <PostCard
-                            post={posts.find(p => p.id === commentPostId)!}
+                            post={posts.find(p => p.id === selectedPostId)!}
                             onLike={handleLike}
-                            onComment={setCommentPostId}
+                            onComment={(postId) => {
+                                setCommentPostId(postId);
+                            }}
                             onUserClick={(uid) => navigate(`/social/user/${uid}`)}
                             onDelete={handleDelete}
                         />
                         <Button
                             variant="outline"
                             className="w-full mt-4 rounded-xl"
-                            onClick={() => setCommentPostId(null)}
+                            onClick={() => setSelectedPostId(null)}
                         >
                             Cerrar
                         </Button>

@@ -69,6 +69,16 @@ const WorkoutPage = () => {
     const name = workoutName.trim();
     if (name) {
       if (startMode === "template") {
+        // Check for duplicate name
+        const isDuplicate = templates.some(
+          (t) => t.name.trim().toLowerCase() === name.toLowerCase()
+        );
+
+        if (isDuplicate) {
+          toast.error("Ya existe una plantilla con este nombre");
+          return;
+        }
+
         const templateId = crypto.randomUUID();
         const template = {
           id: templateId,
@@ -114,6 +124,17 @@ const WorkoutPage = () => {
 
   const handleSaveAsTemplate = () => {
     if (!activeWorkout) return;
+
+    // Check for duplicate name
+    const isDuplicate = templates.some(
+      (t) => t.name.trim().toLowerCase() === activeWorkout.name.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast.error("Ya existe una plantilla con este nombre");
+      return;
+    }
+
     const templateId = crypto.randomUUID();
     const template = {
       id: templateId,
@@ -163,6 +184,16 @@ const WorkoutPage = () => {
   }, [activeWorkout, activeTemplateId, updateTemplate, updateTemplateInDb]);
 
   const handleAcceptShare = async (share: SharedTemplate) => {
+    // Check for duplicate name
+    const isDuplicate = templates.some(
+      (t) => t.name.trim().toLowerCase() === share.template_name.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast.error("Ya tienes una plantilla con este nombre");
+      return;
+    }
+
     const template: WorkoutTemplate = {
       id: crypto.randomUUID(),
       name: share.template_name,
