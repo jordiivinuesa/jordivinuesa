@@ -12,6 +12,7 @@ import { useTemplateSharing, type SharedTemplate } from "@/hooks/useTemplateShar
 import ShareTemplateDialog from "@/components/workout/ShareTemplateDialog";
 import { Send, CheckCircle, XCircle } from "lucide-react";
 import type { WorkoutTemplate } from "@/store/useAppStore";
+import { useNotifications } from "@/hooks/useNotifications";
 
 import { useNavigate } from "react-router-dom";
 
@@ -36,6 +37,7 @@ const WorkoutPage = () => {
   } = useAppStore();
 
   const { saveWorkoutToDb, saveTemplateToDb, updateTemplateInDb, deleteTemplateFromDb, loadTemplates } = useDbSync();
+  const { markAsRead } = useNotifications();
 
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,6 +49,11 @@ const WorkoutPage = () => {
   const [showDetailView, setShowDetailView] = useState(false);
   const { pendingShares, updateShareStatus, fetchPendingShares } = useTemplateSharing();
   const [sharingTemplate, setSharingTemplate] = useState<WorkoutTemplate | null>(null);
+
+  // Clear share notifications when entering workout page
+  useEffect(() => {
+    markAsRead();
+  }, [markAsRead]);
 
   const filteredExercises = exercises.filter((e) => {
     const normalizedName = removeAccents(e.name.toLowerCase());
