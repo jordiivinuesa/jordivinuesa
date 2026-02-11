@@ -27,7 +27,7 @@ const WorkoutPage = () => {
     startWorkoutFromTemplate,
   } = useAppStore();
 
-  const { saveWorkoutToDb, saveTemplateToDb, updateTemplateInDb, deleteTemplateFromDb } = useDbSync();
+  const { saveWorkoutToDb, saveTemplateToDb, updateTemplateInDb, deleteTemplateFromDb, loadTemplates } = useDbSync();
 
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -187,9 +187,20 @@ const WorkoutPage = () => {
             </Button>
           </div>
 
-          {templates.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground px-1">Tus Plantillas</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-sm font-semibold text-foreground">Tus Plantillas</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => loadTemplates()}
+                className="h-7 px-2 text-[10px] text-muted-foreground hover:text-primary"
+              >
+                Actualizar
+              </Button>
+            </div>
+
+            {templates.length > 0 ? (
               <div className="grid grid-cols-1 gap-3">
                 {templates.map((template) => (
                   <div key={template.id} className="rounded-2xl bg-card p-4 glow-border flex items-center justify-between">
@@ -225,8 +236,13 @@ const WorkoutPage = () => {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border p-8 flex flex-col items-center justify-center gap-2 bg-card/30">
+                <Bookmark className="h-8 w-8 text-muted-foreground/30" />
+                <p className="text-xs text-muted-foreground text-center">No tienes plantillas guardadas</p>
+              </div>
+            )}
+          </div>
         </div>
 
         <Dialog open={showStartDialog} onOpenChange={setShowStartDialog}>

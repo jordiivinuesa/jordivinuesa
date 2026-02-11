@@ -2,6 +2,7 @@ import { useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useAppStore, type MealEntry, type Workout, type WorkoutExercise, type WorkoutSet } from "@/store/useAppStore";
+import { toast } from "@/hooks/use-toast";
 
 export function useDbSync() {
   const { user } = useAuth();
@@ -258,8 +259,15 @@ export function useDbSync() {
 
       console.log(`Sync: Successfully loaded ${fullTemplates.length} templates`);
       useAppStore.setState({ templates: fullTemplates });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sync: Error loading templates:', error);
+      if (error?.code === 'PGRST116' || error?.message?.includes('not found') || error?.status === 404) {
+        toast({
+          title: "Error de Sincronización",
+          description: "Las tablas de plantillas no existen. Por favor, asegúrate de aplicar las migraciones.",
+          variant: "destructive",
+        });
+      }
     }
   }, [user]);
 
@@ -320,8 +328,17 @@ export function useDbSync() {
         }
       }
       console.log('Sync: Template saved successfully');
-    } catch (error) {
+      toast({
+        title: "Sincronizado",
+        description: "Plantilla guardada en la nube.",
+      });
+    } catch (error: any) {
       console.error('Sync: Error saving template:', error);
+      toast({
+        title: "Error al guardar",
+        description: "No se pudo sincronizar la plantilla con la nube.",
+        variant: "destructive",
+      });
     }
   }, [user]);
 
