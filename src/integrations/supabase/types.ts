@@ -252,6 +252,70 @@ export type Database = {
         }
         Relationships: []
       }
+      template_exercises: {
+        Row: {
+          exercise_id: string
+          exercise_name: string
+          id: string
+          order_index: number
+          template_id: string
+        }
+        Insert: {
+          exercise_id: string
+          exercise_name: string
+          id?: string
+          order_index?: number
+          template_id: string
+        }
+        Update: {
+          exercise_id?: string
+          exercise_name?: string
+          id?: string
+          order_index?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_exercises_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_sets: {
+        Row: {
+          id: string
+          reps: number
+          set_index: number
+          template_exercise_id: string
+          weight: number
+        }
+        Insert: {
+          id?: string
+          reps?: number
+          set_index?: number
+          template_exercise_id: string
+          weight?: number
+        }
+        Update: {
+          id?: string
+          reps?: number
+          set_index?: number
+          template_exercise_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_sets_template_exercise_id_fkey"
+            columns: ["template_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "template_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_exercises: {
         Row: {
           exercise_id: string
@@ -318,6 +382,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workout_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       workouts: {
         Row: {
