@@ -41,6 +41,43 @@ export interface UserProfile {
   posts_count: number;
 }
 
+// Signed URL cache with localStorage persistence
+interface SignedUrlCache {
+  url: string;
+  expiresAt: number;
+}
+
+const SIGNED_URL_CACHE_KEY = 'peak_signed_url_cache';
+const CACHE_DURATION = 50 * 60 * 1000; // 50 minutes (before 1-hour Supabase expiry)
+
+function getSignedUrlCache(): Map<string, SignedUrlCache> {
+  try {
+    const cached = localStorage.getItem(SIGNED_URL_CACHE_KEY);
+    if (!cached) return new Map();
+
+    const parsed = JSON.parse(cached);
+    const now = Date.now();
+
+    // Filter out expired entries
+    const validEntries = Object.entries(parsed).filter(
+      ([_, cache]: [string, any]) => cache.expiresAt > now
+    );
+
+    return new Map(validEntries as [string, SignedUrlCache][]);
+  } catch {
+    return new Map();
+  }
+}
+
+function setSignedUrlCache(cache: Map<string, SignedUrlCache>) {
+  try {
+    const obj = Object.fromEntries(cache);
+    localStorage.setItem(SIGNED_URL_CACHE_KEY, JSON.stringify(obj));
+  } catch (e) {
+    console.warn('Failed to cache signed URLs:', e);
+  }
+}
+
 async function resolveSignedUrl(imageUrl: string): Promise<string> {
   if (!imageUrl) return imageUrl;
 
@@ -61,6 +98,15 @@ async function resolveSignedUrl(imageUrl: string): Promise<string> {
     storagePath = imageUrl.substring(idx + bucketSegment.length);
   }
 
+  // Check cache first
+  const cache = getSignedUrlCache();
+  const cached = cache.get(storagePath);
+
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.url;
+  }
+
+  // Generate new signed URL
   const { data, error } = await supabase.storage
     .from("post-images")
     .createSignedUrl(storagePath, 3600); // 1 hour expiry
@@ -69,6 +115,13 @@ async function resolveSignedUrl(imageUrl: string): Promise<string> {
     console.error("Error creating signed URL for:", storagePath, error);
     return imageUrl; // fallback
   }
+
+  // Cache the new URL
+  cache.set(storagePath, {
+    url: data.signedUrl,
+    expiresAt: Date.now() + CACHE_DURATION
+  });
+  setSignedUrlCache(cache);
 
   return data.signedUrl;
 }
@@ -82,6 +135,7 @@ async function resolvePostImageUrls(posts: any[]): Promise<Map<string, string>> 
   await Promise.all(promises);
   return urlMap;
 }
+
 
 function enrichPosts(
   posts: any[],
@@ -201,15 +255,32 @@ export function useSocial() {
       .eq("follower_id", user.id);
 
     const followedIds = follows?.map((f) => f.following_id) || [];
-    // Include current user's own posts in the feed
-    const relevantUserIds = [...followedIds, user.id];
+    // Include current user's own posts
+    const followedIdsWithSelf = [...followedIds, user.id];
 
-    const { data: posts } = await supabase
+    // Fetch posts with the correct privacy logic:
+    // 1. All public posts (is_public = true) from everyone
+    // 2. Private posts (is_public = false) only from followed users + self
+    const { data: publicPosts } = await supabase
       .from("posts")
       .select("*")
-      .in("user_id", relevantUserIds)
+      .eq("is_public", true)
       .order("created_at", { ascending: false })
       .limit(50);
+
+    const { data: privatePosts } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("is_public", false)
+      .in("user_id", followedIdsWithSelf)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    // Combine and sort by created_at
+    const allPosts = [...(publicPosts || []), ...(privatePosts || [])];
+    const posts = allPosts
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 50); // Limit to 50 total posts
 
     if (!posts || posts.length === 0) return [];
 

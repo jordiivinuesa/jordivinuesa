@@ -33,14 +33,16 @@ const UserProfilePage = () => {
     queryKey: ['user-profile', userId],
     queryFn: () => userId ? fetchUserProfile(userId) : null,
     enabled: !!userId,
-    staleTime: 60000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnMount: false,
   });
 
   const { data: posts = [], isLoading: postsLoading } = useQuery({
     queryKey: ['user-posts', userId],
     queryFn: () => userId ? fetchUserPosts(userId) : [],
     enabled: !!userId,
-    staleTime: 30000,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnMount: false,
   });
 
   const loading = profileLoading || postsLoading;

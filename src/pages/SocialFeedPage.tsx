@@ -26,7 +26,8 @@ const SocialFeedPage = () => {
   const { data: posts = [], isLoading: loading } = useQuery({
     queryKey: ['social-feed'],
     queryFn: fetchFeed,
-    staleTime: 30000, // Consider data fresh for 30 seconds
+    staleTime: 2 * 60 * 1000, // 2 minutes - more aggressive caching
+    refetchOnMount: false, // Don't refetch if data is fresh
   });
 
   const [showCreate, setShowCreate] = useState(false);

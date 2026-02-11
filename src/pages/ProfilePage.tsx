@@ -33,14 +33,16 @@ const ProfilePage = () => {
         queryKey: ['user-profile', user?.id],
         queryFn: () => user ? fetchUserProfile(user.id) : null,
         enabled: !!user,
-        staleTime: 60000,
+        staleTime: 5 * 60 * 1000, // 5 minutes - profiles change rarely
+        refetchOnMount: false,
     });
 
     const { data: posts = [], isLoading: postsLoading } = useQuery({
         queryKey: ['user-posts', user?.id],
         queryFn: () => user ? fetchUserPosts(user.id) : [],
         enabled: !!user,
-        staleTime: 30000,
+        staleTime: 2 * 60 * 1000, // 2 minutes
+        refetchOnMount: false,
     });
 
     const loading = profileLoading || postsLoading;
@@ -204,6 +206,7 @@ const ProfilePage = () => {
                                             src={post.image_url}
                                             className="w-full h-full object-cover"
                                             alt=""
+                                            loading="lazy"
                                         />
                                     </div>
                                     <div className="flex-1 min-w-0">
