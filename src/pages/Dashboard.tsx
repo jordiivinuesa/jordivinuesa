@@ -10,7 +10,7 @@ const Dashboard = () => {
   const { currentDate, dayLogs, calorieGoal, proteinGoal, carbsGoal, fatGoal } = useAppStore();
   const dayLog = dayLogs[currentDate];
   const meals = dayLog?.meals || [];
-  const workout = dayLog?.workout;
+  const workouts = dayLog?.workouts || [];
 
   const totals = meals.reduce(
     (acc, m) => ({
@@ -22,8 +22,11 @@ const Dashboard = () => {
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
 
-  const totalSets = workout?.exercises?.reduce((acc, ex) => acc + (ex.sets?.filter(s => s.completed)?.length ?? 0), 0) ?? 0;
-  const totalExercises = workout?.exercises?.length ?? 0;
+
+  const totalSets = workouts.reduce((total, workout) =>
+    total + (workout.exercises?.reduce((acc, ex) => acc + (ex.sets?.filter(s => s.completed)?.length ?? 0), 0) ?? 0), 0);
+  const totalExercises = workouts.reduce((total, workout) =>
+    total + (workout.exercises?.length ?? 0), 0);
 
   const dateObj = new Date(currentDate + "T12:00:00");
   const dayName = dateObj.toLocaleDateString("es-ES", { weekday: "long" });
@@ -85,29 +88,62 @@ const Dashboard = () => {
       <div className="rounded-2xl bg-card p-5 glow-border animate-fade-in" style={{ animationDelay: "0.3s" }}>
         <h3 className="mb-3 text-sm font-semibold text-foreground font-display flex items-center gap-2">
           <Dumbbell className="h-4 w-4 text-primary" />
-          Entrenamiento de hoy
+          Entrenamientos de hoy
+          {workouts.length > 0 && (
+            <span className="ml-auto text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+              {workouts.length}
+            </span>
+          )}
         </h3>
-        {workout ? (
-          <div className="space-y-2">
-            <p className="text-lg font-semibold font-display">{workout.name}</p>
-            <div className="flex gap-6">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  {totalExercises} ejercicios · {totalSets} series
-                </span>
+        {workouts.length > 0 ? (
+          <div className="space-y-3">
+            {workouts.map((workout, index) => (
+              <div key={workout.id} className="rounded-lg bg-secondary/30 p-3 border border-border/50">
+                <p className="text-base font-semibold font-display mb-2">{workout.name}</p>
+
+                {workout.type === 'actividad' && workout.activity ? (
+                  // Activity workout display
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">
+                        {workout.activity.duration} min · Intensidad: {workout.activity.intensity || 'No especificada'}
+                      </span>
+                    </div>
+                    {workout.activity.notes && (
+                      <div className="rounded-lg bg-secondary/50 px-3 py-2">
+                        <p className="text-xs text-muted-foreground">{workout.activity.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // Exercise workout display
+                  <>
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">
+                        {workout.exercises?.length || 0} ejercicios · {workout.exercises?.reduce((acc, ex) => acc + (ex.sets?.filter(s => s.completed)?.length ?? 0), 0) ?? 0} series
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      {workout.exercises?.slice(0, 3).map((ex) => (
+                        <div key={ex.id} className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-1.5">
+                          <span className="text-xs text-foreground">{ex.exerciseName}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {ex.sets.filter(s => s.completed).length}/{ex.sets.length}
+                          </span>
+                        </div>
+                      ))}
+                      {workout.exercises && workout.exercises.length > 3 && (
+                        <p className="text-xs text-muted-foreground text-center pt-1">
+                          +{workout.exercises.length - 3} ejercicios más
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
-            </div>
-            <div className="mt-2 space-y-1">
-              {workout.exercises.map((ex) => (
-                <div key={ex.id} className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2">
-                  <span className="text-sm text-foreground">{ex.exerciseName}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {ex.sets.filter(s => s.completed).length}/{ex.sets.length} series
-                  </span>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         ) : (
           <div className="flex flex-col items-center py-6 text-center">
@@ -121,26 +157,28 @@ const Dashboard = () => {
       </div>
 
       {/* Today's meals summary */}
-      {meals.length > 0 && (
-        <div className="mt-4 rounded-2xl bg-card p-5 glow-border animate-fade-in" style={{ animationDelay: "0.4s" }}>
-          <h3 className="mb-3 text-sm font-semibold text-foreground font-display flex items-center gap-2">
-            <Flame className="h-4 w-4 text-primary" />
-            Comidas de hoy ({meals.length})
-          </h3>
-          <div className="space-y-1">
-            {meals.map((meal) => (
-              <div key={meal.id} className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2">
-                <div>
-                  <span className="text-sm text-foreground">{meal.foodName}</span>
-                  <span className="ml-2 text-xs text-muted-foreground">{meal.grams}g</span>
+      {
+        meals.length > 0 && (
+          <div className="mt-4 rounded-2xl bg-card p-5 glow-border animate-fade-in" style={{ animationDelay: "0.4s" }}>
+            <h3 className="mb-3 text-sm font-semibold text-foreground font-display flex items-center gap-2">
+              <Flame className="h-4 w-4 text-primary" />
+              Comidas de hoy ({meals.length})
+            </h3>
+            <div className="space-y-1">
+              {meals.map((meal) => (
+                <div key={meal.id} className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2">
+                  <div>
+                    <span className="text-sm text-foreground">{meal.foodName}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">{meal.grams}g</span>
+                  </div>
+                  <span className="text-xs font-medium text-primary">{Math.round(meal.calories)} kcal</span>
                 </div>
-                <span className="text-xs font-medium text-primary">{Math.round(meal.calories)} kcal</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

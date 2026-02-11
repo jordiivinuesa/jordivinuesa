@@ -2,6 +2,7 @@ import { useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useAppStore, type MealEntry, type Workout, type WorkoutExercise, type WorkoutSet } from "@/store/useAppStore";
+import type { FoodItem, FoodCategory } from "@/data/foods";
 import { toast } from "@/hooks/use-toast";
 
 export function useDbSync() {
@@ -83,93 +84,84 @@ export function useDbSync() {
             ...state.dayLogs[date],
             date,
             meals: state.dayLogs[date]?.meals || [],
-            workout: undefined,
+            workouts: [],
           },
         },
       }));
       return;
     }
 
-    const workout = workouts[0];
-    const workoutType = (workout.type as Workout['type']) || 'ejercicios';
+    // Load all workouts for this date
+    const fullWorkouts: Workout[] = [];
 
-    // Handle activity-based workouts
-    if (workoutType === 'actividad') {
-      const { data: activityData } = await supabase
-        .from("workout_activities")
-        .select("*")
-        .eq("workout_id", workout.id)
-        .maybeSingle();
+    for (const workout of workouts) {
+      const workoutType = (workout.type as Workout['type']) || 'ejercicios';
 
-      const fullWorkout: Workout = {
-        id: workout.id,
-        date: workout.date,
-        name: workout.name,
-        type: 'actividad',
-        activity: activityData ? {
-          id: activityData.id,
-          activityId: activityData.activity_id,
-          activityName: activityData.activity_name,
-          duration: activityData.duration,
-          intensity: activityData.intensity,
-          notes: activityData.notes,
-        } : undefined,
-        duration: workout.duration ?? undefined,
-      };
-
-      useAppStore.setState((state) => ({
-        dayLogs: {
-          ...state.dayLogs,
-          [date]: {
-            ...state.dayLogs[date],
-            date,
-            meals: state.dayLogs[date]?.meals || [],
-            workout: fullWorkout,
-          },
-        },
-      }));
-      return;
-    }
-
-    // Handle exercise-based workouts
-    const { data: exercises } = await supabase
-      .from("workout_exercises")
-      .select("*")
-      .eq("workout_id", workout.id)
-      .order("order_index");
-
-    const workoutExercises: WorkoutExercise[] = [];
-
-    if (exercises) {
-      for (const ex of exercises) {
-        const { data: sets } = await supabase
-          .from("workout_sets")
+      // Handle activity-based workouts
+      if (workoutType === 'actividad') {
+        const { data: activityData } = await supabase
+          .from("workout_activities")
           .select("*")
-          .eq("workout_exercise_id", ex.id)
-          .order("set_index");
+          .eq("workout_id", workout.id)
+          .maybeSingle();
 
-        workoutExercises.push({
-          id: ex.id,
-          exerciseId: ex.exercise_id,
-          exerciseName: ex.exercise_name,
-          sets: (sets || []).map((s) => ({
-            id: s.id,
-            reps: s.reps,
-            weight: Number(s.weight),
-            completed: s.completed,
-          })),
+        fullWorkouts.push({
+          id: workout.id,
+          date: workout.date,
+          name: workout.name,
+          type: 'actividad',
+          activity: activityData ? {
+            id: activityData.id,
+            activityId: activityData.activity_id,
+            activityName: activityData.activity_name,
+            duration: activityData.duration,
+            intensity: activityData.intensity as 'baja' | 'media' | 'alta' | undefined,
+            notes: activityData.notes,
+          } : undefined,
+          duration: workout.duration ?? undefined,
+        });
+      } else {
+        // Handle exercise-based workouts
+        const { data: exercises } = await supabase
+          .from("workout_exercises")
+          .select("*")
+          .eq("workout_id", workout.id)
+          .order("order_index");
+
+        const workoutExercises: WorkoutExercise[] = [];
+
+        if (exercises) {
+          for (const ex of exercises) {
+            const { data: sets } = await supabase
+              .from("workout_sets")
+              .select("*")
+              .eq("workout_exercise_id", ex.id)
+              .order("set_index");
+
+            workoutExercises.push({
+              id: ex.id,
+              exerciseId: ex.exercise_id,
+              exerciseName: ex.exercise_name,
+              sets: (sets || []).map((s) => ({
+                id: s.id,
+                reps: s.reps,
+                weight: Number(s.weight),
+                completed: s.completed,
+              })),
+            });
+          }
+        }
+
+        fullWorkouts.push({
+          id: workout.id,
+          date: workout.date,
+          name: workout.name,
+          type: workoutType,
+          exercises: workoutExercises,
+          duration: workout.duration ?? undefined,
         });
       }
     }
-
-    const fullWorkout: Workout = {
-      id: workout.id,
-      date: workout.date,
-      name: workout.name,
-      type: workoutType,
-      exercises: workoutExercises,
-      duration: workout.duration ?? undefined,
-    };
 
     useAppStore.setState((state) => ({
       dayLogs: {
@@ -178,7 +170,7 @@ export function useDbSync() {
           ...state.dayLogs[date],
           date,
           meals: state.dayLogs[date]?.meals || [],
-          workout: fullWorkout,
+          workouts: fullWorkouts,
         },
       },
     }));
@@ -460,6 +452,60 @@ export function useDbSync() {
     await (supabase as any).from("workout_templates").delete().eq("id", templateId);
   }, [user]);
 
+  // Load custom foods
+  const loadCustomFoods = useCallback(async () => {
+    if (!user) return;
+    const { data } = await (supabase as any)
+      .from("custom_foods")
+      .select("*")
+      .eq("user_id", user.id);
+
+    if (data) {
+      const foods: FoodItem[] = data.map((f: any) => ({
+        id: f.id,
+        name: f.name,
+        category: "snacks", // Default category for custom foods if not stored
+        calories: Number(f.calories),
+        protein: Number(f.protein),
+        carbs: Number(f.carbs),
+        fat: Number(f.fat),
+        fiber: 0, // Default if not stored
+      }));
+      useAppStore.setState({ customFoods: foods });
+    }
+  }, [user]);
+
+  // Save custom food
+  const saveCustomFoodToDb = useCallback(async (food: FoodItem) => {
+    if (!user) return;
+
+    await (supabase as any).from("custom_foods").insert({
+      id: food.id,
+      user_id: user.id,
+      name: food.name,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fat: food.fat,
+      // Store brands/barcode if available in ID (e.g. from OpenFoodFacts)
+      barcode: food.id.startsWith('off_') ? food.id.replace('off_', '') : null,
+    });
+  }, [user]);
+
+  // Delete custom food
+  const deleteCustomFoodFromDb = useCallback(async (foodId: string) => {
+    if (!user) return;
+    await (supabase as any).from("custom_foods").delete().eq("id", foodId);
+  }, [user]);
+
+  // Initialize data
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+      loadCustomFoods();
+    }
+  }, [user, loadProfile, loadCustomFoods]);
+
   return {
     saveMealToDb,
     deleteMealFromDb,
@@ -468,8 +514,11 @@ export function useDbSync() {
     updateTemplateInDb,
     deleteTemplateFromDb,
     pushAllTemplatesToDb,
+    saveCustomFoodToDb,
+    deleteCustomFoodFromDb,
     loadMeals,
     loadWorkout,
-    loadTemplates
+    loadTemplates,
+    loadCustomFoods
   };
 }

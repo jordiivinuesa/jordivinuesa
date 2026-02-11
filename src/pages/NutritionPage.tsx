@@ -2,12 +2,16 @@ import { useState } from "react";
 import { useAppStore, type MealEntry } from "@/store/useAppStore";
 import { useDbSync } from "@/hooks/useDbSync";
 import { foods, foodCategoryLabels, foodCategoryIcons, type FoodCategory, type FoodItem } from "@/data/foods";
-import { Plus, Search, Trash2, X, ArrowLeft, History } from "lucide-react";
+import { Plus, Search, Trash2, X, ArrowLeft, History, ScanBarcode, PlusCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MacroBar from "@/components/MacroBar";
 import { removeAccents } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
+import { ScanFoodDialog } from "@/components/nutrition/ScanFoodDialog";
+import { CreateFoodDialog } from "@/components/nutrition/CreateFoodDialog";
 
 type MealType = MealEntry["mealType"];
 
@@ -20,11 +24,9 @@ const mealTypeLabels: Record<MealType, string> = {
   snack: "🍫 Snack",
 };
 
-import { useNavigate } from "react-router-dom";
-
 const NutritionPage = () => {
   const navigate = useNavigate();
-  const { currentDate, dayLogs, addMealEntry, removeMealEntry, calorieGoal, proteinGoal, carbsGoal, fatGoal } = useAppStore();
+  const { currentDate, dayLogs, addMealEntry, removeMealEntry, calorieGoal, proteinGoal, carbsGoal, fatGoal, customFoods } = useAppStore();
   const { saveMealToDb, deleteMealFromDb } = useDbSync();
   const dayLog = dayLogs[currentDate];
   const meals = dayLog?.meals || [];
@@ -36,6 +38,10 @@ const NutritionPage = () => {
   const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
   const [grams, setGrams] = useState("100");
 
+  const [showScanner, setShowScanner] = useState(false);
+  const [showCreateFood, setShowCreateFood] = useState(false);
+  const [scannedBarcode, setScannedBarcode] = useState("");
+
   const totals = meals.reduce(
     (acc, m) => ({
       calories: acc.calories + m.calories,
@@ -46,13 +52,34 @@ const NutritionPage = () => {
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
 
-  const filteredFoods = foods.filter((f) => {
+  const allFoods = [...customFoods, ...foods];
+
+  const filteredFoods = allFoods.filter((f) => {
     const normalizedName = removeAccents(f.name.toLowerCase());
     const normalizedQuery = removeAccents(searchQuery.toLowerCase());
     const matchSearch = normalizedName.includes(normalizedQuery);
     const matchCat = selectedCategory === "all" || f.category === selectedCategory;
     return matchSearch && matchCat;
   });
+
+  const handleFoodFound = (food: FoodItem) => {
+    setSelectedFood(food);
+    setShowFoodPicker(true);
+  };
+
+  const handleScanError = (barcode: string) => {
+    setScannedBarcode(barcode);
+    setShowCreateFood(true);
+    toast({
+      title: "Producto no encontrado",
+      description: "No encontramos este producto, pero puedes crearlo ahora.",
+    });
+  };
+
+  const handleCustomFoodCreated = (food: FoodItem) => {
+    setSelectedFood(food);
+    setShowFoodPicker(true);
+  };
 
   const categories = Object.entries(foodCategoryLabels) as [FoodCategory, string][];
 
@@ -182,8 +209,26 @@ const NutritionPage = () => {
           {!selectedFood ? (
             <>
               <div className="p-4 pb-2">
-                <DialogHeader>
+                <DialogHeader className="flex flex-row items-center justify-between">
                   <DialogTitle className="font-display">Añadir alimento</DialogTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowScanner(true)}
+                      className="h-8 w-8 rounded-full"
+                    >
+                      <ScanBarcode className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowCreateFood(true)}
+                      className="h-8 w-8 rounded-full"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </DialogHeader>
                 <div className="mt-3 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -327,7 +372,21 @@ const NutritionPage = () => {
           )}
         </DialogContent>
       </Dialog>
-    </div >
+
+      <ScanFoodDialog
+        open={showScanner}
+        onOpenChange={setShowScanner}
+        onFoodFound={handleFoodFound}
+        onScanError={handleScanError}
+      />
+
+      <CreateFoodDialog
+        open={showCreateFood}
+        onOpenChange={setShowCreateFood}
+        initialBarcode={scannedBarcode}
+        onFoodCreated={handleCustomFoodCreated}
+      />
+    </div>
   );
 };
 

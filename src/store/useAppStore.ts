@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { FoodItem } from '@/data/foods';
 
 export interface WorkoutSet {
   id: string;
@@ -49,7 +50,7 @@ export interface MealEntry {
 export interface DayLog {
   date: string;
   meals: MealEntry[];
-  workout?: Workout;
+  workouts: Workout[]; // Changed from workout?: Workout to support multiple workouts per day
 }
 
 export interface TemplateSet {
@@ -74,16 +75,23 @@ export interface WorkoutTemplate {
 
 export interface AppState {
   currentDate: string;
-  dayLogs: Record<string, DayLog>;
-  activeWorkout: Workout | null;
-  activeTemplateId: string | null; // Track if current workout is linked to a template
-  activeWorkoutType: 'workout' | 'template' | null; // Track if this is a real workout or just template building
-  templates: WorkoutTemplate[];
+  dayLogs: Record<string, DayLog>; // key is YYYY-MM-DD
   calorieGoal: number;
   proteinGoal: number;
   carbsGoal: number;
   fatGoal: number;
-  onboardingCompleted: boolean | null; // null = not loaded yet
+  onboardingCompleted: boolean | null;
+
+  // Custom Foods
+  customFoods: FoodItem[];
+  addCustomFood: (food: FoodItem) => void;
+  removeCustomFood: (foodId: string) => void;
+
+  // Active Workout State
+  activeWorkout: Workout | null;
+  activeTemplateId: string | null;
+  activeWorkoutType: 'workout' | 'template' | null;
+  templates: WorkoutTemplate[];
 
   // Actions
   setCurrentDate: (date: string) => void;
@@ -100,6 +108,7 @@ export interface AppState {
   removeExerciseFromWorkout: (exerciseIndex: number) => void;
   finishWorkout: () => void;
   cancelWorkout: () => void;
+  toggleSetCompleted: (exerciseId: string, setIndex: number) => void; // Added missing action definition
 
   // Activity actions
   startActivity: (activityId: string, activityName: string) => void;
@@ -123,11 +132,15 @@ export const useAppStore = create<AppState>()(
       activeTemplateId: null,
       activeWorkoutType: null,
       templates: [],
+      customFoods: [],
       calorieGoal: 2000,
       proteinGoal: 150,
       carbsGoal: 200,
       fatGoal: 65,
       onboardingCompleted: null,
+
+      addCustomFood: (food) => set((state) => ({ customFoods: [...state.customFoods, food] })),
+      removeCustomFood: (foodId) => set((state) => ({ customFoods: state.customFoods.filter(f => f.id !== foodId) })),
 
       setCurrentDate: (date) => set({ currentDate: date }),
       setGoals: (goals) => set((state) => ({ ...state, ...goals })),
@@ -135,7 +148,7 @@ export const useAppStore = create<AppState>()(
 
       addMealEntry: (entry) => {
         const { currentDate, dayLogs } = get();
-        const dayLog = dayLogs[currentDate] || { date: currentDate, meals: [] };
+        const dayLog = dayLogs[currentDate] || { date: currentDate, meals: [], workouts: [] };
         set({
           dayLogs: {
             ...dayLogs,
@@ -232,11 +245,14 @@ export const useAppStore = create<AppState>()(
 
         if (state.activeWorkoutType === 'workout') {
           const date = state.activeWorkout.date;
-          const dayLog = state.dayLogs[date] || { date, meals: [] };
+          const dayLog = state.dayLogs[date] || { date, meals: [], workouts: [] };
           return {
             dayLogs: {
               ...state.dayLogs,
-              [date]: { ...dayLog, workout: state.activeWorkout }
+              [date]: {
+                ...dayLog,
+                workouts: [...dayLog.workouts, state.activeWorkout]
+              }
             },
             activeWorkout: null,
             activeTemplateId: null,
@@ -320,6 +336,26 @@ export const useAppStore = create<AppState>()(
           activeWorkoutType: 'workout'
         });
       },
+
+      toggleSetCompleted: (exerciseId, setIndex) => set((state) => {
+        if (!state.activeWorkout || !state.activeWorkout.exercises) return state;
+
+        // Find the exercise index
+        const exerciseIndex = state.activeWorkout.exercises.findIndex(e => e.id === exerciseId);
+        if (exerciseIndex === -1) return state;
+
+        const exercises = [...state.activeWorkout.exercises];
+        const sets = [...exercises[exerciseIndex].sets];
+
+        if (!sets[setIndex]) return state;
+
+        sets[setIndex] = { ...sets[setIndex], completed: !sets[setIndex].completed };
+        exercises[exerciseIndex] = { ...exercises[exerciseIndex], sets };
+
+        return {
+          activeWorkout: { ...state.activeWorkout, exercises }
+        };
+      }),
     }),
     {
       name: 'peak-app-storage',
