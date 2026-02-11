@@ -259,13 +259,21 @@ export function useAICoach() {
         if (import.meta.env.DEV) console.error("Failed to build historical context:", e);
       }
 
-      const apiMessages = [
-        ...contextMessages,
+      const MAX_MESSAGES = 48; // Leave room for system context message
+      const chatHistory = [
         ...messages.filter((m) => m.id !== "welcome").map((m) => ({
           role: m.role,
           content: m.content,
         })),
         { role: userMsg.role, content: userMsg.content },
+      ];
+      // Keep only the most recent messages if history is too long
+      const trimmedHistory = chatHistory.length > MAX_MESSAGES
+        ? chatHistory.slice(chatHistory.length - MAX_MESSAGES)
+        : chatHistory;
+      const apiMessages = [
+        ...contextMessages,
+        ...trimmedHistory,
       ];
 
       try {
