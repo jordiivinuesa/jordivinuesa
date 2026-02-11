@@ -176,8 +176,8 @@ const NutritionPage = () => {
                     autoFocus
                   />
                 </div>
-                <div className="mt-4 -mx-4 overflow-x-auto no-scrollbar pb-2 touch-pan-x">
-                  <div className="flex gap-2 px-4 whitespace-nowrap">
+                <div className="mt-4 -mx-4 overflow-x-auto no-scrollbar pb-2 touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+                  <div className="inline-flex gap-2 px-4 whitespace-nowrap min-w-max">
                     <Button
                       variant={selectedCategory === "all" ? "default" : "secondary"}
                       size="sm"
