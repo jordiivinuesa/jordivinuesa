@@ -10,6 +10,7 @@ import FollowListSheet from "@/components/social/FollowListSheet";
 import { useNotifications } from "@/hooks/useNotifications";
 
 const ProfilePage = () => {
+    console.log("%c>>> PROFILE_PAGE: MOUNTED", "color: orange; font-weight: bold; font-size: 14px;");
     const navigate = useNavigate();
     const { user } = useAuth();
     const { markAsRead } = useNotifications();
@@ -49,7 +50,10 @@ const ProfilePage = () => {
 
     useEffect(() => {
         if (user) {
+            console.log("%c>>> PROFILE_PAGE: LLAMANDO A markAsRead()", "color: yellow; font-weight: bold;");
             markAsRead();
+        } else {
+            console.log("%c>>> PROFILE_PAGE: NO HAY USUARIO, NO SE LIMPIA", "color: red;");
         }
     }, [user, markAsRead]);
 

@@ -14,6 +14,10 @@ export interface Notification {
     created_at: string;
 }
 
+// Canal para comunicar instancias del hook en la misma pestaña
+const NOTIFICATION_CHANNEL = "peak_notifications_internal";
+const broadcast = typeof window !== "undefined" ? new BroadcastChannel(NOTIFICATION_CHANNEL) : null;
+
 export function useNotifications() {
     const { user } = useAuth();
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -29,6 +33,7 @@ export function useNotifications() {
             .eq("is_read", false);
 
         if (!error && data) {
+            console.log(">>> NOTIFICACIONES ACTIVAS:", data.length);
             setNotifications(data as Notification[]);
         }
         setLoading(false);
@@ -37,9 +42,11 @@ export function useNotifications() {
     const markAsRead = useCallback(async () => {
         if (!user) return;
 
-        if (notifications.length > 0) {
-            console.log("Intentando marcar como leídas:", notifications.length, "notificaciones");
-        }
+        console.log(">>> EJECUTANDO LIMPIEZA DE NOTIFICACIONES...");
+
+        // Notificar a otras instancias en la misma pestaña inmediatamente
+        broadcast?.postMessage({ type: "CLEAR_ALL" });
+        setNotifications([]);
 
         const { error } = await supabase
             .from("notifications")
@@ -48,10 +55,9 @@ export function useNotifications() {
             .eq("is_read", false);
 
         if (error) {
-            console.error("Error al marcar como leídas:", error);
+            console.error(">>> ERROR AL LIMPIAR EN BD:", error);
         } else {
-            if (notifications.length > 0) console.log("Notificaciones marcadas como leídas en BD");
-            setNotifications([]);
+            console.log(">>> LIMPIEZA COMPLETADA EN BASE DE DATOS");
         }
     }, [user]);
 
@@ -60,7 +66,16 @@ export function useNotifications() {
 
         fetchNotifications();
 
-        // Subscribe to ALL changes in notifications for this user
+        // Escuchar limpieza interna (entre instancias del hook)
+        const handleInternalMessage = (event: MessageEvent) => {
+            if (event.data?.type === "CLEAR_ALL") {
+                console.log(">>> LIMPIEZA INTERNA RECIBIDA (Broadcast)");
+                setNotifications([]);
+            }
+        };
+        broadcast?.addEventListener("message", handleInternalMessage);
+
+        // Suscribirse a cambios en Realtime (desde otros dispositivos/pestañas)
         const channel = supabase
             .channel(`user-notifications-${user.id}`)
             .on(
@@ -72,12 +87,11 @@ export function useNotifications() {
                     filter: `user_id=eq.${user.id}`,
                 },
                 (payload) => {
-                    console.log("Evento Realtime recibido:", payload.eventType, payload);
+                    console.log(">>> EVENTO REALTIME:", payload.eventType, payload);
                     if (payload.eventType === "INSERT") {
                         const newNotif = payload.new as Notification;
                         if (!newNotif.is_read) {
                             setNotifications((prev) => {
-                                // Evitar duplicados si fetch y realtime coinciden
                                 if (prev.some(n => n.id === newNotif.id)) return prev;
                                 return [newNotif, ...prev];
                             });
@@ -85,7 +99,6 @@ export function useNotifications() {
                     } else if (payload.eventType === "UPDATE") {
                         const updatedNotif = payload.new as Notification;
                         if (updatedNotif.is_read) {
-                            // Si se marcó como leída (desde cualquier instancia), la quitamos
                             setNotifications((prev) => prev.filter(n => n.id !== updatedNotif.id));
                         }
                     } else if (payload.eventType === "DELETE") {
@@ -96,6 +109,7 @@ export function useNotifications() {
             .subscribe();
 
         return () => {
+            broadcast?.removeEventListener("message", handleInternalMessage);
             supabase.removeChannel(channel);
         };
     }, [user, fetchNotifications]);
