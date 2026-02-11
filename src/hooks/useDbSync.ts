@@ -264,7 +264,9 @@ export function useDbSync() {
       // If remote is empty but local has data, it's likely a first-time sync
       // We don't overwrite local data with empty remote to avoid data loss
       if (fullTemplates.length === 0 && localTemplates.length > 0) {
-        console.log('Sync: Remote is empty but local has templates. Preserving local data.');
+        console.log('Sync: Remote is empty but local has templates. Triggering automatic push to cloud...');
+        // Automatically sync to cloud if remote is empty but local has data
+        pushAllTemplatesToDb(true);
       } else {
         useAppStore.setState({ templates: fullTemplates });
       }
@@ -281,23 +283,35 @@ export function useDbSync() {
   }, [user]);
 
   // Push all local templates to DB (Migration utility)
-  const pushAllTemplatesToDb = useCallback(async () => {
+  const pushAllTemplatesToDb = useCallback(async (isAuto = false) => {
     const localTemplates = useAppStore.getState().templates;
     if (localTemplates.length === 0) return;
 
-    toast({
-      title: "Sincronizando...",
-      description: `Subiendo ${localTemplates.length} plantillas a la nube...`,
-    });
+    if (isAuto) {
+      console.log('Sync: Starting automatic cloud migration...');
+    } else {
+      toast({
+        title: "Sincronizando...",
+        description: `Subiendo ${localTemplates.length} plantillas a la nube...`,
+      });
+    }
 
+    // Use a regular loop to ensure they happen in order and we can handle errors
     for (const template of localTemplates) {
       await saveTemplateToDb(template);
     }
 
-    toast({
-      title: "Sincronización completada",
-      description: "Todas tus plantillas locales están ahora en la nube.",
-    });
+    if (isAuto) {
+      toast({
+        title: "Sincronización Automática",
+        description: "Tus plantillas locales se han guardado en la nube.",
+      });
+    } else {
+      toast({
+        title: "Sincronización completada",
+        description: "Todas tus plantillas locales están ahora en la nube.",
+      });
+    }
   }, [user]);
 
   // Load data when user or date changes
