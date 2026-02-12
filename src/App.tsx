@@ -19,6 +19,8 @@ import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminFoodsPage from "./pages/admin/AdminFoodsPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
@@ -89,8 +91,8 @@ const AppRoutes = () => (
           <AdminLayout>
             <Routes>
               <Route path="/" element={<AdminDashboard />} />
-              <Route path="/users" element={<div className="p-8"><h1 className="text-2xl font-bold">Usuarios - Próximamente</h1></div>} />
-              <Route path="/foods" element={<div className="p-8"><h1 className="text-2xl font-bold">Alimentos - Próximamente</h1></div>} />
+              <Route path="/users" element={<AdminUsersPage />} />
+              <Route path="/foods" element={<AdminFoodsPage />} />
               <Route path="/templates" element={<div className="p-8"><h1 className="text-2xl font-bold">Plantillas - Próximamente</h1></div>} />
               <Route path="/analytics" element={<div className="p-8"><h1 className="text-2xl font-bold">Analytics - Próximamente</h1></div>} />
               <Route path="/system" element={<div className="p-8"><h1 className="text-2xl font-bold">Sistema - Próximamente</h1></div>} />

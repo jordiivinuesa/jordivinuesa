@@ -8,7 +8,8 @@ import {
     BarChart3,
     Activity,
     Crown,
-    LogOut
+    LogOut,
+    ArrowLeft
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,13 @@ const AdminLayout = () => {
             <aside className="w-64 border-r border-border bg-card flex flex-col">
                 {/* Header */}
                 <div className="p-6 border-b border-border">
+                    <Link
+                        to="/"
+                        className="flex items-center gap-2 text-xs text-primary hover:text-primary/80 transition-colors mb-4 group"
+                    >
+                        <ArrowLeft className="h-3 w-3 group-hover:-translate-x-0.5 transition-transform" />
+                        <span>Volver a la App</span>
+                    </Link>
                     <div className="flex items-center gap-2 mb-1">
                         <Crown className="h-5 w-5 text-yellow-500" />
                         <h1 className="text-lg font-bold font-display">Admin Panel</h1>
