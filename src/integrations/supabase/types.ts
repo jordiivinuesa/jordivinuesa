@@ -273,6 +273,7 @@ export type Database = {
           id: string
           onboarding_completed: boolean
           protein_goal: number
+          role: Database["public"]["Enums"]["user_role"]
           sex: string | null
           updated_at: string
           user_id: string
@@ -292,6 +293,7 @@ export type Database = {
           id?: string
           onboarding_completed?: boolean
           protein_goal?: number
+          role?: Database["public"]["Enums"]["user_role"]
           sex?: string | null
           updated_at?: string
           user_id: string
@@ -311,6 +313,7 @@ export type Database = {
           id?: string
           onboarding_completed?: boolean
           protein_goal?: number
+          role?: Database["public"]["Enums"]["user_role"]
           sex?: string | null
           updated_at?: string
           user_id?: string
@@ -611,7 +614,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "user" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -738,6 +741,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["user", "admin"],
+    },
   },
 } as const

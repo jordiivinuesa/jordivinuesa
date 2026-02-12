@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from('profiles')
         .select('role')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .maybeSingle() as { data: { role: 'user' | 'admin' } | null };
 
       setRole(data?.role || 'user');
     };

@@ -14,7 +14,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-const AdminLayout = () => {
+const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
     const { role, signOut } = useAuth();
     const location = useLocation();
 
@@ -92,7 +92,7 @@ const AdminLayout = () => {
 
             {/* Main Content */}
             <main className="flex-1 overflow-auto">
-                <Outlet />
+                {children || <Outlet />}
             </main>
         </div>
     );
