@@ -117,101 +117,104 @@ const AdminFoodsPage = () => {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0 sm:p-6">
                     {loading ? (
                         <div className="flex justify-center py-12">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                     ) : (
-                        <CardContent className="p-0 sm:p-6">
-                            <div className="overflow-x-auto">
-                                <Table>
-                                    <TableHeader>
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="min-w-[180px]">Alimento</TableHead>
+                                        <TableHead className="min-w-[150px]">Macros (100g)</TableHead>
+                                        <TableHead>Calorías</TableHead>
+                                        <TableHead className="hidden md:table-cell">Creador</TableHead>
+                                        <TableHead className="min-w-[100px]">Fecha</TableHead>
+                                        <TableHead className="text-right">Acciones</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredFoods.length === 0 ? (
                                         <TableRow>
-                                            <TableHead className="min-w-[180px]">Alimento</TableHead>
-                                            <TableHead className="min-w-[150px]">Macros (100g)</TableHead>
-                                            <TableHead>Calorías</TableHead>
-                                            <TableHead className="hidden md:table-cell">Creador</TableHead>
-                                            <TableHead className="min-w-[100px]">Fecha</TableHead>
-                                            <TableHead className="text-right">Acciones</TableHead>
+                                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                                No se encontraron alimentos
+                                            </TableCell>
                                         </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredFoods.length === 0 ? (
-                                            <TableRow>
-                                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                                    No se encontraron alimentos
+                                    ) : (
+                                        filteredFoods.map((food) => (
+                                            <TableRow key={food.id}>
+                                                <TableCell>
+                                                    <div className="flex flex-col min-w-[150px]">
+                                                        <span className="font-medium truncate">{food.name}</span>
+                                                        {food.barcode && (
+                                                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+                                                                <Barcode className="h-3 w-3" />
+                                                                <span>{food.barcode}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex gap-1 flex-wrap">
+                                                        <Badge variant="outline" className="bg-blue-500/5 text-blue-500 border-blue-500/20 text-[10px] px-1 whitespace-nowrap">
+                                                            P: {food.protein}g
+                                                        </Badge>
+                                                        <Badge variant="outline" className="bg-green-500/5 text-green-500 border-green-500/20 text-[10px] px-1 whitespace-nowrap">
+                                                            C: {food.carbs}g
+                                                        </Badge>
+                                                        <Badge variant="outline" className="bg-orange-500/5 text-orange-500 border-orange-500/20 text-[10px] px-1 whitespace-nowrap">
+                                                            G: {food.fat}g
+                                                        </Badge>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="font-bold text-sm whitespace-nowrap">
+                                                    {food.calories} <span className="text-[10px] font-normal">kcal</span>
+                                                </TableCell>
+                                                <TableCell className="hidden md:table-cell text-xs text-muted-foreground font-mono">
+                                                    {food.user_id.substring(0, 8)}...
+                                                </TableCell>
+                                                <TableCell className="text-xs">
+                                                    {food.created_at ? new Date(food.created_at).toLocaleDateString() : "-"}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-destructive border-destructive/20 hover:bg-destructive hover:text-white transition-all gap-1 h-8"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                                <span className="text-[10px] font-bold">Borrar</span>
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent className="w-[95vw] sm:w-full">
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>¿Eliminar {food.name}?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Esta acción no se puede deshacer.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() => handleDeleteFood(food.id)}
+                                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                >
+                                                                    Eliminar
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
                                                 </TableCell>
                                             </TableRow>
-                                        ) : (
-                                            filteredFoods.map((food) => (
-                                                <TableRow key={food.id}>
-                                                    <TableCell>
-                                                        <div className="flex flex-col min-w-[150px]">
-                                                            <span className="font-medium truncate">{food.name}</span>
-                                                            {food.barcode && (
-                                                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
-                                                                    <Barcode className="h-3 w-3" />
-                                                                    <span>{food.barcode}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex gap-1 flex-wrap">
-                                                            <Badge variant="outline" className="bg-blue-500/5 text-blue-500 border-blue-500/20 text-[10px] px-1 whitespace-nowrap">
-                                                                P: {food.protein}g
-                                                            </Badge>
-                                                            <Badge variant="outline" className="bg-green-500/5 text-green-500 border-green-500/20 text-[10px] px-1 whitespace-nowrap">
-                                                                C: {food.carbs}g
-                                                            </Badge>
-                                                            <Badge variant="outline" className="bg-orange-500/5 text-orange-500 border-orange-500/20 text-[10px] px-1 whitespace-nowrap">
-                                                                G: {food.fat}g
-                                                            </Badge>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="font-bold text-sm whitespace-nowrap">
-                                                        {food.calories} <span className="text-[10px] font-normal">kcal</span>
-                                                    </TableCell>
-                                                    <TableCell className="hidden md:table-cell text-xs text-muted-foreground font-mono">
-                                                        {food.user_id.substring(0, 8)}...
-                                                    </TableCell>
-                                                    <TableCell className="text-xs">
-                                                        {food.created_at ? new Date(food.created_at).toLocaleDateString() : "-"}
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive transition-colors h-8 w-8">
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </Button>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent className="w-[95vw] sm:w-full">
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>¿Eliminar {food.name}?</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        Esta acción no se puede deshacer.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                    <AlertDialogAction
-                                                                        onClick={() => handleDeleteFood(food.id)}
-                                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                                    >
-                                                                        Eliminar
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </div>
-                        </CardContent>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
                     )}
                 </CardContent>
             </Card>

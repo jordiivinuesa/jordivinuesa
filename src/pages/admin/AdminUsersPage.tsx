@@ -174,8 +174,13 @@ const AdminUsersPage = () => {
                                                 <TableCell className="text-right">
                                                     <AlertDialog>
                                                         <AlertDialogTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive transition-colors h-8 w-8">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-destructive border-destructive/20 hover:bg-destructive hover:text-white transition-all gap-1 h-8"
+                                                            >
                                                                 <Trash2 className="h-4 w-4" />
+                                                                <span className="text-[10px] font-bold">Borrar</span>
                                                             </Button>
                                                         </AlertDialogTrigger>
                                                         <AlertDialogContent className="w-[95vw] sm:w-full">
