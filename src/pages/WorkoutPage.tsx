@@ -632,7 +632,14 @@ const WorkoutPage = () => {
                   className="bg-secondary pl-9 h-11 rounded-xl border-border"
                 />
               </div>
-              <div className="mt-4 -mx-6 overflow-x-auto pb-2 no-scrollbar touch-pan-x">
+              <div
+                className="mt-4 -mx-6 overflow-x-auto pb-2 no-scrollbar touch-pan-x"
+                onWheel={(e) => {
+                  if (e.deltaY !== 0) {
+                    e.currentTarget.scrollLeft += e.deltaY;
+                  }
+                }}
+              >
                 <div className="flex gap-2 px-6 whitespace-nowrap">
                   <Button
                     variant={selectedMuscle === "all" ? "default" : "outline"}

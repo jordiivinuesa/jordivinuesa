@@ -258,7 +258,15 @@ const NutritionPage = () => {
                   />
                 </div>
               </div>
-              <div className="overflow-x-auto no-scrollbar pb-2 px-4 touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div
+                className="overflow-x-auto no-scrollbar pb-2 px-4 touch-pan-x"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+                onWheel={(e) => {
+                  if (e.deltaY !== 0) {
+                    e.currentTarget.scrollLeft += e.deltaY;
+                  }
+                }}
+              >
                 <div className="flex gap-2 w-max">
                   <Button
                     variant={selectedCategory === "all" ? "default" : "secondary"}
