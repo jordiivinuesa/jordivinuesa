@@ -588,6 +588,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_is_admin: { Args: never; Returns: boolean }
       get_public_profiles: {
         Args: { user_ids: string[] }
         Returns: {
