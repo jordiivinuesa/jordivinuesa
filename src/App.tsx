@@ -21,6 +21,9 @@ import OnboardingPage from "./pages/OnboardingPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminFoodsPage from "./pages/admin/AdminFoodsPage";
+import AdminTemplatesPage from "./pages/admin/AdminTemplatesPage";
+import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
+import AdminSystemPage from "./pages/admin/AdminSystemPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -114,9 +117,9 @@ const AppRoutes = () => (
               <Route path="/" element={<AdminDashboard />} />
               <Route path="/users" element={<AdminUsersPage />} />
               <Route path="/foods" element={<AdminFoodsPage />} />
-              <Route path="/templates" element={<div className="p-8"><h1 className="text-2xl font-bold">Plantillas - Próximamente</h1></div>} />
-              <Route path="/analytics" element={<div className="p-8"><h1 className="text-2xl font-bold">Analytics - Próximamente</h1></div>} />
-              <Route path="/system" element={<div className="p-8"><h1 className="text-2xl font-bold">Sistema - Próximamente</h1></div>} />
+              <Route path="/templates" element={<AdminTemplatesPage />} />
+              <Route path="/analytics" element={<AdminAnalyticsPage />} />
+              <Route path="/system" element={<AdminSystemPage />} />
             </Routes>
           </AdminLayout>
         </ProtectedRoute>
