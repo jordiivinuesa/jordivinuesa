@@ -34,7 +34,7 @@ const AdminSystemPage = () => {
     return (
         <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 text-white">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 text-balance">
                     <h1 className="text-2xl sm:text-4xl font-black tracking-tight font-display bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">
                         Sistema
                     </h1>
@@ -45,7 +45,7 @@ const AdminSystemPage = () => {
                 <Button
                     onClick={checkSystem}
                     disabled={status === 'checking'}
-                    className="rounded-2xl bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20 backdrop-blur-xl transition-all h-12 px-6 font-black uppercase tracking-widest text-[10px]"
+                    className="rounded-2xl bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20 backdrop-blur-xl transition-all h-12 px-6 font-black uppercase tracking-widest text-[10px] w-full sm:w-auto"
                 >
                     <RefreshCw className={`mr-2 h-4 w-4 ${status === 'checking' ? 'animate-spin' : ''}`} />
                     Verificar Estado
@@ -60,8 +60,8 @@ const AdminSystemPage = () => {
                             Estado de Conexión
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-8 space-y-8">
-                        <div className="flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-[2rem] shadow-inner">
+                    <CardContent className="p-6 sm:p-8 space-y-8">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-white/5 border border-white/10 rounded-[2rem] shadow-inner gap-6">
                             <div className="flex items-center gap-4">
                                 <div className={`h-12 w-12 rounded-2xl flex items-center justify-center border ${status === 'online' ? 'bg-green-500/20 border-green-500/30 text-green-400' :
                                         status === 'error' ? 'bg-destructive/20 border-destructive/30 text-destructive' :
@@ -74,7 +74,7 @@ const AdminSystemPage = () => {
                                     <p className="text-xs text-muted-foreground">Supabase PostgreSQL Instance</p>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end gap-2">
+                            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 w-full sm:w-auto pt-4 sm:pt-0 border-t border-white/5 sm:border-none">
                                 <Badge variant={status === 'online' ? 'success' : status === 'error' ? 'destructive' : 'secondary'} className="font-black uppercase tracking-widest text-[10px] px-3">
                                     {status === 'online' ? 'Conectado' : status === 'error' ? 'Error' : 'Verificando'}
                                 </Badge>
@@ -85,12 +85,12 @@ const AdminSystemPage = () => {
                         </div>
 
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between text-xs px-2">
+                            <div className="flex items-center justify-between text-[10px] sm:text-xs px-2">
                                 <span className="text-muted-foreground font-black uppercase tracking-widest opacity-60">Última comprobación</span>
                                 <span className="font-mono text-white/80">{lastCheck.toLocaleTimeString()}</span>
                             </div>
                             <div className="h-px bg-white/5" />
-                            <div className="flex items-center justify-between text-xs px-2">
+                            <div className="flex items-center justify-between text-[10px] sm:text-xs px-2">
                                 <span className="text-muted-foreground font-black uppercase tracking-widest opacity-60">Uptime</span>
                                 <span className="font-mono text-green-400/80">99.98%</span>
                             </div>
@@ -105,7 +105,7 @@ const AdminSystemPage = () => {
                             Configuración
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-8 space-y-6">
+                    <CardContent className="p-6 sm:p-8 space-y-6">
                         <div className="grid grid-cols-1 gap-4">
                             <InfoRow
                                 icon={<Globe className="h-4 w-4" />}
@@ -125,9 +125,9 @@ const AdminSystemPage = () => {
                             />
                         </div>
 
-                        <div className="bg-black/40 border border-white/5 rounded-2xl p-6 mt-4 space-y-3">
+                        <div className="bg-black/40 border border-white/5 rounded-2xl p-5 sm:p-6 mt-4 space-y-3">
                             <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40">Supabase Endpoint</span>
-                            <p className="font-mono text-[10px] text-primary/70 break-all leading-relaxed">
+                            <p className="font-mono text-[9px] sm:text-[10px] text-primary/70 break-all leading-relaxed">
                                 {envInfo.apiUrl}
                             </p>
                         </div>
@@ -136,20 +136,20 @@ const AdminSystemPage = () => {
             </div>
 
             {/* Security Section */}
-            <Card className="border-none bg-gradient-to-br from-primary/10 to-transparent backdrop-blur-xl shadow-2xl rounded-[3rem] overflow-hidden border border-primary/20">
-                <CardContent className="p-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                    <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-                        <div className="h-20 w-20 rounded-[2.5rem] bg-primary/20 flex items-center justify-center text-primary border border-primary/20 shadow-2xl">
-                            <ShieldCheck className="h-10 w-10" />
+            <Card className="border-none bg-gradient-to-br from-primary/10 to-transparent backdrop-blur-xl shadow-2xl rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden border border-primary/20">
+                <CardContent className="p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8 text-center md:text-left">
+                        <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-[2rem] sm:rounded-[2.5rem] bg-primary/20 flex items-center justify-center text-primary border border-primary/20 shadow-2xl shrink-0">
+                            <ShieldCheck className="h-8 w-8 sm:h-10 sm:w-10" />
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-2xl font-black tracking-tight text-white uppercase">Acceso Restringido</h3>
-                            <p className="text-sm text-muted-foreground max-w-[400px]">
+                            <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white uppercase">Acceso Restringido</h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground max-w-[400px] leading-relaxed">
                                 El panel de administración utiliza políticas de seguridad de nivel de fila (RLS) en Supabase para proteger los datos.
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 bg-black/40 px-6 py-3 rounded-2xl border border-white/10 shadow-xl">
+                    <div className="flex items-center gap-2 bg-black/40 px-5 py-2.5 rounded-2xl border border-white/10 shadow-xl shrink-0">
                         <CheckCircle2 className="h-4 w-4 text-green-400" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-green-400">RLS Active</span>
                     </div>
@@ -167,7 +167,7 @@ const InfoRow = ({ icon, label, value, capitalize = false }: { icon: React.React
             </div>
             <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40">{label}</span>
         </div>
-        <span className={`text-xs font-bold text-white/90 ${capitalize ? 'capitalize' : ''} group-hover:text-primary transition-colors`}>{value}</span>
+        <span className={`text-[11px] sm:text-xs font-bold text-white/90 ${capitalize ? 'capitalize' : ''} group-hover:text-primary transition-colors text-right ml-4 truncate`}>{value}</span>
     </div>
 );
 

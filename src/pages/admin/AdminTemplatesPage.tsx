@@ -228,7 +228,7 @@ const AdminTemplatesPage = () => {
                                     filteredTemplates.map((template) => (
                                         <div
                                             key={template.id}
-                                            className="flex items-center justify-between border border-white/10 rounded-2xl p-4 bg-gradient-to-br from-white/[0.05] to-transparent shadow-xl transition-all active:scale-[0.98] group"
+                                            className="flex items-center justify-between border border-white/10 rounded-2xl p-3 sm:p-4 bg-gradient-to-br from-white/[0.05] to-transparent shadow-xl transition-all active:scale-[0.98] group"
                                         >
                                             <TemplateDetailsDialog templateId={template.id} templateName={template.name}>
                                                 <div className="flex items-center gap-3 flex-1 cursor-pointer overflow-hidden">
@@ -343,12 +343,12 @@ const TemplateDetailsDialog = ({ templateId, templateName, children }: { templat
                 )}
             </DialogTrigger>
             <DialogContent className="w-[95vw] sm:w-[500px] bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl p-0 overflow-hidden text-white border-none">
-                <div className="bg-gradient-to-br from-primary/20 to-transparent p-10 pb-6 text-center">
+                <div className="bg-gradient-to-br from-primary/20 to-transparent p-8 sm:p-10 pb-6 text-center text-balance">
                     <DialogTitle className="text-3xl font-black tracking-tight mb-2">{templateName}</DialogTitle>
                     <p className="text-xs text-muted-foreground uppercase font-black tracking-widest opacity-60 italic">Detalles de la rutina</p>
                 </div>
 
-                <div className="p-10 pt-4 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <div className="p-6 sm:p-10 pt-4 space-y-4 sm:space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
                     {loading ? (
                         <div className="flex justify-center py-20">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />

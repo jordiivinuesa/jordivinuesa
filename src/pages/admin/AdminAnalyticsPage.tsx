@@ -119,7 +119,7 @@ const AdminAnalyticsPage = () => {
                             <BarChart3 className="h-5 w-5 text-primary" /> Comportamiento de Usuario
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-8 space-y-6">
+                    <CardContent className="p-6 sm:p-8 space-y-6">
                         <div className="flex items-center justify-between group">
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">Actividad (7d)</p>
@@ -171,7 +171,7 @@ const AdminAnalyticsPage = () => {
                             <Calendar className="h-5 w-5 text-primary" /> Insights de IA
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-8 flex flex-col items-center justify-center h-full space-y-6">
+                    <CardContent className="p-6 sm:p-8 flex flex-col items-center justify-center h-full space-y-6">
                         <div className="text-center space-y-4">
                             <div className="h-20 w-20 rounded-[2.5rem] bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center text-primary border border-primary/20 shadow-2xl mx-auto animate-pulse">
                                 <Zap className="h-10 w-10" />
@@ -203,7 +203,7 @@ const MetricCard = ({ title, value, icon, description, color }: { title: string,
 
     return (
         <Card className="border-none bg-secondary/5 backdrop-blur-xl group hover:shadow-2xl transition-all shadow-xl rounded-3xl overflow-hidden active:scale-[0.98]">
-            <CardContent className="p-6 sm:p-8 space-y-4">
+            <CardContent className="p-4 sm:p-8 space-y-3 sm:space-y-4">
                 <div className={`h-12 w-12 rounded-2xl flex items-center justify-center border transition-transform group-hover:scale-110 ${colorClasses[color]}`}>
                     {icon}
                 </div>
@@ -211,7 +211,7 @@ const MetricCard = ({ title, value, icon, description, color }: { title: string,
                     <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">{title}</p>
                     <p className="text-3xl sm:text-4xl font-black tracking-tighter text-white group-hover:text-primary transition-colors tabular-nums">{value}</p>
                 </div>
-                <p className="text-[11px] text-muted-foreground/60 font-medium leading-tight">{description}</p>
+                <p className="text-[10px] sm:text-[11px] text-muted-foreground/60 font-medium leading-tight line-clamp-2">{description}</p>
             </CardContent>
         </Card>
     );
