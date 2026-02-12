@@ -162,10 +162,13 @@ const AdminUsersPage = () => {
                                                         // normally we'd trigger the dialog here too if we want full row click
                                                     }}>
                                                         <div className="flex items-center gap-3">
-                                                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black border border-primary/10">
+                                                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black border border-primary/10 transition-transform group-hover:scale-110">
                                                                 {user.display_name?.[0]?.toUpperCase() || <User className="h-4 w-4" />}
                                                             </div>
-                                                            <span>{user.display_name || "Sin nombre"}</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="group-hover:text-primary transition-colors">{user.display_name || "Sin nombre"}</span>
+                                                                {user.role === 'admin' && <Shield className="h-3 w-3 text-primary animate-pulse" />}
+                                                            </div>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="py-4 px-6 font-mono text-[10px] text-muted-foreground/60">{user.user_id}</TableCell>
@@ -194,16 +197,28 @@ const AdminUsersPage = () => {
                                     filteredUsers.map((user) => (
                                         <div
                                             key={user.user_id}
-                                            className="flex items-center justify-between bg-gradient-to-br from-white/[0.05] to-transparent border border-white/10 rounded-2xl p-4 shadow-xl hover:border-primary/40 transition-all active:scale-[0.98] group"
+                                            className={`flex items-center justify-between border rounded-2xl p-4 shadow-xl transition-all active:scale-[0.98] group relative overflow-hidden ${user.role === 'admin'
+                                                    ? 'bg-gradient-to-br from-primary/10 to-transparent border-primary/40 shadow-primary/5'
+                                                    : 'bg-gradient-to-br from-white/[0.05] to-transparent border-white/10 hover:border-primary/40'
+                                                }`}
                                         >
+                                            {user.role === 'admin' && (
+                                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-2xl -mr-10 -mt-10" />
+                                            )}
                                             <UserDetailsDialog user={user}>
-                                                <div className="flex items-center gap-3 flex-1 cursor-pointer overflow-hidden">
-                                                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black border border-primary/20 shadow-lg shrink-0">
+                                                <div className="flex items-center gap-3 flex-1 cursor-pointer overflow-hidden relative z-10">
+                                                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-black border shadow-lg shrink-0 ${user.role === 'admin'
+                                                            ? 'bg-gradient-to-br from-primary/30 to-primary/10 text-primary border-primary/30 shadow-primary/20'
+                                                            : 'bg-gradient-to-br from-primary/20 to-primary/5 text-primary border-primary/20'
+                                                        }`}>
                                                         {user.display_name?.[0]?.toUpperCase() || <User className="h-5 w-5" />}
                                                     </div>
-                                                    <h3 className="font-bold text-base text-white tracking-tight group-hover:text-primary transition-colors truncate">
-                                                        {user.display_name || "Sin nombre"}
-                                                    </h3>
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <h3 className="font-bold text-base text-white tracking-tight group-hover:text-primary transition-colors truncate">
+                                                            {user.display_name || "Sin nombre"}
+                                                        </h3>
+                                                        {user.role === 'admin' && <Shield className="h-3 w-3 text-primary shrink-0" />}
+                                                    </div>
                                                 </div>
                                             </UserDetailsDialog>
                                             <div className="shrink-0 ml-3">
