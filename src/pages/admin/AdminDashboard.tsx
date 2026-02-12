@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UtensilsCrossed, Share2, TrendingUp } from "lucide-react";
@@ -11,6 +12,7 @@ interface Stats {
 }
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const [stats, setStats] = useState<Stats>({
         totalUsers: 0,
         customFoods: 0,
@@ -116,21 +118,30 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <button className="p-4 border border-border rounded-lg hover:bg-secondary transition-colors text-left">
+                        <button
+                            onClick={() => navigate("/admin/users")}
+                            className="p-4 border border-border rounded-lg hover:bg-secondary transition-colors text-left"
+                        >
                             <Users className="h-6 w-6 mb-2 text-primary" />
                             <h3 className="font-semibold mb-1">Gestionar Usuarios</h3>
                             <p className="text-sm text-muted-foreground">
                                 Ver y editar perfiles de usuarios
                             </p>
                         </button>
-                        <button className="p-4 border border-border rounded-lg hover:bg-secondary transition-colors text-left">
+                        <button
+                            onClick={() => navigate("/admin/foods")}
+                            className="p-4 border border-border rounded-lg hover:bg-secondary transition-colors text-left"
+                        >
                             <UtensilsCrossed className="h-6 w-6 mb-2 text-primary" />
                             <h3 className="font-semibold mb-1">Moderar Alimentos</h3>
                             <p className="text-sm text-muted-foreground">
                                 Revisar alimentos personalizados
                             </p>
                         </button>
-                        <button className="p-4 border border-border rounded-lg hover:bg-secondary transition-colors text-left">
+                        <button
+                            onClick={() => navigate("/admin/templates")}
+                            className="p-4 border border-border rounded-lg hover:bg-secondary transition-colors text-left"
+                        >
                             <Share2 className="h-6 w-6 mb-2 text-primary" />
                             <h3 className="font-semibold mb-1">Ver Plantillas</h3>
                             <p className="text-sm text-muted-foreground">

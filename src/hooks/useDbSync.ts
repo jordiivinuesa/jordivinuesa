@@ -349,7 +349,7 @@ export function useDbSync() {
 
     // Use a regular loop to ensure they happen in order and we can handle errors
     for (const template of localTemplates) {
-      await saveTemplateToDb(template);
+      await saveTemplateToDb(template, { silent: true });
     }
 
     if (isAuto) {
@@ -376,7 +376,7 @@ export function useDbSync() {
   }, [user, currentDate, loadProfile, loadMeals, loadWorkout, loadTemplates]);
 
   // Save or Update template in DB
-  const saveTemplateToDb = useCallback(async (template: any) => {
+  const saveTemplateToDb = useCallback(async (template: any, options: { silent?: boolean } = {}) => {
     if (!user) return;
 
     try {
@@ -422,10 +422,12 @@ export function useDbSync() {
         }
       }
       console.log('Sync: Template saved successfully');
-      toast({
-        title: "Sincronizado",
-        description: "Plantilla guardada en la nube.",
-      });
+      if (!options.silent) {
+        toast({
+          title: "Sincronizado",
+          description: "Plantilla guardada en la nube.",
+        });
+      }
     } catch (error: any) {
       console.error('Sync: Error saving template:', error);
       if (error?.code === '23505') {

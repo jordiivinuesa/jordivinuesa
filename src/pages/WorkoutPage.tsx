@@ -187,7 +187,7 @@ const WorkoutPage = () => {
           }))
         };
         updateTemplate(fullTemplate);
-        updateTemplateInDb(fullTemplate);
+        updateTemplateInDb(fullTemplate, { silent: true });
       }, 1000); // 1 second debounce
       return () => clearTimeout(timer);
     }
