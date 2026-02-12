@@ -126,7 +126,7 @@ const generateId = () => crypto.randomUUID();
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      currentDate: new Date().toISOString().split('T')[0],
+      currentDate: new Date().toLocaleDateString('en-CA'), // Formato YYYY-MM-DD local
       dayLogs: {},
       activeWorkout: null,
       activeTemplateId: null,
@@ -360,6 +360,10 @@ export const useAppStore = create<AppState>()(
     {
       name: 'peak-app-storage',
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => {
+        const { currentDate, ...rest } = state;
+        return rest;
+      },
     }
   )
 );
