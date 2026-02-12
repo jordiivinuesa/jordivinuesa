@@ -124,89 +124,111 @@ const AdminUsersPage = () => {
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="min-w-[200px]">Usuario</TableHead>
-                                        <TableHead className="hidden md:table-cell">ID</TableHead>
-                                        <TableHead>Rol</TableHead>
-                                        <TableHead className="min-w-[120px]">Registro</TableHead>
-                                        <TableHead>Estado</TableHead>
-                                        <TableHead className="text-right">Acciones</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredUsers.length === 0 ? (
+                        <div className="space-y-4">
+                            {/* Desktop View - Table (md+) */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
                                         <TableRow>
-                                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                                No se encontraron usuarios
-                                            </TableCell>
+                                            <TableHead className="min-w-[200px]">Usuario</TableHead>
+                                            <TableHead>ID</TableHead>
+                                            <TableHead>Rol</TableHead>
+                                            <TableHead className="min-w-[120px]">Registro</TableHead>
+                                            <TableHead>Estado</TableHead>
+                                            <TableHead className="text-right">Acciones</TableHead>
                                         </TableRow>
-                                    ) : (
-                                        filteredUsers.map((user) => (
-                                            <TableRow key={user.user_id}>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
-                                                            {user.display_name?.[0]?.toUpperCase() || <User className="h-4 w-4" />}
-                                                        </div>
-                                                        <span className="font-medium truncate max-w-[150px]">{user.display_name || "Sin nombre"}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="hidden md:table-cell font-mono text-[10px] text-muted-foreground">
-                                                    {user.user_id}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="gap-1 text-[10px]">
-                                                        {user.role === 'admin' && <Shield className="h-3 w-3" />}
-                                                        {user.role}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-xs">
-                                                    {new Date(user.created_at).toLocaleDateString()}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant={user.onboarding_completed ? 'success' : 'outline'} className="text-[10px]">
-                                                        {user.onboarding_completed ? 'Listo' : 'Pendiente'}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="text-destructive border-destructive/20 hover:bg-destructive hover:text-white transition-all gap-1 h-8"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                                <span className="text-[10px] font-bold">Borrar</span>
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent className="w-[95vw] sm:w-full">
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>¿Dar de baja a {user.display_name || 'este usuario'}?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    Acción permanente. No se puede deshacer.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                <AlertDialogAction
-                                                                    onClick={() => handleDeleteUser(user.user_id)}
-                                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                                >
-                                                                    Eliminar
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredUsers.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                                    No se encontraron usuarios
                                                 </TableCell>
                                             </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
+                                        ) : (
+                                            filteredUsers.map((user) => (
+                                                <TableRow key={user.user_id}>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+                                                                {user.display_name?.[0]?.toUpperCase() || <User className="h-4 w-4" />}
+                                                            </div>
+                                                            <span className="font-medium truncate max-w-[150px]">{user.display_name || "Sin nombre"}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="font-mono text-[10px] text-muted-foreground">
+                                                        {user.user_id}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="gap-1 text-[10px]">
+                                                            {user.role === 'admin' && <Shield className="h-3 w-3" />}
+                                                            {user.role}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-xs">
+                                                        {new Date(user.created_at).toLocaleDateString()}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={user.onboarding_completed ? 'success' : 'outline'} className="text-[10px]">
+                                                            {user.onboarding_completed ? 'Listo' : 'Pendiente'}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <UserDeleteDialog user={user} onDelete={() => handleDeleteUser(user.user_id)} />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {/* Mobile View - Cards (<md) */}
+                            <div className="grid grid-cols-1 gap-4 md:hidden px-4 pb-4">
+                                {filteredUsers.length === 0 ? (
+                                    <p className="text-center py-8 text-muted-foreground">No se encontraron usuarios</p>
+                                ) : (
+                                    filteredUsers.map((user) => (
+                                        <div key={user.user_id} className="bg-card border border-border rounded-xl p-4 shadow-sm space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                                        {user.display_name?.[0]?.toUpperCase() || <User className="h-5 w-5" />}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-sm">{user.display_name || "Sin nombre"}</h3>
+                                                        <p className="text-[10px] text-muted-foreground font-mono">{user.user_id.substring(0, 18)}...</p>
+                                                    </div>
+                                                </div>
+                                                <UserDeleteDialog user={user} onDelete={() => handleDeleteUser(user.user_id)} />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="bg-secondary/30 rounded-lg p-2 flex flex-col gap-1">
+                                                    <span className="text-[9px] text-muted-foreground uppercase font-semibold">Rol</span>
+                                                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="w-fit gap-1 text-[9px] px-1.5 py-0">
+                                                        {user.role === 'admin' && <Shield className="h-2.5 w-2.5" />}
+                                                        {user.role}
+                                                    </Badge>
+                                                </div>
+                                                <div className="bg-secondary/30 rounded-lg p-2 flex flex-col gap-1">
+                                                    <span className="text-[9px] text-muted-foreground uppercase font-semibold">Estado</span>
+                                                    <Badge variant={user.onboarding_completed ? 'success' : 'outline'} className="w-fit text-[9px] px-1.5 py-0">
+                                                        {user.onboarding_completed ? 'Listo' : 'Pendiente'}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between pt-1 border-t border-border/50">
+                                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                                    <Calendar className="h-3 w-3" />
+                                                    <span className="text-[10px]">Registrado: {new Date(user.created_at).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
                     )}
                 </CardContent>
@@ -214,5 +236,37 @@ const AdminUsersPage = () => {
         </div>
     );
 };
+
+const UserDeleteDialog = ({ user, onDelete }: { user: AdminUser, onDelete: () => void }) => (
+    <AlertDialog>
+        <AlertDialogTrigger asChild>
+            <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive border-destructive/20 hover:bg-destructive hover:text-white transition-all gap-1 h-8"
+            >
+                <Trash2 className="h-4 w-4" />
+                <span className="text-[10px] font-bold">Borrar</span>
+            </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent className="w-[95vw] sm:w-full">
+            <AlertDialogHeader>
+                <AlertDialogTitle>¿Dar de baja a {user.display_name || 'este usuario'}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Acción permanente. No se puede deshacer.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                    onClick={onDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                    Eliminar
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+);
 
 export default AdminUsersPage;
