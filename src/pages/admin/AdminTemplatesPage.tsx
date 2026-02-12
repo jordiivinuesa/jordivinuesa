@@ -271,7 +271,7 @@ const TemplateDeleteDialog = ({ template, onDelete }: { template: AdminTemplate,
                 <Trash2 className="h-4 w-4" />
             </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent className="w-[90vw] sm:w-[450px] bg-secondary/20 backdrop-blur-3xl border-white/10 rounded-[2.5rem] shadow-2xl p-8 border-none text-white">
+        <AlertDialogContent className="w-[90vw] sm:w-[450px] lg:w-[500px] bg-secondary/20 backdrop-blur-3xl border-white/10 rounded-[2.5rem] lg:rounded-[3rem] shadow-2xl p-8 lg:p-12 border-none text-white">
             <AlertDialogHeader className="space-y-4">
                 <div className="h-16 w-16 rounded-3xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto border border-destructive/20 shadow-inner">
                     <Trash2 className="h-8 w-8" />
@@ -342,7 +342,7 @@ const TemplateDetailsDialog = ({ templateId, templateName, children }: { templat
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="w-[95vw] sm:w-[500px] bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl p-0 overflow-hidden text-white border-none">
+            <DialogContent className="w-[95vw] sm:w-[500px] lg:w-[600px] bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl p-0 overflow-hidden text-white border-none">
                 <div className="bg-gradient-to-br from-primary/20 to-transparent p-8 sm:p-10 pb-6 text-center text-balance">
                     <DialogTitle className="text-3xl font-black tracking-tight mb-2">{templateName}</DialogTitle>
                     <p className="text-xs text-muted-foreground uppercase font-black tracking-widest opacity-60 italic">Detalles de la rutina</p>

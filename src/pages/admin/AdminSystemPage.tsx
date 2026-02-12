@@ -60,12 +60,12 @@ const AdminSystemPage = () => {
                             Estado de Conexión
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 sm:p-8 space-y-8">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-white/5 border border-white/10 rounded-[2rem] shadow-inner gap-6">
+                    <CardContent className="p-6 sm:p-8 lg:p-10 space-y-8">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between p-6 lg:p-8 bg-white/5 border border-white/10 rounded-[2rem] lg:rounded-[2.5rem] shadow-inner gap-6">
                             <div className="flex items-center gap-4">
                                 <div className={`h-12 w-12 rounded-2xl flex items-center justify-center border ${status === 'online' ? 'bg-green-500/20 border-green-500/30 text-green-400' :
-                                        status === 'error' ? 'bg-destructive/20 border-destructive/30 text-destructive' :
-                                            'bg-primary/20 border-primary/30 text-primary'
+                                    status === 'error' ? 'bg-destructive/20 border-destructive/30 text-destructive' :
+                                        'bg-primary/20 border-primary/30 text-primary'
                                     }`}>
                                     <Database className="h-6 w-6" />
                                 </div>
@@ -74,7 +74,7 @@ const AdminSystemPage = () => {
                                     <p className="text-xs text-muted-foreground">Supabase PostgreSQL Instance</p>
                                 </div>
                             </div>
-                            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 w-full sm:w-auto pt-4 sm:pt-0 border-t border-white/5 sm:border-none">
+                            <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-2 w-full lg:w-auto pt-4 lg:pt-0 border-t border-white/5 lg:border-none">
                                 <Badge variant={status === 'online' ? 'success' : status === 'error' ? 'destructive' : 'secondary'} className="font-black uppercase tracking-widest text-[10px] px-3">
                                     {status === 'online' ? 'Conectado' : status === 'error' ? 'Error' : 'Verificando'}
                                 </Badge>
@@ -105,7 +105,7 @@ const AdminSystemPage = () => {
                             Configuración
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 sm:p-8 space-y-6">
+                    <CardContent className="p-6 sm:p-8 lg:p-10 space-y-6">
                         <div className="grid grid-cols-1 gap-4">
                             <InfoRow
                                 icon={<Globe className="h-4 w-4" />}

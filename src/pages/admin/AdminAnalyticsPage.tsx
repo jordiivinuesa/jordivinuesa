@@ -81,7 +81,7 @@ const AdminAnalyticsPage = () => {
             </div>
 
             {/* Main Metrics Group */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                 <MetricCard
                     title="Usuarios Totales"
                     value={stats?.totalUsers || 0}
@@ -119,7 +119,7 @@ const AdminAnalyticsPage = () => {
                             <BarChart3 className="h-5 w-5 text-primary" /> Comportamiento de Usuario
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 sm:p-8 space-y-6">
+                    <CardContent className="p-6 sm:p-8 lg:p-10 space-y-6">
                         <div className="flex items-center justify-between group">
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">Actividad (7d)</p>
@@ -171,7 +171,7 @@ const AdminAnalyticsPage = () => {
                             <Calendar className="h-5 w-5 text-primary" /> Insights de IA
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 sm:p-8 flex flex-col items-center justify-center h-full space-y-6">
+                    <CardContent className="p-6 sm:p-8 lg:p-12 flex flex-col items-center justify-center h-full space-y-6">
                         <div className="text-center space-y-4">
                             <div className="h-20 w-20 rounded-[2.5rem] bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center text-primary border border-primary/20 shadow-2xl mx-auto animate-pulse">
                                 <Zap className="h-10 w-10" />
@@ -203,7 +203,7 @@ const MetricCard = ({ title, value, icon, description, color }: { title: string,
 
     return (
         <Card className="border-none bg-secondary/5 backdrop-blur-xl group hover:shadow-2xl transition-all shadow-xl rounded-3xl overflow-hidden active:scale-[0.98]">
-            <CardContent className="p-4 sm:p-8 space-y-3 sm:space-y-4">
+            <CardContent className="p-4 sm:p-6 lg:p-8 space-y-3 sm:space-y-4 lg:space-y-6">
                 <div className={`h-12 w-12 rounded-2xl flex items-center justify-center border transition-transform group-hover:scale-110 ${colorClasses[color]}`}>
                     {icon}
                 </div>
