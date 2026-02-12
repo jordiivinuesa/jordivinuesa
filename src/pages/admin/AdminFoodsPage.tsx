@@ -9,9 +9,22 @@ import {
     TableRow
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, UtensilsCrossed, User, Barcode } from "lucide-react";
+import { Search, Loader2, UtensilsCrossed, User, Barcode, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/components/ui/use-toast";
 
 interface CustomFood {
     id: string;
@@ -51,6 +64,30 @@ const AdminFoodsPage = () => {
         }
     };
 
+    const handleDeleteFood = async (foodId: string) => {
+        try {
+            const { error } = await supabase
+                .from("custom_foods")
+                .delete()
+                .eq("id", foodId);
+
+            if (error) throw error;
+
+            setFoods(prev => prev.filter(f => f.id !== foodId));
+            toast({
+                title: "Alimento eliminado",
+                description: "El alimento ha sido eliminado correctamente del catálogo.",
+            });
+        } catch (error) {
+            console.error("Error deleting food:", error);
+            toast({
+                variant: "destructive",
+                title: "Error al eliminar",
+                description: "No se pudo eliminar el alimento.",
+            });
+        }
+    };
+
     const filteredFoods = foods.filter(food =>
         food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         food.barcode?.includes(searchQuery)
@@ -86,66 +123,95 @@ const AdminFoodsPage = () => {
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                     ) : (
-                        <div className="rounded-md border">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Alimento</TableHead>
-                                        <TableHead>Macros (100g)</TableHead>
-                                        <TableHead>Calorías</TableHead>
-                                        <TableHead>Creador</TableHead>
-                                        <TableHead>Fecha</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredFoods.length === 0 ? (
+                        <CardContent className="p-0 sm:p-6">
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
                                         <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                                No se encontraron alimentos
-                                            </TableCell>
+                                            <TableHead className="min-w-[180px]">Alimento</TableHead>
+                                            <TableHead className="min-w-[150px]">Macros (100g)</TableHead>
+                                            <TableHead>Calorías</TableHead>
+                                            <TableHead className="hidden md:table-cell">Creador</TableHead>
+                                            <TableHead className="min-w-[100px]">Fecha</TableHead>
+                                            <TableHead className="text-right">Acciones</TableHead>
                                         </TableRow>
-                                    ) : (
-                                        filteredFoods.map((food) => (
-                                            <TableRow key={food.id}>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">{food.name}</span>
-                                                        {food.barcode && (
-                                                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
-                                                                <Barcode className="h-3 w-3" />
-                                                                <span>{food.barcode}</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-sm">
-                                                    <div className="flex gap-2">
-                                                        <Badge variant="outline" className="bg-blue-500/5 text-blue-500 border-blue-500/20">
-                                                            P: {food.protein}g
-                                                        </Badge>
-                                                        <Badge variant="outline" className="bg-green-500/5 text-green-500 border-green-500/20">
-                                                            C: {food.carbs}g
-                                                        </Badge>
-                                                        <Badge variant="outline" className="bg-orange-500/5 text-orange-500 border-orange-500/20">
-                                                            G: {food.fat}g
-                                                        </Badge>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="font-bold">
-                                                    {food.calories} kcal
-                                                </TableCell>
-                                                <TableCell className="text-xs text-muted-foreground font-mono">
-                                                    {food.user_id.substring(0, 8)}...
-                                                </TableCell>
-                                                <TableCell className="text-sm">
-                                                    {food.created_at ? new Date(food.created_at).toLocaleDateString() : "-"}
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredFoods.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                                    No se encontraron alimentos
                                                 </TableCell>
                                             </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                        ) : (
+                                            filteredFoods.map((food) => (
+                                                <TableRow key={food.id}>
+                                                    <TableCell>
+                                                        <div className="flex flex-col min-w-[150px]">
+                                                            <span className="font-medium truncate">{food.name}</span>
+                                                            {food.barcode && (
+                                                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+                                                                    <Barcode className="h-3 w-3" />
+                                                                    <span>{food.barcode}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex gap-1 flex-wrap">
+                                                            <Badge variant="outline" className="bg-blue-500/5 text-blue-500 border-blue-500/20 text-[10px] px-1 whitespace-nowrap">
+                                                                P: {food.protein}g
+                                                            </Badge>
+                                                            <Badge variant="outline" className="bg-green-500/5 text-green-500 border-green-500/20 text-[10px] px-1 whitespace-nowrap">
+                                                                C: {food.carbs}g
+                                                            </Badge>
+                                                            <Badge variant="outline" className="bg-orange-500/5 text-orange-500 border-orange-500/20 text-[10px] px-1 whitespace-nowrap">
+                                                                G: {food.fat}g
+                                                            </Badge>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="font-bold text-sm whitespace-nowrap">
+                                                        {food.calories} <span className="text-[10px] font-normal">kcal</span>
+                                                    </TableCell>
+                                                    <TableCell className="hidden md:table-cell text-xs text-muted-foreground font-mono">
+                                                        {food.user_id.substring(0, 8)}...
+                                                    </TableCell>
+                                                    <TableCell className="text-xs">
+                                                        {food.created_at ? new Date(food.created_at).toLocaleDateString() : "-"}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive transition-colors h-8 w-8">
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent className="w-[95vw] sm:w-full">
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>¿Eliminar {food.name}?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        Esta acción no se puede deshacer.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                    <AlertDialogAction
+                                                                        onClick={() => handleDeleteFood(food.id)}
+                                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                    >
+                                                                        Eliminar
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </CardContent>
                     )}
                 </CardContent>
             </Card>
