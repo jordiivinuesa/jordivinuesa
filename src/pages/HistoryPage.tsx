@@ -310,7 +310,7 @@ const HistoryPage = () => {
   };
 
   return (
-    <div className="px-4 pt-6">
+    <div className="px-4 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
       <h1 className="mb-2 text-2xl font-bold font-display animate-fade-in">Historial</h1>
       <p className="mb-4 text-sm text-muted-foreground animate-fade-in">Tu progreso día a día</p>
 

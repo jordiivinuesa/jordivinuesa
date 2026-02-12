@@ -96,7 +96,7 @@ const AdminLayout = ({ children }: { children?: ReactNode }) => {
     );
 
     return (
-        <div className="flex h-screen bg-background overflow-hidden text-card-foreground">
+        <div className="flex h-dvh bg-background overflow-hidden text-card-foreground">
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex w-64 border-r border-border bg-card flex-col">
                 <SidebarContent />
@@ -105,15 +105,15 @@ const AdminLayout = ({ children }: { children?: ReactNode }) => {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Mobile Header */}
-                <header className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card shrink-0">
+                <header className="lg:hidden flex items-center justify-between p-6 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] border-b border-border bg-card shrink-0 shadow-lg relative z-20">
                     <div className="flex items-center gap-2">
                         <Crown className="h-5 w-5 text-yellow-500" />
                         <span className="font-bold font-display text-lg">Admin Panel</span>
                     </div>
                     <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <Menu className="h-6 w-6" />
+                            <Button variant="ghost" size="icon" className="h-12 w-12 hover:bg-secondary active:scale-95 transition-all">
+                                <Menu className="h-7 w-7" />
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0 w-72 bg-card">

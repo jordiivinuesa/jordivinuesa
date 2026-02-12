@@ -17,8 +17,8 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <div className="min-h-screen bg-background">
       {role === 'admin' && (
-        <div className="sticky top-0 z-50 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20 backdrop-blur-sm">
-          <div className="max-w-lg mx-auto px-4 py-2 flex items-center gap-2 text-xs font-medium text-yellow-600 dark:text-yellow-400">
+        <div className="sticky top-0 z-50 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20 backdrop-blur-sm pt-[env(safe-area-inset-top,0px)]">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-2 text-xs font-medium text-yellow-600 dark:text-yellow-400">
             <Crown className="h-4 w-4" />
             <span>Modo Administrador</span>
           </div>

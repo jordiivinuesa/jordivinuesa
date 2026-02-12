@@ -33,7 +33,7 @@ const Dashboard = () => {
   const dayMonth = dateObj.toLocaleDateString("es-ES", { day: "numeric", month: "long" });
 
   return (
-    <div className="px-4 pt-6">
+    <div className="px-4 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
       {/* Header */}
       <div className="mb-6 animate-fade-in flex items-center justify-between">
         <div>

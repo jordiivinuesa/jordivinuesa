@@ -169,7 +169,7 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="px-4 pt-6 pb-24 animate-fade-in max-w-lg mx-auto">
+    <div className="px-4 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] pb-24 animate-fade-in max-w-lg mx-auto">
       <button
         onClick={() => navigate("/profile")}
         className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"

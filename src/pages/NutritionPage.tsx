@@ -122,7 +122,7 @@ const NutritionPage = () => {
   }));
 
   return (
-    <div className="px-4 pt-6">
+    <div className="px-4 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
       <div className="flex items-center justify-between mb-2 animate-fade-in text-foreground">
         <div>
           <h1 className="text-2xl font-bold font-display">Nutrición</h1>

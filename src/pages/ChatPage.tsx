@@ -50,7 +50,7 @@ const ChatPage = () => {
   return (
     <div className="flex h-[calc(100vh-80px)] flex-col">
       {/* Header */}
-      <div className="px-4 pt-6 pb-3 animate-fade-in">
+      <div className="px-4 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] pb-3 animate-fade-in">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10">
             <Bot className="h-5 w-5 text-primary" />
@@ -160,8 +160,8 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
       )}
       <div
         className={`max-w-[85%] rounded-2xl px-4 py-3 ${isUser
-            ? "rounded-tr-sm bg-primary text-primary-foreground"
-            : "rounded-tl-sm bg-card"
+          ? "rounded-tr-sm bg-primary text-primary-foreground"
+          : "rounded-tl-sm bg-card"
           }`}
       >
         {isUser ? (

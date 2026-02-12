@@ -96,7 +96,7 @@ const ProfilePage = () => {
     return (
         <div className="min-h-[calc(100vh-80px)] pb-10 bg-background">
             {/* Header with Settings */}
-            <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+            <div className="px-4 pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-2 flex items-center justify-between">
                 <h1 className="text-xl font-bold font-display">Mi Perfil</h1>
                 <Button
                     variant="ghost"
