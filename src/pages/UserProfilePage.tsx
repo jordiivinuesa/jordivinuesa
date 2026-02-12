@@ -115,7 +115,7 @@ const UserProfilePage = () => {
   return (
     <div className="min-h-[calc(100vh-80px)]">
       {/* Header */}
-      <div className="px-4 pt-6 pb-4 animate-fade-in">
+      <div className="px-4 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] pb-4 animate-fade-in">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"

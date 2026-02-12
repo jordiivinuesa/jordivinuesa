@@ -39,7 +39,7 @@ const AdminLayout = ({ children }: { children?: ReactNode }) => {
     const SidebarContent = () => (
         <div className="flex flex-col h-full">
             {/* Header */}
-            <div className="p-6 border-b border-border">
+            <div className="p-6 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] lg:pt-6 border-b border-border">
                 <Link
                     to="/"
                     className="flex items-center gap-2 text-xs text-primary hover:text-primary/80 transition-colors mb-4 group"
