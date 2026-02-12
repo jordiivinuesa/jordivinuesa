@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -14,7 +15,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
+const AdminLayout = ({ children }: { children?: ReactNode }) => {
     const { role, signOut } = useAuth();
     const location = useLocation();
 
