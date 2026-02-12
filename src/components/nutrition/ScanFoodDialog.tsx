@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Camera, X } from "lucide-react";
+import { Loader2, Camera, X, RefreshCw } from "lucide-react";
 import { searchProductByBarcode } from "@/services/openFoodFacts";
 import { FoodItem } from "@/data/foods";
 import { toast } from "@/hooks/use-toast";
@@ -17,16 +17,16 @@ interface ScanFoodDialogProps {
 export const ScanFoodDialog = ({ open, onOpenChange, onFoodFound, onScanError }: ScanFoodDialogProps) => {
     const [scanning, setScanning] = useState(false);
     const [loading, setLoading] = useState(false);
-    const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+    const [hasCamera, setHasCamera] = useState(true);
+    const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
     useEffect(() => {
-        if (open && !scannerRef.current) {
-            // Small timeout to ensure DOM is ready
+        if (open) {
             const timer = setTimeout(() => {
                 startScanner();
-            }, 100);
+            }, 300);
             return () => clearTimeout(timer);
-        } else if (!open && scannerRef.current) {
+        } else {
             stopScanner();
         }
 
@@ -35,9 +35,11 @@ export const ScanFoodDialog = ({ open, onOpenChange, onFoodFound, onScanError }:
         };
     }, [open]);
 
-    const startScanner = () => {
+    const startScanner = async () => {
         try {
-            setScanning(true);
+            if (!html5QrCodeRef.current) {
+                html5QrCodeRef.current = new Html5Qrcode("reader");
+            }
 
             const config = {
                 fps: 10,
@@ -46,29 +48,35 @@ export const ScanFoodDialog = ({ open, onOpenChange, onFoodFound, onScanError }:
                 formatsToSupport: [Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8]
             };
 
-            scannerRef.current = new Html5QrcodeScanner(
-                "reader",
+            await html5QrCodeRef.current.start(
+                { facingMode: "environment" },
                 config,
-        /* verbose= */ false
+                onScanSuccess,
+                onScanFailure
             );
-
-            scannerRef.current.render(onScanSuccess, onScanFailure);
+            setScanning(true);
+            setHasCamera(true);
         } catch (err) {
             console.error("Error starting scanner:", err);
             setScanning(false);
+            setHasCamera(false);
+            toast({
+                title: "Error de cámara",
+                description: "No se pudo acceder a la cámara trasera. Asegúrate de dar permisos.",
+                variant: "destructive",
+            });
         }
     };
 
-    const stopScanner = () => {
-        if (scannerRef.current) {
+    const stopScanner = async () => {
+        if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
             try {
-                scannerRef.current.clear();
+                await html5QrCodeRef.current.stop();
             } catch (e) {
-                console.error("Error clearing scanner", e);
+                console.error("Error stopping scanner", e);
             }
-            scannerRef.current = null;
-            setScanning(false);
         }
+        setScanning(false);
     };
 
     const onScanSuccess = async (decodedText: string) => {
@@ -109,18 +117,34 @@ export const ScanFoodDialog = ({ open, onOpenChange, onFoodFound, onScanError }:
                     <DialogTitle className="text-center font-display">Escanear código de barras</DialogTitle>
                 </DialogHeader>
 
-                <div className="flex flex-col items-center justify-center p-4 min-h-[300px]">
+                <div className="flex flex-col items-center justify-center p-4 min-h-[350px]">
                     {loading ? (
                         <div className="flex flex-col items-center gap-4">
                             <Loader2 className="h-10 w-10 animate-spin text-primary" />
                             <p className="text-sm text-muted-foreground">Buscando producto...</p>
                         </div>
                     ) : (
-                        <div id="reader" className="w-full overflow-hidden rounded-xl border-2 border-dashed border-border bg-black/5" />
+                        <div className="relative w-full aspect-square max-w-[300px]">
+                            <div id="reader" className="w-full h-full overflow-hidden rounded-2xl border-2 border-primary/20 bg-black/40 shadow-2xl" />
+                            {!scanning && !hasCamera && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm rounded-2xl p-6 text-center">
+                                    <Camera className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
+                                    <p className="text-sm font-medium mb-4">No se pudo iniciar la cámara</p>
+                                    <Button onClick={startScanner} variant="outline" className="gap-2 rounded-xl">
+                                        <RefreshCw className="h-4 w-4" />
+                                        Reintentar
+                                    </Button>
+                                </div>
+                            )}
+                            {scanning && (
+                                <div className="absolute inset-0 pointer-events-none border-2 border-primary/50 rounded-2xl animate-pulse" />
+                            )}
+                        </div>
                     )}
 
-                    <p className="mt-4 text-xs text-center text-muted-foreground">
-                        Apunta la cámara al código de barras del producto.
+                    <p className="mt-6 text-xs text-center text-muted-foreground px-4 leading-relaxed">
+                        Apunta la cámara al código de barras. <br />
+                        <span className="opacity-60 italic">Asegúrate de tener buena iluminación.</span>
                     </p>
                 </div>
             </DialogContent>
