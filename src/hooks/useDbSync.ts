@@ -323,13 +323,7 @@ export function useDbSync() {
       }
     } catch (error: any) {
       console.error('Sync: Error loading templates:', error);
-      if (error?.code === 'PGRST116' || error?.message?.includes('not found') || error?.status === 404) {
-        toast({
-          title: "Error de Sincronización",
-          description: "Las tablas de plantillas no existen. Por favor, asegúrate de aplicar las migraciones.",
-          variant: "destructive",
-        });
-      }
+      // Removed toast notification for sync error to avoid annoying the user
     }
   }, [user]);
 
@@ -430,19 +424,7 @@ export function useDbSync() {
       }
     } catch (error: any) {
       console.error('Sync: Error saving template:', error);
-      if (error?.code === '23505') {
-        toast({
-          title: "Error al guardar",
-          description: "Ya existe una plantilla con este nombre.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error al guardar",
-          description: "No se pudo sincronizar la plantilla con la nube.",
-          variant: "destructive",
-        });
-      }
+      // Removed toast notification for sync error to avoid annoying the user
     }
   }, [user]);
 
