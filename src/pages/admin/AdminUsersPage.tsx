@@ -41,7 +41,7 @@ const AdminUsersPage = () => {
                 .order("created_at", { ascending: false });
 
             if (error) throw error;
-            setUsers(profiles || []);
+            setUsers((profiles || []) as unknown as AdminUser[]);
         } catch (error) {
             console.error("Error loading users:", error);
         } finally {
