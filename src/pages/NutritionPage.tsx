@@ -26,8 +26,8 @@ const mealTypeLabels: Record<MealType, string> = {
 
 const NutritionPage = () => {
   const navigate = useNavigate();
-  const { currentDate, dayLogs, addMealEntry, removeMealEntry, calorieGoal, proteinGoal, carbsGoal, fatGoal, customFoods } = useAppStore();
-  const { saveMealToDb, deleteMealFromDb } = useDbSync();
+  const { currentDate, dayLogs, addMealEntry, removeMealEntry, calorieGoal, proteinGoal, carbsGoal, fatGoal, customFoods, addCustomFood } = useAppStore();
+  const { saveMealToDb, deleteMealFromDb, saveCustomFoodToDb } = useDbSync();
   const dayLog = dayLogs[currentDate];
   const meals = dayLog?.meals || [];
 
