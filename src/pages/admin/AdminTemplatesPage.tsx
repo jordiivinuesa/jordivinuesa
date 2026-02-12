@@ -57,16 +57,30 @@ const AdminTemplatesPage = () => {
             // First, get templates and link them with profiles to get user names
             const { data: templatesData, error: tError } = await supabase
                 .from("workout_templates")
-                .select(`
-                    *,
-                    profiles (display_name)
-                `)
+                .select("*")
                 .order("created_at", { ascending: false });
 
             if (tError) throw tError;
 
-            // Get exercise counts for each template
-            const formattedTemplates = await Promise.all((templatesData || []).map(async (t: any) => {
+            let enrichedTemplatesData = templatesData || [];
+
+            if (enrichedTemplatesData.length > 0) {
+                const userIds = [...new Set(enrichedTemplatesData.map(t => t.user_id))];
+                const { data: profilesData, error: pError } = await supabase
+                    .from("profiles")
+                    .select("user_id, display_name")
+                    .in("user_id", userIds);
+
+                if (!pError && profilesData) {
+                    enrichedTemplatesData = enrichedTemplatesData.map(template => ({
+                        ...template,
+                        profiles: profilesData.find(p => p.user_id === template.user_id) || null
+                    }));
+                }
+            }
+
+            // Get exercise counts for each template and format
+            const formattedTemplates = await Promise.all(enrichedTemplatesData.map(async (t: any) => {
                 const { count } = await supabase
                     .from("template_exercises")
                     .select("*", { count: 'exact', head: true })
