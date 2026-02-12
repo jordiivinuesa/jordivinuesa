@@ -503,13 +503,24 @@ const WorkoutPage = () => {
         {/* Exercise-based workout (default for backward compatibility) */}
         {activeWorkout.type !== 'actividad' && activeWorkout.exercises && activeWorkout.exercises.map((exercise, exerciseIndex) => (
           <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-slide-up" style={{ animationDelay: `${exerciseIndex * 0.1} s` }}>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-semibold font-display">{exercise.exerciseName}</h3>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 overflow-hidden">
+                {exercises.find(e => e.id === exercise.exerciseId)?.gifUrl && (
+                  <div className="h-10 w-10 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center">
+                    <img
+                      src={exercises.find(e => e.id === exercise.exerciseId)?.gifUrl}
+                      alt={exercise.exerciseName}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                )}
+                <h3 className="font-semibold font-display truncate">{exercise.exerciseName}</h3>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => removeExerciseFromWorkout(exerciseIndex)}
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive shrink-0"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -670,15 +681,22 @@ const WorkoutPage = () => {
               <button
                 key={ex.id}
                 onClick={() => handleSelectExercise(ex.id, ex.name)}
-                className="flex w-full items-center justify-between rounded-2xl bg-secondary/50 p-4 text-left transition-all hover:bg-secondary active:scale-[0.98] glow-border"
+                className="flex w-full items-center justify-between rounded-2xl bg-secondary/50 p-3 text-left transition-all hover:bg-secondary active:scale-[0.98] glow-border gap-3"
               >
-                <div>
-                  <h4 className="font-semibold text-sm">{ex.name}</h4>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
-                    {muscleGroupLabels[ex.muscleGroup]}
-                  </p>
+                <div className="flex items-center gap-3 overflow-hidden">
+                  {ex.gifUrl && (
+                    <div className="h-12 w-12 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center">
+                      <img src={ex.gifUrl} alt={ex.name} className="max-h-full max-w-full object-contain" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <h4 className="font-semibold text-sm truncate">{ex.name}</h4>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
+                      {muscleGroupLabels[ex.muscleGroup]}
+                    </p>
+                  </div>
                 </div>
-                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <Plus className="h-4 w-4 text-primary" />
                 </div>
               </button>
