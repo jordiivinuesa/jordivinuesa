@@ -43,7 +43,7 @@ export const ScanFoodDialog = ({ open, onOpenChange, onFoodFound, onScanError }:
 
             const config = {
                 fps: 20, // Increase FPS for smoother detection
-                qrbox: { width: 280, height: 180 }, // Rectangle better for barcodes
+                qrbox: { width: 300, height: 200 }, // Rectangle better for barcodes
                 formatsToSupport: [
                     Html5QrcodeSupportedFormats.EAN_13,
                     Html5QrcodeSupportedFormats.EAN_8,

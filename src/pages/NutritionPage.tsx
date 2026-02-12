@@ -85,6 +85,23 @@ const NutritionPage = () => {
 
   const handleAddFood = async () => {
     if (!selectedFood) return;
+
+    // Persist scanned/new foods to customFoods if they don't exist
+    const foodExists = allFoods.some(f =>
+      f.id === selectedFood.id ||
+      f.name.toLowerCase() === selectedFood.name.toLowerCase()
+    );
+
+    if (!foodExists) {
+      try {
+        console.log("Persisting new food from scan:", selectedFood.name);
+        addCustomFood(selectedFood);
+        await saveCustomFoodToDb(selectedFood);
+      } catch (err) {
+        console.error("Error persisting scanned food:", err);
+      }
+    }
+
     const multiplier = parseFloat(grams) / 100;
     const entry: MealEntry = {
       id: crypto.randomUUID(),
