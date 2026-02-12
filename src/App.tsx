@@ -23,7 +23,7 @@ import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminFoodsPage from "./pages/admin/AdminFoodsPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
@@ -31,24 +31,43 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const onboardingCompleted = useAppStore((s) => s.onboardingCompleted);
+  const [verifyingOnboarding, setVerifyingOnboarding] = useState(true);
 
   // Load onboarding status directly so we don't depend on useDbSync
   useEffect(() => {
-    if (!user) return;
-    if (onboardingCompleted !== null) return;
-    supabase
-      .from("profiles")
-      .select("onboarding_completed")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        useAppStore.setState({
-          onboardingCompleted: data?.onboarding_completed ?? false,
-        });
-      });
-  }, [user, onboardingCompleted]);
+    if (loading) return;
 
-  if (loading || (user && onboardingCompleted === null)) {
+    if (!user) {
+      setVerifyingOnboarding(false);
+      return;
+    }
+
+    const checkOnboarding = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("onboarding_completed")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching onboarding status:", error);
+        } else if (data) {
+          useAppStore.setState({
+            onboardingCompleted: data.onboarding_completed,
+          });
+        }
+      } catch (err) {
+        console.error("Uncaught error checkOnboarding:", err);
+      } finally {
+        setVerifyingOnboarding(false);
+      }
+    };
+
+    checkOnboarding();
+  }, [user, loading]);
+
+  if (loading || verifyingOnboarding) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -57,6 +76,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
+
+  // Solo redirigimos si estamos SEGUROS de que es false (confirmado por DB)
   if (onboardingCompleted === false) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
 };
