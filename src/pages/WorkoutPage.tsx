@@ -681,23 +681,36 @@ const WorkoutPage = () => {
               <button
                 key={ex.id}
                 onClick={() => handleSelectExercise(ex.id, ex.name)}
-                className="flex w-full items-center justify-between rounded-2xl bg-secondary/50 p-3 text-left transition-all hover:bg-secondary active:scale-[0.98] glow-border gap-3"
+                className="group flex w-full items-center gap-4 rounded-3xl bg-secondary/30 p-4 text-left transition-all hover:bg-secondary/50 active:scale-[0.98] border border-transparent hover:border-primary/20 relative overflow-hidden"
               >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  {ex.gifUrl && (
-                    <div className="h-12 w-12 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center">
-                      <img src={ex.gifUrl} alt={ex.name} className="max-h-full max-w-full object-contain" />
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <h4 className="font-semibold text-sm truncate">{ex.name}</h4>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
-                      {muscleGroupLabels[ex.muscleGroup]}
-                    </p>
+                <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Plus className="h-5 w-5 text-primary" />
                   </div>
                 </div>
-                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                  <Plus className="h-4 w-4 text-primary" />
+
+                {ex.gifUrl && (
+                  <div className="h-20 w-20 rounded-2xl bg-white overflow-hidden shrink-0 border border-border shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                    <img
+                      src={ex.gifUrl}
+                      alt={ex.name}
+                      className="max-h-full max-w-full object-contain mix-blend-multiply"
+                    />
+                  </div>
+                )}
+
+                <div className="min-w-0 flex-1 py-1">
+                  <h4 className="font-bold text-base text-foreground leading-snug group-hover:text-primary transition-colors truncate">
+                    {ex.name}
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] uppercase font-black tracking-widest">
+                      {muscleGroupLabels[ex.muscleGroup]}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-lg bg-muted text-muted-foreground text-[10px] uppercase font-bold">
+                      {ex.type}
+                    </span>
+                  </div>
                 </div>
               </button>
             ))}
