@@ -426,15 +426,18 @@ const WorkoutPage = () => {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Check if there's already an active workout
+
                           if (activeWorkout) {
-                            // alert("DEBUG: Entrando en confirmación. ActiveWorkout es true"); // Debug alert
-                            setPendingWorkoutStart({
-                              name: template.name,
-                              mode: "template",
-                              template: template
-                            });
-                            setShowOverwriteConfirmation(true);
+                            // Use a timeout to break out of the event loop and ensure state updates happen
+                            // independently of the click event bubbling/capture phase
+                            setTimeout(() => {
+                              setPendingWorkoutStart({
+                                name: template.name,
+                                mode: "template",
+                                template: template
+                              });
+                              setShowOverwriteConfirmation(true);
+                            }, 10);
                             return;
                           }
 
@@ -443,7 +446,7 @@ const WorkoutPage = () => {
                         }}
                         className="rounded-xl h-8 px-4 text-xs"
                       >
-                        {activeWorkout ? "Empezar (⚠️)" : "Empezar"}
+                        Empezar
                       </Button>
                     </div>
                   </div>
@@ -851,6 +854,50 @@ const WorkoutPage = () => {
                     pendingWorkoutStart.template
                   );
                   setPendingWorkoutStart(null);
+                }
+              }}
+            >
+              Empezar nuevo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* Overwrite Confirmation Dialog */}
+      <AlertDialog open={showOverwriteConfirmation} onOpenChange={setShowOverwriteConfirmation}>
+        <AlertDialogContent className="bg-card border-border rounded-2xl max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Entrenamiento en curso</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ya tienes un entrenamiento activo. Si empiezas uno nuevo, perderás el progreso del actual.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                cancelWorkout();
+                setShowOverwriteConfirmation(false);
+                if (pendingWorkoutStart) {
+                  const { name, mode, template } = pendingWorkoutStart;
+
+                  // Use timeout to allow state to settle after cancelWorkout
+                  setTimeout(() => {
+                    if (template) {
+                      startWorkoutFromTemplate(template);
+                    } else if (name) {
+                      startWorkout(name, mode === "template" ? "template" : undefined);
+                      if (mode === "template") {
+                        setIsTemplateSaved(true);
+                      } else {
+                        setIsTemplateSaved(false);
+                      }
+                      setShowStartDialog(false);
+                      setWorkoutName("");
+                    }
+                    setShowDetailView(true);
+                    setPendingWorkoutStart(null);
+                  }, 50);
                 }
               }}
             >
