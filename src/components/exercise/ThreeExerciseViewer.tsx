@@ -86,66 +86,92 @@ export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false }: ThreeE
 
                 <svg viewBox="0 0 200 400" className="w-full h-full" style={!minimal ? { filter: 'drop-shadow(0px 10px 15px rgba(0,0,0,0.1))' } : undefined} preserveAspectRatio="xMidYMid meet">
                     {view === 'front' ? (
-                        <g id="front-view">
-                            {/* Head */}
-                            <path d="M100 20 C100 20 115 20 115 35 V50 C115 60 100 65 100 65 C100 65 85 60 85 50 V35 C85 20 100 20 100 20" fill={THEME.skin} />
+                        <g id="front-view" stroke="white" strokeWidth="1" strokeLinejoin="round">
+                            {/* Head (Hexagon) */}
+                            <polygon points="100,20 115,30 115,55 100,65 85,55 85,30" fill={THEME.skin} />
 
-                            {/* Neck */}
-                            <path d="M92 63 L108 63 L110 75 L90 75 Z" fill={THEME.skin} />
+                            {/* Neck (Trapezoid) */}
+                            <polygon points="92,63 108,63 112,75 88,75" fill={THEME.skin} />
 
-                            {/* Delts */}
-                            <path id="delts_front_left" d="M110 75 L135 78 L140 95 L128 100 L115 85 Z" fill={getColor('delts_front_left')} className="transition-colors duration-500" />
-                            <path id="delts_front_right" d="M90 75 L65 78 L60 95 L72 100 L85 85 Z" fill={getColor('delts_front_right')} className="transition-colors duration-500" />
+                            {/* Delts (Pentagons) */}
+                            <polygon id="delts_front_left" points="112,75 135,78 142,95 130,105 115,100" fill={getColor('delts_front_left')} className="transition-colors duration-300" />
+                            <polygon id="delts_front_right" points="88,75 65,78 58,95 70,105 85,100" fill={getColor('delts_front_right')} className="transition-colors duration-300" />
 
-                            {/* Pecs */}
-                            <path id="pecs" d="M90 85 L110 85 L115 105 C115 115 100 115 100 115 C100 115 85 115 85 105 Z" fill={getColor('pecs')} className="transition-colors duration-500" />
+                            {/* Pecs (Hexagons) */}
+                            <polygon id="pecs" points="85,100 115,100 120,90 115,115 100,120 85,115 80,90" fill={getColor('pecs')} className="transition-colors duration-300" />
 
-                            {/* Abs */}
-                            <path id="abs" d="M88 115 L112 115 L110 160 L90 160 Z" fill={getColor('abs')} className="transition-colors duration-500" />
-                            <path id="obliques" d="M88 115 L78 120 L80 155 L90 160 Z M112 115 L122 120 L120 155 L110 160 Z" fill={getColor('obliques')} className="transition-colors duration-500" />
+                            {/* Abs (Grid of Rectangles) */}
+                            <g id="abs">
+                                <polygon points="88,120 112,120 110,135 90,135" fill={getColor('abs')} className="transition-colors duration-300" /> {/* Upper Abs */}
+                                <polygon points="90,135 110,135 108,150 92,150" fill={getColor('abs')} className="transition-colors duration-300" /> {/* Middle Abs */}
+                                <polygon points="92,150 108,150 105,165 95,165" fill={getColor('abs')} className="transition-colors duration-300" /> {/* Lower Abs */}
+                            </g>
 
-                            {/* Biceps/Arms */}
-                            <path id="biceps_left" d="M128 100 L140 95 L145 130 L132 130 Z" fill={getColor('biceps_left')} className="transition-colors duration-500" />
-                            <path id="biceps_right" d="M72 100 L60 95 L55 130 L68 130 Z" fill={getColor('biceps_right')} className="transition-colors duration-500" />
+                            {/* Obliques (Triangles/Trapezoids) */}
+                            <polygon id="obliques" points="88,120 80,125 82,155 92,150" fill={getColor('obliques')} className="transition-colors duration-300" />
+                            <polygon points="112,120 120,125 118,155 108,150" fill={getColor('obliques')} className="transition-colors duration-300" />
 
-                            {/* Forearms */}
-                            <path d="M145 130 L132 130 L135 160 L148 160 Z" fill={THEME.skin} />
-                            <path d="M55 130 L68 130 L65 160 L52 160 Z" fill={THEME.skin} />
+                            {/* Biceps/Upper Arm (Polygon) */}
+                            <polygon id="biceps_left" points="130,105 142,95 145,130 135,130" fill={getColor('biceps_left')} className="transition-colors duration-300" />
+                            <polygon id="biceps_right" points="70,105 58,95 55,130 65,130" fill={getColor('biceps_right')} className="transition-colors duration-300" />
 
-                            {/* Quads */}
-                            <path id="quads_left" d="M100 160 L125 160 L130 230 L105 230 Z" fill={getColor('quads_left')} className="transition-colors duration-500" />
-                            <path id="quads_right" d="M100 160 L75 160 L70 230 L95 230 Z" fill={getColor('quads_right')} className="transition-colors duration-500" />
+                            {/* Forearms (Polygon) */}
+                            <polygon points="145,130 135,130 138,160 150,160" fill={THEME.skin} />
+                            <polygon points="55,130 65,130 62,160 50,160" fill={THEME.skin} />
 
-                            {/* Calves */}
-                            <path id="calves_left" d="M105 230 L130 230 L125 300 L108 300 Z" fill={getColor('calves_left')} className="transition-colors duration-500" />
-                            <path id="calves_right" d="M95 230 L70 230 L75 300 L92 300 Z" fill={getColor('calves_right')} className="transition-colors duration-500" />
+                            {/* Hips/Waist (Inverted Trapezoid) */}
+                            {/* Using Quads/Glutes color for shorts continuity, or skin if low rise? Let's use outfit color for waist band if needed, but abs cover it. */}
+
+                            {/* Quads (Large Polygons) */}
+                            <polygon id="quads_left" points="100,165 125,165 130,230 105,230" fill={getColor('quads_left')} className="transition-colors duration-300" />
+                            <polygon id="quads_right" points="100,165 75,165 70,230 95,230" fill={getColor('quads_right')} className="transition-colors duration-300" />
+
+                            {/* Knees (Small Diamonds) - Optional connecting detail */}
+                            <polygon points="105,230 130,230 128,240 107,240" fill={THEME.skin} opacity="0.8" />
+                            <polygon points="95,230 70,230 72,240 93,240" fill={THEME.skin} opacity="0.8" />
+
+                            {/* Calves (Polygons) */}
+                            <polygon id="calves_left" points="107,240 128,240 125,300 108,300" fill={getColor('calves_left')} className="transition-colors duration-300" />
+                            <polygon id="calves_right" points="93,240 72,240 75,300 92,300" fill={getColor('calves_right')} className="transition-colors duration-300" />
                         </g>
                     ) : (
-                        <g id="back-view">
-                            {/* Head Back */}
-                            <path d="M100 20 C100 20 115 20 115 35 V50 C115 60 100 65 100 65 C100 65 85 60 85 50 V35 C85 20 100 20 100 20" fill={THEME.skin} />
+                        <g id="back-view" stroke="white" strokeWidth="1" strokeLinejoin="round">
+                            {/* Head Back (Hexagon) */}
+                            <polygon points="100,20 115,30 115,55 100,65 85,55 85,30" fill={THEME.skin} />
 
-                            {/* Traps */}
-                            <path id="traps" d="M90 65 L110 65 L130 80 L100 95 L70 80 Z" fill={getColor('traps')} className="transition-colors duration-500" />
+                            {/* Traps (Diamond/Kite) */}
+                            <polygon id="traps" points="100,65 125,75 100,90 75,75" fill={getColor('traps')} className="transition-colors duration-300" />
 
-                            {/* Lats/Back */}
-                            <path id="lats" d="M70 80 L130 80 L125 125 L100 135 L75 125 Z" fill={getColor('lats')} className="transition-colors duration-500" />
-                            <path id="lower_back" d="M75 125 L125 125 L120 160 L80 160 Z" fill={getColor('lower_back')} className="transition-colors duration-500" />
+                            {/* Lats (Wing shapes) */}
+                            <polygon id="lats" points="125,75 140,90 125,125 100,130 100,90" fill={getColor('lats')} className="transition-colors duration-300" />
+                            <polygon points="75,75 60,90 75,125 100,130 100,90" fill={getColor('lats')} className="transition-colors duration-300" /> {/* Mirror Lat manually if needed distinct ID, usually same */}
 
-                            {/* Triceps */}
-                            <path id="triceps_left" d="M130 80 L145 85 L145 130 L132 130 Z" fill={getColor('triceps_left')} className="transition-colors duration-500" />
-                            <path id="triceps_right" d="M70 80 L55 85 L55 130 L68 130 Z" fill={getColor('triceps_right')} className="transition-colors duration-500" />
+                            {/* Lower Back (Trapezoid) */}
+                            <polygon id="lower_back" points="75,125 125,125 120,160 80,160" fill={getColor('lower_back')} className="transition-colors duration-300" />
 
-                            {/* Glutes */}
-                            <path id="glutes" d="M80 160 L120 160 L125 190 L100 200 L75 190 Z" fill={getColor('glutes')} className="transition-colors duration-500" />
+                            {/* Triceps (Polygon) */}
+                            <polygon id="triceps_left" points="140,84 150,90 150,130 138,130" fill={getColor('triceps_left')} className="transition-colors duration-300" />
+                            <polygon id="triceps_right" points="60,84 50,90 50,130 62,130" fill={getColor('triceps_right')} className="transition-colors duration-300" />
 
-                            {/* Hamstrings */}
-                            <path id="hamstrings_left" d="M100 200 L125 190 L130 240 L105 240 Z" fill={getColor('hamstrings_left')} className="transition-colors duration-500" />
-                            <path id="hamstrings_right" d="M100 200 L75 190 L70 240 L95 240 Z" fill={getColor('hamstrings_right')} className="transition-colors duration-500" />
+                            {/* Elbows */}
+                            <polygon points="138,130 150,130 148,135 140,135" fill={THEME.skin} />
+                            <polygon points="62,130 50,130 52,135 60,135" fill={THEME.skin} />
 
-                            {/* Calves Back */}
-                            <path id="calves_back_left" d="M105 240 L130 240 L125 310 L108 310 Z" fill={getColor('calves')} className="transition-colors duration-500" />
-                            <path id="calves_back_right" d="M95 240 L70 240 L75 310 L92 310 Z" fill={getColor('calves')} className="transition-colors duration-500" />
+                            {/* Forearms Back */}
+                            <polygon points="148,135 140,135 142,160 155,160" fill={THEME.skin} />
+                            <polygon points="52,135 60,135 58,160 45,160" fill={THEME.skin} />
+
+                            {/* Glutes (Two Pentagons) */}
+                            <polygon id="glutes" points="80,160 100,160 100,200 75,190 70,170" fill={getColor('glutes')} className="transition-colors duration-300" />
+                            <polygon points="120,160 100,160 100,200 125,190 130,170" fill={getColor('glutes')} className="transition-colors duration-300" />
+
+                            {/* Hamstrings (Polygons) */}
+                            <polygon id="hamstrings_left" points="100,200 125,190 130,240 105,240" fill={getColor('hamstrings_left')} className="transition-colors duration-300" />
+                            <polygon id="hamstrings_right" points="100,200 75,190 70,240 95,240" fill={getColor('hamstrings_right')} className="transition-colors duration-300" />
+
+                            {/* Calves Back (Diamond-like) */}
+                            <polygon id="calves_back_left" points="105,240 130,240 125,310 108,310" fill={getColor('calves')} className="transition-colors duration-300" />
+                            <polygon id="calves_back_right" points="95,240 70,240 75,310 92,310" fill={getColor('calves')} className="transition-colors duration-300" />
                         </g>
                     )}
                 </svg>
