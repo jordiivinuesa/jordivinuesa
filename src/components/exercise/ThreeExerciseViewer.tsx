@@ -72,12 +72,7 @@ export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false, equipmen
             </div>
 
 
-            {/* Equipment Icon Overlay */}
-            {minimal && equipmentType && (
-                <div className="absolute top-1 right-1 bg-white/90 backdrop-blur-sm p-1.5 rounded-lg border border-gray-100 shadow-sm z-20">
-                    {getEquipmentIcon(equipmentType)}
-                </div>
-            )}
+
 
             {!minimal && (
                 <div className="absolute bottom-4 text-center px-4">
