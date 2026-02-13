@@ -772,6 +772,7 @@ const WorkoutPage = () => {
             {filteredExercises.length === 0 && (
               <p className="py-8 text-center text-sm text-muted-foreground">No se encontraron ejercicios</p>
             )}
+          </div>
         </DialogContent>
       </Dialog>
 
