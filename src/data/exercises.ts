@@ -1,4 +1,5 @@
 ﻿import { MuscleGroup, ExerciseType } from "./exercises.ts"; // Self-import for types if needed, but better to define them here.
+import benchPressImg from '../assets/exercises/bench_press_placeholder.svg';
 
 export type MuscleGroup =
   | "pecho" | "espalda" | "hombros" | "bíceps" | "tríceps"
@@ -38,7 +39,7 @@ export const exercises: Exercise[] = [
     muscleGroup: "pecho",
     type: "barra",
     description: "El ejercicio rey para el desarrollo del pectoral. Túmbate en el banco y empuja la barra desde el pecho hasta extender los brazos.",
-    modelUrl: "/src/assets/exercises/bench_press_placeholder.svg" // Placeholder específico
+    modelUrl: benchPressImg // Placeholder específico
   },
   {
     id: "chest_incline_bench_press_barbell",
