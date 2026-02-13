@@ -74,6 +74,21 @@ const WorkoutPage = () => {
   const handleStartWorkout = () => {
     const name = workoutName.trim();
     if (name) {
+      // Check if there's already an active workout
+      if (activeWorkout) {
+        const confirmed = window.confirm(
+          "Ya tienes un entrenamiento en progreso. ¿Quieres cancelarlo y empezar uno nuevo?\n\n" +
+          "Si continúas, perderás el progreso del entrenamiento actual."
+        );
+
+        if (!confirmed) {
+          return;
+        }
+
+        // Cancel the existing workout
+        cancelWorkout();
+      }
+
       if (startMode === "template") {
         // Check for duplicate name
         const isDuplicate = templates.some(
@@ -81,7 +96,7 @@ const WorkoutPage = () => {
         );
 
         if (isDuplicate) {
-          toast.error("Ya existe una plantilla con este nombre");
+          alert("Ya existe una plantilla con ese nombre. Por favor, elige otro nombre.");
           return;
         }
 
@@ -382,6 +397,21 @@ const WorkoutPage = () => {
                       <Button
                         size="sm"
                         onClick={() => {
+                          // Check if there's already an active workout
+                          if (activeWorkout) {
+                            const confirmed = window.confirm(
+                              "Ya tienes un entrenamiento en progreso. ¿Quieres cancelarlo y empezar uno nuevo?\n\n" +
+                              "Si continúas, perderás el progreso del entrenamiento actual."
+                            );
+
+                            if (!confirmed) {
+                              return;
+                            }
+
+                            // Cancel the existing workout
+                            cancelWorkout();
+                          }
+
                           startWorkoutFromTemplate(template);
                           setShowDetailView(true);
                         }}
