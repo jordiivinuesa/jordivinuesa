@@ -14,6 +14,16 @@ import ActivityPicker from "@/components/workout/ActivityPicker";
 import { Send, CheckCircle, XCircle, Activity } from "lucide-react";
 import type { WorkoutTemplate } from "@/store/useAppStore";
 import { useNotifications } from "@/hooks/useNotifications";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { useNavigate } from "react-router-dom";
 import ThreeExerciseViewer from "@/components/exercise/ThreeExerciseViewer";
@@ -59,6 +69,13 @@ const WorkoutPage = () => {
   const [sharingTemplate, setSharingTemplate] = useState<WorkoutTemplate | null>(null);
   const [demoExercise, setDemoExercise] = useState<typeof exercises[0] | null>(null);
 
+  const [showOverwriteConfirmation, setShowOverwriteConfirmation] = useState(false);
+  const [pendingWorkoutStart, setPendingWorkoutStart] = useState<{
+    name?: string;
+    mode: "workout" | "template";
+    template?: WorkoutTemplate;
+  } | null>(null);
+
   // Clear share notifications when entering workout page
   useEffect(() => {
     markAsRead();
@@ -74,25 +91,21 @@ const WorkoutPage = () => {
 
   const muscleGroups = Object.entries(muscleGroupLabels) as [MuscleGroup, string][];
 
-  const handleStartWorkout = () => {
-    const name = workoutName.trim();
+  const proceedWithWorkoutStart = (
+    name?: string,
+    mode: "workout" | "template" = "workout",
+    template?: WorkoutTemplate
+  ) => {
+    // If starting from existing template
+    if (template) {
+      startWorkoutFromTemplate(template);
+      setShowDetailView(true);
+      return;
+    }
+
+    // If starting new workout/template from name
     if (name) {
-      // Check if there's already an active workout
-      if (activeWorkout) {
-        const confirmed = window.confirm(
-          "Ya tienes un entrenamiento en progreso. ¿Quieres cancelarlo y empezar uno nuevo?\n\n" +
-          "Si continúas, perderás el progreso del entrenamiento actual."
-        );
-
-        if (!confirmed) {
-          return;
-        }
-
-        // Cancel the existing workout
-        cancelWorkout();
-      }
-
-      if (startMode === "template") {
+      if (mode === "template") {
         // Check for duplicate name
         const isDuplicate = templates.some(
           (t) => t.name.trim().toLowerCase() === name.toLowerCase()
@@ -104,13 +117,13 @@ const WorkoutPage = () => {
         }
 
         const templateId = crypto.randomUUID();
-        const template = {
+        const newTemplate = {
           id: templateId,
           name,
           exercises: []
         };
-        addTemplate(template);
-        saveTemplateToDb(template);
+        addTemplate(newTemplate);
+        saveTemplateToDb(newTemplate);
         startWorkout(name, "template");
         useAppStore.setState({ activeTemplateId: templateId });
         setIsTemplateSaved(true);
@@ -121,6 +134,18 @@ const WorkoutPage = () => {
       setShowStartDialog(false);
       setWorkoutName("");
       setShowDetailView(true);
+    }
+  };
+
+  const handleStartWorkout = () => {
+    const name = workoutName.trim();
+    if (name) {
+      if (activeWorkout) {
+        setPendingWorkoutStart({ name, mode: startMode });
+        setShowOverwriteConfirmation(true);
+        return;
+      }
+      proceedWithWorkoutStart(name, startMode);
     }
   };
 
@@ -804,6 +829,38 @@ const WorkoutPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Overwrite Confirmation Dialog */}
+      <AlertDialog open={showOverwriteConfirmation} onOpenChange={setShowOverwriteConfirmation}>
+        <AlertDialogContent className="bg-card border-border rounded-2xl max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Entrenamiento en curso</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ya tienes un entrenamiento activo. Si empiezas uno nuevo, perderás el progreso del actual.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                cancelWorkout();
+                setShowOverwriteConfirmation(false);
+                if (pendingWorkoutStart) {
+                  proceedWithWorkoutStart(
+                    pendingWorkoutStart.name,
+                    pendingWorkoutStart.mode,
+                    pendingWorkoutStart.template
+                  );
+                  setPendingWorkoutStart(null);
+                }
+              }}
+            >
+              Empezar nuevo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
