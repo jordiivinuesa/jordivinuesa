@@ -16,15 +16,15 @@ const MUSCLE_MAP: Record<string, string[]> = {
     'abdominales': ['abs', 'obliques'],
     'biceps': ['biceps_left', 'biceps_right'],
     'bíceps': ['biceps_left', 'biceps_right'],
-    'shoulders': ['delts_front_left', 'delts_front_right'],
-    'hombros': ['delts_front_left', 'delts_front_right'],
+    'shoulders': ['delts_front_left', 'delts_front_right', 'delts_back_left', 'delts_back_right'],
+    'hombros': ['delts_front_left', 'delts_front_right', 'delts_back_left', 'delts_back_right'],
     'quads': ['quads_left', 'quads_right'],
-    'legs': ['quads_left', 'quads_right', 'calves_left', 'calves_right'],
-    'piernas': ['quads_left', 'quads_right', 'calves_left', 'calves_right'],
+    'legs': ['quads_left', 'quads_right', 'calves_left', 'calves_right', 'hamstrings_left', 'hamstrings_right', 'glutes', 'calves'],
+    'piernas': ['quads_left', 'quads_right', 'calves_left', 'calves_right', 'hamstrings_left', 'hamstrings_right', 'glutes', 'calves'],
 
     // Back
-    'back': ['traps', 'lats', 'lower_back'],
-    'espalda': ['traps', 'lats', 'lower_back'],
+    'back': ['traps', 'lats', 'lower_back', 'delts_back_left', 'delts_back_right'],
+    'espalda': ['traps', 'lats', 'lower_back', 'delts_back_left', 'delts_back_right'],
     'lats': ['lats'],
     'traps': ['traps'],
     'trapecio': ['traps'],
@@ -34,7 +34,7 @@ const MUSCLE_MAP: Record<string, string[]> = {
     'gluteos': ['glutes'],
     'glúteos': ['glutes'],
     'hamstrings': ['hamstrings_left', 'hamstrings_right'],
-    'calves': ['calves_back_left', 'calves_back_right']
+    'calves': ['calves', 'calves_left', 'calves_right']
 };
 
 // Aesthetic Configuration
@@ -85,123 +85,124 @@ export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false }: ThreeE
                 )}
 
                 <svg viewBox="0 0 200 400" className="w-full h-full" style={!minimal ? { filter: 'drop-shadow(0px 10px 15px rgba(0,0,0,0.1))' } : undefined} preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                        <filter id="shadow-facet">
-                            <feComponentTransfer>
-                                <feFuncR type="linear" slope="0.75" intercept="0" />
-                                <feFuncG type="linear" slope="0.75" intercept="0" />
-                                <feFuncB type="linear" slope="0.75" intercept="0" />
-                            </feComponentTransfer>
-                        </filter>
-                        <filter id="light-facet">
-                            <feComponentTransfer>
-                                <feFuncR type="linear" slope="1.1" intercept="0" />
-                                <feFuncG type="linear" slope="1.1" intercept="0" />
-                                <feFuncB type="linear" slope="1.1" intercept="0" />
-                            </feComponentTransfer>
-                        </filter>
-                    </defs>
-
                     {view === 'front' ? (
-                        <g id="front-view" stroke="none">
-                            {/* Head (Faceted) */}
-                            <path d="M100 20 L85 30 L85 55 L100 65 Z" fill={THEME.skin} className="transition-colors duration-300" /> {/* Left Face */}
-                            <path d="M100 20 L115 30 L115 55 L100 65 Z" fill={THEME.skin} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} /> {/* Right Face */}
+                        <g id="front-mesh" stroke="none" strokeWidth="0">
+                            {/* --- HEAD & NECK --- */}
+                            <path d="M100 20 L88 35 L88 55 L100 65 Z" fill={THEME.skin} className="transition-colors duration-300" /> {/* Face Left */}
+                            <path d="M100 20 L112 35 L112 55 L100 65 Z" fill={THEME.skin} fillOpacity="0.8" className="transition-colors duration-300" /> {/* Face Right (Shadow) */}
+                            <polygon points="90,62 100,65 100,75 85,75" fill={THEME.skin} fillOpacity="0.9" /> {/* Neck Left */}
+                            <polygon points="100,65 110,62 115,75 100,75" fill={THEME.skin} fillOpacity="0.7" /> {/* Neck Right */}
 
-                            {/* Neck */}
-                            <polygon points="92,63 100,63 100,75 88,75" fill={THEME.skin} />
-                            <polygon points="100,63 108,63 112,75 100,75" fill={THEME.skin} filter={!minimal ? "url(#shadow-facet)" : undefined} />
+                            {/* --- TORSO (Vest) --- */}
+                            {/* Traps (Vest Straps) */}
+                            <polygon id="traps_left" points="85,75 100,75 100,85 75,80" fill={getColor('traps')} className="transition-colors duration-300" />
+                            <polygon id="traps_right" points="100,75 115,75 125,80 100,85" fill={getColor('traps')} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                            {/* Delts (Faceted) */}
-                            <polygon id="delts_front_left" points="112,75 135,80 142,95 130,105 115,100" fill={getColor('delts_front_left')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
-                            <polygon id="delts_front_right" points="88,75 65,80 58,95 70,105 85,100" fill={getColor('delts_front_right')} className="transition-colors duration-300" />
+                            {/* Upper Chest (Pecs Top) */}
+                            <polygon id="chest_upper_left" points="75,80 100,85 100,105 70,105 68,95" fill={getColor('pecs')} className="transition-colors duration-300" />
+                            <polygon id="chest_upper_right" points="100,85 125,80 132,95 130,105 100,105" fill={getColor('pecs')} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                            {/* Pecs (Split Left/Right) */}
-                            <polygon id="pecs_right" points="85,100 100,100 100,120 90,120 80,95" fill={getColor('pecs')} className="transition-colors duration-300" />
-                            <polygon id="pecs_left" points="100,100 115,100 120,95 110,120 100,120" fill={getColor('pecs')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
+                            {/* Lower Chest (Pecs Bottom) */}
+                            <polygon id="pecs_lower_left" points="70,105 100,105 100,125 80,120" fill={getColor('pecs')} fillOpacity="0.9" className="transition-colors duration-300" />
+                            <polygon id="pecs_lower_right" points="100,105 130,105 120,120 100,125" fill={getColor('pecs')} fillOpacity="0.7" className="transition-colors duration-300" />
 
-                            {/* Obliques & Abs Connection - Simplified Grid */}
-                            <g id="torso">
-                                {/* Left Side (Lit) */}
-                                <polygon id="obliques_right_side" points="80,95 90,120 90,150 82,145" fill={getColor('obliques')} className="transition-colors duration-300" />
+                            {/* Abs (Six Pack Grid) */}
+                            {/* Row 1 */}
+                            <polygon points="80,120 100,125 100,140 82,138" fill={getColor('abs')} className="transition-colors duration-300" />
+                            <polygon points="100,125 120,120 118,138 100,140" fill={getColor('abs')} fillOpacity="0.8" className="transition-colors duration-300" />
+                            {/* Row 2 */}
+                            <polygon points="82,138 100,140 100,155 85,152" fill={getColor('abs')} fillOpacity="0.9" className="transition-colors duration-300" />
+                            <polygon points="100,140 118,138 115,152 100,155" fill={getColor('abs')} fillOpacity="0.7" className="transition-colors duration-300" />
+                            {/* Row 3 (Lower Abs) */}
+                            <polygon points="85,152 100,155 100,170 88,165" fill={getColor('abs')} className="transition-colors duration-300" />
+                            <polygon points="100,155 115,152 112,165 100,170" fill={getColor('abs')} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                                {/* Center Abs (Lit) */}
-                                <polygon points="90,120 100,120 100,135 90,135" fill={getColor('abs')} className="transition-colors duration-300" />
-                                <polygon points="90,135 100,135 100,150 90,150" fill={getColor('abs')} className="transition-colors duration-300" />
-                                <polygon points="90,150 100,150 100,165 92,165" fill={getColor('abs')} className="transition-colors duration-300" />
+                            {/* Obliques (Sides of Vest) */}
+                            <polygon id="obliques_left" points="68,95 70,105 80,120 82,138 85,152 88,165 92,175 65,160" fill={getColor('obliques')} fillOpacity="0.9" className="transition-colors duration-300" />
+                            <polygon id="obliques_right" points="132,95 130,105 120,120 118,138 115,152 112,165 108,175 135,160" fill={getColor('obliques')} fillOpacity="0.7" className="transition-colors duration-300" />
 
-                                {/* Center Abs (Shadow) */}
-                                <polygon points="100,120 110,120 110,135 100,135" fill={getColor('abs')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
-                                <polygon points="100,135 110,135 110,150 100,150" fill={getColor('abs')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
-                                <polygon points="100,150 108,165 100,165" fill={getColor('abs')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
+                            {/* --- ARMS --- */}
+                            {/* Shoulders (Delts) */}
+                            <polygon id="delts_front_left" points="68,95 55,100 58,125 70,120 75,80" fill={getColor('delts_front_left')} className="transition-colors duration-300" />
+                            <polygon id="delts_front_right" points="132,95 145,100 142,125 130,120 125,80" fill={getColor('delts_front_right')} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                                {/* Right Side (Shadow) */}
-                                <polygon id="obliques_left_side" points="120,95 110,120 110,150 118,145" fill={getColor('obliques')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
-                            </g>
+                            {/* Biceps/Triceps */}
+                            <polygon id="biceps_left" points="58,125 55,155 68,155 70,120" fill={getColor('biceps_left')} className="transition-colors duration-300" />
+                            <polygon id="biceps_right" points="142,125 145,155 132,155 130,120" fill={getColor('biceps_right')} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                            {/* Arms */}
-                            {/* Left Arm (Viewer Right) -> Shadow */}
-                            <polygon id="biceps_left" points="130,105 142,95 145,130 135,130" fill={getColor('biceps_left')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
-                            <polygon points="145,130 135,130 138,160 150,160" fill={THEME.skin} filter={!minimal ? "url(#shadow-facet)" : undefined} />
+                            {/* Forearms */}
+                            <polygon points="55,155 50,190 65,190 68,155" fill={THEME.skin} />
+                            <polygon points="145,155 150,190 135,190 132,155" fill={THEME.skin} fillOpacity="0.8" />
 
-                            {/* Right Arm (Viewer Left) -> Lit */}
-                            <polygon id="biceps_right" points="70,105 58,95 55,130 65,130" fill={getColor('biceps_right')} className="transition-colors duration-300" />
-                            <polygon points="55,130 65,130 62,160 50,160" fill={THEME.skin} />
 
-                            {/* Hips/Waist Connection */}
-                            <polygon points="92,165 100,165 100,170 95,170" fill={THEME.outfit} filter="none" />
-                            <polygon points="100,165 108,165 105,170 100,170" fill={THEME.outfit} filter={!minimal ? "url(#shadow-facet)" : undefined} />
+                            {/* --- LOWER BODY (Shorts & Legs) --- */}
+                            {/* Hips/Groin (Connection) */}
+                            <polygon points="92,175 100,170 108,175 100,185" fill={THEME.outfit} /> {/* Center Diamond */}
 
-                            {/* Legs */}
-                            {/* Left Leg (Viewer Right) -> Shadow */}
-                            <polygon id="quads_left" points="100,170 125,170 130,230 105,230" fill={getColor('quads_left')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
-                            <polygon points="105,230 130,230 128,240 107,240" fill={THEME.skin} opacity="0.8" filter={!minimal ? "url(#shadow-facet)" : undefined} /> {/* Knee */}
-                            <polygon id="calves_left" points="107,240 128,240 125,300 108,300" fill={getColor('calves_left')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
+                            {/* Quads (Shorts) */}
+                            <polygon id="quads_left" points="92,175 65,160 62,210 95,210 100,185" fill={getColor('quads_left')} className="transition-colors duration-300" />
+                            <polygon id="quads_right" points="108,175 135,160 138,210 105,210 100,185" fill={getColor('quads_right')} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                            {/* Right Leg (Viewer Left) -> Lit */}
-                            <polygon id="quads_right" points="100,170 75,170 70,230 95,230" fill={getColor('quads_right')} className="transition-colors duration-300" />
-                            <polygon points="95,230 70,230 72,240 93,240" fill={THEME.skin} opacity="0.8" /> {/* Knee */}
-                            <polygon id="calves_right" points="93,240 72,240 75,300 92,300" fill={getColor('calves_right')} className="transition-colors duration-300" />
+                            {/* Legs (Skin) */}
+                            {/* Knees */}
+                            <polygon points="62,210 95,210 92,230 65,230" fill={THEME.skin} fillOpacity="0.9" />
+                            <polygon points="138,210 105,210 108,230 135,230" fill={THEME.skin} fillOpacity="0.7" />
 
+                            {/* Calves */}
+                            <polygon id="calves_left" points="65,230 92,230 90,290 68,290" fill={getColor('calves_left')} className="transition-colors duration-300" />
+                            <polygon id="calves_right" points="135,230 108,230 110,290 132,290" fill={getColor('calves_right')} fillOpacity="0.8" className="transition-colors duration-300" />
+
+                            {/* Feet */}
+                            <polygon points="68,290 90,290 95,305 65,305" fill={THEME.skin} />
+                            <polygon points="132,290 110,290 105,305 135,305" fill={THEME.skin} fillOpacity="0.8" />
                         </g>
                     ) : (
-                        <g id="back-view" stroke="none">
+                        <g id="back-mesh" stroke="none" strokeWidth="0">
                             {/* Head Back */}
-                            <path d="M100 20 L85 30 L85 55 L100 65 Z" fill={THEME.skin} className="transition-colors duration-300" />
-                            <path d="M100 20 L115 30 L115 55 L100 65 Z" fill={THEME.skin} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
+                            <path d="M100 20 L88 35 L88 55 L100 65 Z" fill={THEME.skin} className="transition-colors duration-300" />
+                            <path d="M100 20 L112 35 L112 55 L100 65 Z" fill={THEME.skin} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                            {/* Traps */}
-                            <polygon id="traps_left" points="100,65 100,90 75,75 100,65" fill={getColor('traps')} className="transition-colors duration-300" />
-                            <polygon id="traps_right" points="100,65 125,75 100,90" fill={getColor('traps')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
+                            {/* Traps Back */}
+                            <polygon id="traps_back_left" points="85,75 100,75 100,90 75,80" fill={getColor('traps')} className="transition-colors duration-300" />
+                            <polygon id="traps_back_right" points="100,75 115,75 125,80 100,90" fill={getColor('traps')} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                            {/* Lats */}
-                            <polygon id="lats_right" points="125,75 140,90 125,125 100,130 100,90" fill={getColor('lats')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
-                            <polygon id="lats_left" points="75,75 60,90 75,125 100,130 100,90" fill={getColor('lats')} className="transition-colors duration-300" />
+                            {/* Lats / Back */}
+                            <polygon id="lats_left" points="75,80 100,90 100,130 80,120 70,105" fill={getColor('lats')} className="transition-colors duration-300" />
+                            <polygon id="lats_right" points="125,80 100,90 100,130 120,120 130,105" fill={getColor('lats')} fillOpacity="0.8" className="transition-colors duration-300" />
 
                             {/* Lower Back */}
-                            <polygon id="lower_back_left" points="80,160 100,160 100,125 75,125" fill={getColor('lower_back')} className="transition-colors duration-300" />
-                            <polygon id="lower_back_right" points="100,160 120,160 125,125 100,125" fill={getColor('lower_back')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
+                            <polygon id="lower_back_left" points="80,120 100,130 100,160 85,160" fill={getColor('lower_back')} className="transition-colors duration-300" />
+                            <polygon id="lower_back_right" points="120,120 100,130 100,160 115,160" fill={getColor('lower_back')} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                            {/* Triceps & Arms */}
-                            <polygon id="triceps_left" points="140,84 150,90 150,130 138,130" fill={getColor('triceps_left')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
-                            <polygon points="138,130 150,130 148,135 140,135" fill={THEME.skin} filter={!minimal ? "url(#shadow-facet)" : undefined} /> {/* Elbow */}
-                            <polygon points="148,135 140,135 142,160 155,160" fill={THEME.skin} filter={!minimal ? "url(#shadow-facet)" : undefined} /> {/* Forearm */}
+                            {/* Shoulders Back */}
+                            <polygon id="delts_back_left" points="75,80 70,120 58,125 55,100" fill={getColor('delts_back_left')} className="transition-colors duration-300" />
+                            <polygon id="delts_back_right" points="125,80 130,120 142,125 145,100" fill={getColor('delts_back_right')} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                            <polygon id="triceps_right" points="60,84 50,90 50,130 62,130" fill={getColor('triceps_right')} className="transition-colors duration-300" />
-                            <polygon points="62,130 50,130 52,135 60,135" fill={THEME.skin} /> {/* Elbow */}
-                            <polygon points="52,135 60,135 58,160 45,160" fill={THEME.skin} /> {/* Forearm */}
+                            {/* Triceps */}
+                            <polygon id="triceps_left" points="70,120 68,155 55,155 58,125" fill={getColor('triceps_left')} className="transition-colors duration-300" />
+                            <polygon id="triceps_right" points="130,120 132,155 145,155 142,125" fill={getColor('triceps_right')} fillOpacity="0.8" className="transition-colors duration-300" />
 
-                            {/* Glutes */}
-                            <polygon id="glutes_left" points="80,160 100,160 100,200 75,190 70,170" fill={getColor('glutes')} className="transition-colors duration-300" />
-                            <polygon id="glutes_right" points="120,160 100,160 100,200 125,190 130,170" fill={getColor('glutes')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
+                            {/* Forearms Back */}
+                            <polygon points="68,155 65,190 50,190 55,155" fill={THEME.skin} />
+                            <polygon points="132,155 135,190 150,190 145,155" fill={THEME.skin} fillOpacity="0.8" />
 
-                            {/* Hamstrings */}
-                            <polygon id="hamstrings_left" points="100,200 125,190 130,240 105,240" fill={getColor('hamstrings_left')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
-                            <polygon id="hamstrings_right" points="100,200 75,190 70,240 95,240" fill={getColor('hamstrings_right')} className="transition-colors duration-300" />
+
+                            {/* Glutes (Shorts) */}
+                            <polygon id="glutes_left" points="85,160 100,160 100,185 95,210 62,210 65,160" fill={getColor('glutes')} className="transition-colors duration-300" />
+                            <polygon id="glutes_right" points="115,160 100,160 100,185 105,210 138,210 135,160" fill={getColor('glutes')} fillOpacity="0.8" className="transition-colors duration-300" />
+
+                            {/* Legs Back (Skin) */}
+                            {/* Knees Back */}
+                            <polygon points="62,210 95,210 92,230 65,230" fill={THEME.skin} fillOpacity="0.9" />
+                            <polygon points="138,210 105,210 108,230 135,230" fill={THEME.skin} fillOpacity="0.7" />
 
                             {/* Calves Back */}
-                            <polygon id="calves_back_left" points="105,240 130,240 125,310 108,310" fill={getColor('calves')} className="transition-colors duration-300" filter={!minimal ? "url(#shadow-facet)" : undefined} />
-                            <polygon id="calves_back_right" points="95,240 70,240 75,310 92,310" fill={getColor('calves')} className="transition-colors duration-300" />
+                            <polygon id="calves_back_left" points="65,230 92,230 90,290 68,290" fill={getColor('calves')} className="transition-colors duration-300" />
+                            <polygon id="calves_back_right" points="135,230 108,230 110,290 132,290" fill={getColor('calves')} fillOpacity="0.8" className="transition-colors duration-300" />
+
+                            {/* Feet Back */}
+                            <polygon points="68,290 90,290 95,305 65,305" fill={THEME.skin} />
+                            <polygon points="132,290 110,290 105,305 135,305" fill={THEME.skin} fillOpacity="0.8" />
                         </g>
                     )}
                 </svg>
