@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { Dumbbell, User, Box, Cable, Activity } from 'lucide-react';
 
+// Import assets to ensure they work in production builds
+import bodyFrontBase from '../../assets/avatar/body_front_base.svg';
+import bodyBackBase from '../../assets/avatar/body_back_base.svg';
+import bodyFrontAbs from '../../assets/avatar/body_front_abs.svg';
+
 interface ThreeExerciseViewerProps {
     modelUrl?: string; // If provided, uses this specific image (for specific exercises)
     muscleHighlight?: string;
@@ -17,18 +22,18 @@ export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false, equipmen
     const normalizedHighlight = muscleHighlight?.toLowerCase() || '';
 
     // Map muscle groups to image filenames
-    // Ideally these would be imported, but using paths for now to allow dynamic loading
+    // Using imports allows Vite to handle paths correctly in production
     const getMuscleImage = () => {
-        if (!muscleHighlight) return view === 'front' ? '/src/assets/avatar/body_front_base.svg' : '/src/assets/avatar/body_back_base.svg';
+        if (!muscleHighlight) return view === 'front' ? bodyFrontBase : bodyBackBase;
 
         // Specific mappings (Expand this list as images are generated)
         if (view === 'front') {
-            if (['abs', 'abdominales', 'core'].includes(normalizedHighlight)) return '/src/assets/avatar/body_front_abs.svg';
+            if (['abs', 'abdominales', 'core'].includes(normalizedHighlight)) return bodyFrontAbs;
             // Fallback for front if specific muscle image not ready -> Base
-            return '/src/assets/avatar/body_front_base.svg';
+            return bodyFrontBase;
         } else {
             // Fallback for back -> Base
-            return '/src/assets/avatar/body_back_base.svg';
+            return bodyBackBase;
         }
     };
 
