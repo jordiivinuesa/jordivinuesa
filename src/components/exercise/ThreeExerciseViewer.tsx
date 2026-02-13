@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { RotateCcw } from 'lucide-react';
 
 interface ThreeExerciseViewerProps {
     modelUrl?: string;
@@ -65,10 +64,10 @@ export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false }: ThreeE
     };
 
     return (
-        <div className={`w-full h-full ${!minimal ? 'min-h-[300px] rounded-2xl p-4' : ''} bg-white overflow-hidden relative flex flex-col items-center justify-center`}>
+        <div className={`w-full h-full ${!minimal ? 'min-h-[300px] rounded-2xl p-4 shadow-sm border border-gray-100' : ''} bg-white overflow-hidden relative flex flex-col items-center justify-center`}>
 
             {/* Mannequin SVG */}
-            <div className={`relative w-full ${minimal ? 'max-w-full' : 'max-w-[200px]'} aspect-[1/2] animate-in fade-in zoom-in duration-500`}>
+            <div className={`relative ${minimal ? 'h-full w-auto aspect-[1/2]' : 'w-full max-w-[200px] aspect-[1/2]'} flex items-center justify-center`}>
 
                 {/* Toggle View Button */}
                 {!minimal && (
@@ -77,11 +76,15 @@ export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false }: ThreeE
                         className="absolute top-0 right-0 p-2 bg-secondary/50 rounded-full hover:bg-secondary transition-colors z-10"
                         title="Girar vista"
                     >
-                        <RotateCcw className="w-4 h-4 text-primary" />
+                        {/* Simple Rotate Icon SVG */}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                            <path d="M3 3v5h5" />
+                        </svg>
                     </button>
                 )}
 
-                <svg viewBox="0 0 200 400" className="w-full h-full drop-shadow-xl" style={!minimal ? { filter: 'drop-shadow(0px 10px 15px rgba(0,0,0,0.1))' } : undefined}>
+                <svg viewBox="0 0 200 400" className="w-full h-full" style={!minimal ? { filter: 'drop-shadow(0px 10px 15px rgba(0,0,0,0.1))' } : undefined} preserveAspectRatio="xMidYMid meet">
                     {view === 'front' ? (
                         <g id="front-view">
                             {/* Head */}
@@ -141,8 +144,8 @@ export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false }: ThreeE
                             <path id="hamstrings_right" d="M100 200 L75 190 L70 240 L95 240 Z" fill={getColor('hamstrings_right')} className="transition-colors duration-500" />
 
                             {/* Calves Back */}
-                            <path id="calves_back_left" d="M105 240 L130 240 L125 310 L108 310 Z" fill={getColor('calves_back_left')} className="transition-colors duration-500" />
-                            <path id="calves_back_right" d="M95 240 L70 240 L75 310 L92 310 Z" fill={getColor('calves_back_right')} className="transition-colors duration-500" />
+                            <path id="calves_back_left" d="M105 240 L130 240 L125 310 L108 310 Z" fill={getColor('calves')} className="transition-colors duration-500" />
+                            <path id="calves_back_right" d="M95 240 L70 240 L75 310 L92 310 Z" fill={getColor('calves')} className="transition-colors duration-500" />
                         </g>
                     )}
                 </svg>
