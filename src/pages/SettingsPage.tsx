@@ -4,6 +4,7 @@ import { ArrowLeft, Loader2, Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -196,9 +197,51 @@ const SettingsPage = () => {
               {!checking && nameStatus === "taken" && <AlertCircle className="h-4 w-4 text-destructive" />}
             </div>
           </div>
-          {nameStatus === "taken" && <p className="text-xs text-destructive">Este nombre ya está en uso.</p>}
           {nameStatus === "invalid" && <p className="text-xs text-destructive">Mínimo 3 caracteres.</p>}
           {nameStatus === "available" && !checking && <p className="text-xs text-primary">Nombre disponible.</p>}
+        </Section>
+
+        {/* Preferencias de entrenamiento */}
+        <Section title="Preferencias de entrenamiento">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Temporizador de descanso</Label>
+                <p className="text-xs text-muted-foreground">Iniciar automáticamente al completar serie</p>
+              </div>
+              <Switch
+                checked={useAppStore((s) => s.restTimerAutoStart)}
+                onCheckedChange={(c) => useAppStore.getState().setRestTimerAutoStart(c)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Sonido</Label>
+                <p className="text-xs text-muted-foreground">Emitir sonido al terminar el descanso</p>
+              </div>
+              <Switch
+                checked={useAppStore((s) => s.restTimerSound)}
+                onCheckedChange={(c) => useAppStore.getState().setRestTimerSound(c)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Duración por defecto</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {[60, 90, 120, 180].map((seconds) => (
+                  <Button
+                    key={seconds}
+                    variant={useAppStore((s) => s.restTimerDuration) === seconds ? "default" : "outline"}
+                    onClick={() => useAppStore.getState().setRestTimerDuration(seconds)}
+                    className="h-9 text-xs"
+                  >
+                    {seconds}s
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
         </Section>
 
         {/* Datos personales */}

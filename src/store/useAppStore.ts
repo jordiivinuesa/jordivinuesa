@@ -73,6 +73,13 @@ export interface WorkoutTemplate {
   exercises: TemplateExercise[];
 }
 
+export interface RestTimer {
+  isActive: boolean;
+  remainingSeconds: number;
+  targetSeconds: number;
+  exerciseId: string | null;
+}
+
 export interface AppState {
   currentDate: string;
   dayLogs: Record<string, DayLog>; // key is YYYY-MM-DD
@@ -92,6 +99,12 @@ export interface AppState {
   activeTemplateId: string | null;
   activeWorkoutType: 'workout' | 'template' | null;
   templates: WorkoutTemplate[];
+
+  // Rest Timer
+  restTimer: RestTimer | null;
+  restTimerDuration: number; // Default duration in seconds
+  restTimerSound: boolean;
+  restTimerAutoStart: boolean;
 
   // Actions
   setCurrentDate: (date: string) => void;
@@ -119,6 +132,16 @@ export interface AppState {
   updateTemplate: (template: WorkoutTemplate) => void;
   deleteTemplate: (id: string) => void;
   startWorkoutFromTemplate: (template: WorkoutTemplate) => void;
+
+  // Rest Timer actions
+  startRestTimer: (exerciseId: string) => void;
+  stopRestTimer: () => void;
+  tickRestTimer: () => void;
+  skipRestTimer: () => void;
+  addRestTime: (seconds: number) => void;
+  setRestTimerDuration: (seconds: number) => void;
+  setRestTimerSound: (enabled: boolean) => void;
+  setRestTimerAutoStart: (enabled: boolean) => void;
 }
 
 const generateId = () => crypto.randomUUID();
@@ -138,6 +161,12 @@ export const useAppStore = create<AppState>()(
       carbsGoal: 200,
       fatGoal: 65,
       onboardingCompleted: null,
+
+      // Rest Timer initial state
+      restTimer: null,
+      restTimerDuration: 90, // 90 seconds default
+      restTimerSound: true,
+      restTimerAutoStart: true,
 
       addCustomFood: (food) => set((state) => ({ customFoods: [...state.customFoods, food] })),
       removeCustomFood: (foodId) => set((state) => ({ customFoods: state.customFoods.filter(f => f.id !== foodId) })),
@@ -356,6 +385,50 @@ export const useAppStore = create<AppState>()(
           activeWorkout: { ...state.activeWorkout, exercises }
         };
       }),
+
+      // Rest Timer actions
+      startRestTimer: (exerciseId) => set((state) => ({
+        restTimer: {
+          isActive: true,
+          remainingSeconds: state.restTimerDuration,
+          targetSeconds: state.restTimerDuration,
+          exerciseId
+        }
+      })),
+
+      stopRestTimer: () => set({ restTimer: null }),
+
+      tickRestTimer: () => set((state) => {
+        if (!state.restTimer || !state.restTimer.isActive) return state;
+
+        const newRemaining = Math.max(0, state.restTimer.remainingSeconds - 1);
+
+        return {
+          restTimer: {
+            ...state.restTimer,
+            remainingSeconds: newRemaining,
+            isActive: newRemaining > 0
+          }
+        };
+      }),
+
+      skipRestTimer: () => set({ restTimer: null }),
+
+      addRestTime: (seconds) => set((state) => {
+        if (!state.restTimer) return state;
+
+        return {
+          restTimer: {
+            ...state.restTimer,
+            remainingSeconds: state.restTimer.remainingSeconds + seconds,
+            targetSeconds: state.restTimer.targetSeconds + seconds
+          }
+        };
+      }),
+
+      setRestTimerDuration: (seconds) => set({ restTimerDuration: seconds }),
+      setRestTimerSound: (enabled) => set({ restTimerSound: enabled }),
+      setRestTimerAutoStart: (enabled) => set({ restTimerAutoStart: enabled }),
     }),
     {
       name: 'peak-app-storage',

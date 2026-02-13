@@ -17,6 +17,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 
 import { useNavigate } from "react-router-dom";
 import ThreeExerciseViewer from "@/components/exercise/ThreeExerciseViewer";
+import { RestTimer } from "@/components/workout/RestTimer";
 
 const WorkoutPage = () => {
   const navigate = useNavigate();
@@ -29,12 +30,14 @@ const WorkoutPage = () => {
     updateSet,
     removeExerciseFromWorkout,
     finishWorkout,
-    cancelWorkout,
-    activeWorkoutType,
-    templates,
     addTemplate,
-    updateTemplate,
+    templates,
     deleteTemplate,
+    activeWorkoutType,
+    cancelWorkout,
+    startRestTimer, // Import startRestTimer
+    restTimerAutoStart, // Import restTimerAutoStart setting
+    updateTemplate,
     startWorkoutFromTemplate,
     startActivity,
     updateActivity,
@@ -585,7 +588,15 @@ const WorkoutPage = () => {
                   <Button
                     variant={set.completed ? "default" : "outline"}
                     size="sm"
-                    onClick={() => updateSet(exerciseIndex, setIndex, { completed: !set.completed })}
+                    onClick={() => {
+                      const isCompleting = !set.completed;
+                      updateSet(exerciseIndex, setIndex, { completed: isCompleting });
+
+                      // Start rest timer if completing a set and auto-start is enabled
+                      if (isCompleting && restTimerAutoStart) {
+                        startRestTimer(exercise.exerciseId);
+                      }
+                    }}
                     className={`h - 10 w - 10 rounded - xl transition - all ${set.completed ? "bg-primary text-primary-foreground scale-95" : "border-border text-muted-foreground hover:border-primary/50"} `}
                   >
                     <Check className="h-4 w-4" />
@@ -740,58 +751,63 @@ const WorkoutPage = () => {
                   />
                 </div>
 
-                <div className="min-w-0 flex-1 py-1">
-                  <h4 className="font-bold text-base text-foreground leading-snug group-hover:text-primary transition-colors truncate">
-                    {ex.name}
-                  </h4>
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] uppercase font-black tracking-widest">
-                      {muscleGroupLabels[ex.muscleGroup]}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-lg bg-muted text-muted-foreground text-[10px] uppercase font-bold">
-                      {ex.type}
-                    </span>
-                  </div>
-                </div>
-              </button>
+                <div className="min-h-screen bg-background pb-20">
+                  <RestTimer />
+
+                  {/* Header */}
+                  <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50">
+                    <div className="min-w-0 flex-1 py-1">
+                      <h4 className="font-bold text-base text-foreground leading-snug group-hover:text-primary transition-colors truncate">
+                        {ex.name}
+                      </h4>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] uppercase font-black tracking-widest">
+                          {muscleGroupLabels[ex.muscleGroup]}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-lg bg-muted text-muted-foreground text-[10px] uppercase font-bold">
+                          {ex.type}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
             ))}
-            {filteredExercises.length === 0 && (
-              <p className="py-8 text-center text-sm text-muted-foreground">No se encontraron ejercicios</p>
-            )}
-          </div>
-        </DialogContent>
+                  {filteredExercises.length === 0 && (
+                    <p className="py-8 text-center text-sm text-muted-foreground">No se encontraron ejercicios</p>
+                  )}
+                </div>
+              </DialogContent>
       </Dialog>
 
-      {/* 3D Demo Dialog */}
-      <Dialog open={!!demoExercise} onOpenChange={(open) => !open && setDemoExercise(null)}>
-        <DialogContent className="bg-card border-border max-w-md w-full aspect-square p-0 overflow-hidden rounded-3xl">
-          <DialogHeader className="absolute top-4 left-4 z-10">
-            <DialogTitle className="font-display text-lg text-black/80 bg-white/50 backdrop-blur-md px-3 py-1 rounded-full">
-              {demoExercise?.name}
-            </DialogTitle>
-          </DialogHeader>
-          {demoExercise && (
-            <ThreeExerciseViewer
-              muscleHighlight={demoExercise.muscleGroup}
-              modelUrl={demoExercise.modelUrl}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+          {/* 3D Demo Dialog */}
+          <Dialog open={!!demoExercise} onOpenChange={(open) => !open && setDemoExercise(null)}>
+            <DialogContent className="bg-card border-border max-w-md w-full aspect-square p-0 overflow-hidden rounded-3xl">
+              <DialogHeader className="absolute top-4 left-4 z-10">
+                <DialogTitle className="font-display text-lg text-black/80 bg-white/50 backdrop-blur-md px-3 py-1 rounded-full">
+                  {demoExercise?.name}
+                </DialogTitle>
+              </DialogHeader>
+              {demoExercise && (
+                <ThreeExerciseViewer
+                  muscleHighlight={demoExercise.muscleGroup}
+                  modelUrl={demoExercise.modelUrl}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
 
-      {/* Activity Picker Dialog */}
-      <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
-        <DialogContent className="bg-card border-border max-w-[500px] max-h-[80vh] flex flex-col p-0 overflow-hidden rounded-2xl">
-          <DialogHeader className="p-6 pb-4">
-            <DialogTitle className="font-display">Seleccionar Actividad</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-hidden">
-            <ActivityPicker onSelect={handleSelectActivity} />
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+          {/* Activity Picker Dialog */}
+          <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
+            <DialogContent className="bg-card border-border max-w-[500px] max-h-[80vh] flex flex-col p-0 overflow-hidden rounded-2xl">
+              <DialogHeader className="p-6 pb-4">
+                <DialogTitle className="font-display">Seleccionar Actividad</DialogTitle>
+              </DialogHeader>
+              <div className="flex-1 overflow-hidden">
+                <ActivityPicker onSelect={handleSelectActivity} />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        );
 };
 
-export default WorkoutPage;
+        export default WorkoutPage;
