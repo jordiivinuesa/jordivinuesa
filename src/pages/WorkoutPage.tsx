@@ -514,6 +514,8 @@ const WorkoutPage = () => {
                 >
                   <ThreeExerciseViewer
                     muscleHighlight={exercises.find(e => e.id === exercise.exerciseId)?.muscleGroup}
+                    equipmentType={exercises.find(e => e.id === exercise.exerciseId)?.type}
+                    modelUrl={exercises.find(e => e.id === exercise.exerciseId)?.modelUrl}
                     minimal={true}
                   />
                 </button>
@@ -702,6 +704,8 @@ const WorkoutPage = () => {
                 >
                   <ThreeExerciseViewer
                     muscleHighlight={ex.muscleGroup}
+                    equipmentType={ex.type}
+                    modelUrl={ex.modelUrl}
                     minimal={true}
                   />
                 </div>

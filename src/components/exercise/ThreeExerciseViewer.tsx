@@ -1,13 +1,15 @@
 import { useState } from 'react';
+import { Dumbbell, User, Box, Cable, Activity } from 'lucide-react';
 
 interface ThreeExerciseViewerProps {
-    modelUrl?: string;
+    modelUrl?: string; // If provided, uses this specific image (for specific exercises)
     muscleHighlight?: string;
-    autoRotate?: boolean;
-    minimal?: boolean; // New prop for thumbnail mode
+    autoRotate?: boolean; // Keep for compatibility, though unused in static mode
+    minimal?: boolean;
+    equipmentType?: string;
 }
 
-export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false }: ThreeExerciseViewerProps) => {
+export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false, equipmentType, modelUrl }: ThreeExerciseViewerProps) => {
     const initialView = ['espalda', 'tríceps', 'glúteos', 'trapecio', 'lumbares', 'dorsales'].some(m => (muscleHighlight?.toLowerCase() || '').includes(m)) ? 'back' : 'front';
     const [view, setView] = useState<'front' | 'back'>(initialView);
 
@@ -30,7 +32,7 @@ export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false }: ThreeE
         }
     };
 
-    const imageSrc = getMuscleImage();
+    const imageSrc = modelUrl || getMuscleImage();
 
     return (
         <div className={`w-full h-full ${!minimal ? 'min-h-[300px] rounded-2xl p-4 shadow-sm border border-gray-100' : ''} bg-white overflow-hidden relative flex flex-col items-center justify-center`}>
@@ -64,18 +66,38 @@ export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false }: ThreeE
                 />
             </div>
 
+
+            {/* Equipment Icon Overlay */}
+            {minimal && equipmentType && (
+                <div className="absolute top-1 right-1 bg-white/90 backdrop-blur-sm p-1.5 rounded-lg border border-gray-100 shadow-sm z-20">
+                    {getEquipmentIcon(equipmentType)}
+                </div>
+            )}
+
             {!minimal && (
                 <div className="absolute bottom-4 text-center px-4">
                     <h3 className="text-xl font-display font-bold text-gray-800 capitalize mb-1">
                         {muscleHighlight || 'Cuerpo Completo'}
                     </h3>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                        Zona Objetivo
-                    </p>
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                        {equipmentType && <div className="scale-75">{getEquipmentIcon(equipmentType)}</div>}
+                        <p className="text-[10px] uppercase tracking-wider">
+                            {equipmentType || 'Zona Objetivo'}
+                        </p>
+                    </div>
                 </div>
             )}
         </div>
     );
+};
+
+const getEquipmentIcon = (type: string) => {
+    const t = type.toLowerCase();
+    if (t.includes('peso') || t.includes('corporal')) return <User className="w-4 h-4 text-primary" />;
+    if (t.includes('mancuerna') || t.includes('barra')) return <Dumbbell className="w-4 h-4 text-primary" />;
+    if (t.includes('máquina')) return <Box className="w-4 h-4 text-primary" />;
+    if (t.includes('cable') || t.includes('polea')) return <Cable className="w-4 h-4 text-primary" />;
+    return <Activity className="w-4 h-4 text-primary" />;
 };
 
 export default ThreeExerciseViewer;
