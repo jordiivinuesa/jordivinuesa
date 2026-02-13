@@ -1,5 +1,5 @@
 ﻿
-import benchPressImg from '../assets/exercises/bench_press_placeholder.svg';
+import benchPressImg from '../assets/exercises/bench_press.png';
 
 export type MuscleGroup =
   | "pecho" | "espalda" | "hombros" | "bíceps" | "tríceps"
