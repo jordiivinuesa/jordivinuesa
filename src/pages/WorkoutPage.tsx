@@ -427,17 +427,13 @@ const WorkoutPage = () => {
                         onClick={() => {
                           // Check if there's already an active workout
                           if (activeWorkout) {
-                            const confirmed = window.confirm(
-                              "Ya tienes un entrenamiento en progreso. ¿Quieres cancelarlo y empezar uno nuevo?\n\n" +
-                              "Si continúas, perderás el progreso del entrenamiento actual."
-                            );
-
-                            if (!confirmed) {
-                              return;
-                            }
-
-                            // Cancel the existing workout
-                            cancelWorkout();
+                            setPendingWorkoutStart({
+                              name: template.name,
+                              mode: "template",
+                              template: template
+                            });
+                            setShowOverwriteConfirmation(true);
+                            return;
                           }
 
                           startWorkoutFromTemplate(template);
