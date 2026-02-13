@@ -1,4 +1,4 @@
-﻿import { MuscleGroup, ExerciseType } from "./exercises.ts"; // Self-import for types if needed, but better to define them here.
+﻿
 import benchPressImg from '../assets/exercises/bench_press_placeholder.svg';
 
 export type MuscleGroup =
@@ -34,7 +34,7 @@ export const muscleGroupLabels: Record<MuscleGroup, string> = {
 export const exercises: Exercise[] = [
   // --- PECHO ---
   {
-    id: "chest_bench_press_barbell",
+    id: "Barbell_Bench_Press_-_Medium_Grip",
     name: "Press de Banca con Barra",
     muscleGroup: "pecho",
     type: "barra",
