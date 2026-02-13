@@ -507,19 +507,16 @@ const WorkoutPage = () => {
           <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-slide-up" style={{ animationDelay: `${exerciseIndex * 0.1} s` }}>
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 overflow-hidden">
-                {exercises.find(e => e.id === exercise.exerciseId)?.gifUrl && (
-                  <button
-                    onClick={() => setDemoExercise(exercises.find(e => e.id === exercise.exerciseId) || null)}
-                    className="h-12 w-12 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center hover:scale-105 transition-transform"
-                    title="Ver demostración"
-                  >
-                    <img
-                      src={exercises.find(e => e.id === exercise.exerciseId)?.gifUrl}
-                      alt={exercise.exerciseName}
-                      className="max-h-full max-w-full object-contain mix-blend-multiply"
-                    />
-                  </button>
-                )}
+                <button
+                  onClick={() => setDemoExercise(exercises.find(e => e.id === exercise.exerciseId) || null)}
+                  className="h-12 w-12 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center hover:scale-105 transition-transform"
+                  title="Ver demostración"
+                >
+                  <ThreeExerciseViewer
+                    muscleHighlight={exercises.find(e => e.id === exercise.exerciseId)?.muscleGroup}
+                    minimal={true}
+                  />
+                </button>
                 <h3 className="font-semibold font-display truncate">{exercise.exerciseName}</h3>
               </div>
               <Button
@@ -695,22 +692,19 @@ const WorkoutPage = () => {
                   </div>
                 </div>
 
-                {ex.gifUrl && (
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDemoExercise(ex);
-                    }}
-                    className="h-20 w-20 rounded-2xl bg-white overflow-hidden shrink-0 border border-border shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500 cursor-pointer hover:ring-2 hover:ring-primary z-10"
-                    title="Ver demostración"
-                  >
-                    <img
-                      src={ex.gifUrl}
-                      alt={ex.name}
-                      className="max-h-full max-w-full object-contain mix-blend-multiply"
-                    />
-                  </div>
-                )}
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDemoExercise(ex);
+                  }}
+                  className="h-20 w-20 rounded-2xl bg-white overflow-hidden shrink-0 border border-border shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500 cursor-pointer hover:ring-2 hover:ring-primary z-10"
+                  title="Ver demostración"
+                >
+                  <ThreeExerciseViewer
+                    muscleHighlight={ex.muscleGroup}
+                    minimal={true}
+                  />
+                </div>
 
                 <div className="min-w-0 flex-1 py-1">
                   <h4 className="font-bold text-base text-foreground leading-snug group-hover:text-primary transition-colors truncate">

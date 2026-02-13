@@ -8,7 +8,8 @@ interface ThreeExerciseViewerProps {
 }
 
 export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false }: ThreeExerciseViewerProps) => {
-    const [view, setView] = useState<'front' | 'back'>('front');
+    const initialView = ['espalda', 'tríceps', 'glúteos', 'trapecio', 'lumbares', 'dorsales'].some(m => (muscleHighlight?.toLowerCase() || '').includes(m)) ? 'back' : 'front';
+    const [view, setView] = useState<'front' | 'back'>(initialView);
 
     // Normalize highlight string
     const normalizedHighlight = muscleHighlight?.toLowerCase() || '';
