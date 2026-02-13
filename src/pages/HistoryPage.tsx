@@ -22,6 +22,10 @@ import {
 import EditWorkoutDialog from "@/components/workout/EditWorkoutDialog";
 import EditMealDialog from "@/components/nutrition/EditMealDialog";
 import type { Workout, WorkoutExercise, WorkoutSet, MealEntry } from "@/store/useAppStore";
+import { useStats } from "@/hooks/useStats";
+import VolumeChart from "@/components/stats/VolumeChart";
+import MuscleDistributionChart from "@/components/stats/MuscleDistributionChart";
+import PersonalRecordsList from "@/components/stats/PersonalRecordsList";
 
 const HistoryPage = () => {
   const navigate = useNavigate();
@@ -150,6 +154,9 @@ const HistoryPage = () => {
     enabled: !!user,
     staleTime: 300000, // 5 minutes
   });
+
+  // Calculate statistics
+  const stats = useStats(historyWorkouts);
 
   const handleDeleteWorkout = async (workoutId: string) => {
     if (!user) return;
@@ -323,6 +330,10 @@ const HistoryPage = () => {
           <TabsTrigger value="nutrition" className="flex-1 gap-1.5">
             <Apple className="h-4 w-4" />
             Nutrición
+          </TabsTrigger>
+          <TabsTrigger value="stats" className="flex-1 gap-1.5">
+            <TrendingUp className="h-4 w-4" />
+            Estadísticas
           </TabsTrigger>
         </TabsList>
 
@@ -530,6 +541,27 @@ const HistoryPage = () => {
                   </div>
                 );
               })}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* STATISTICS TAB */}
+        <TabsContent value="stats" className="space-y-4">
+          {!user ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 animate-fade-in">
+              <div className="col-span-1">
+                <VolumeChart data={stats.volumeData} />
+              </div>
+              <div className="col-span-1">
+                <MuscleDistributionChart data={stats.muscleData} />
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                <PersonalRecordsList data={stats.prData} />
+              </div>
             </div>
           )}
         </TabsContent>
