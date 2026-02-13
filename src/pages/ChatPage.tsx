@@ -1,9 +1,159 @@
 import { useState, useRef, useEffect } from "react";
 import { useAICoach, type ChatMessage } from "@/hooks/useAICoach";
-import { Send, Square, Bot, User, Dumbbell, UtensilsCrossed, Sparkles } from "lucide-react";
+import { Send, Square, Bot, User, Dumbbell, UtensilsCrossed, Sparkles, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
+import { useAppStore } from "@/store/useAppStore";
+import { toast } from "@/hooks/use-toast";
+
+const WorkoutSuggestionCard = ({ data }: { data: any }) => {
+  const { addTemplate } = useAppStore();
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    try {
+      addTemplate({
+        id: crypto.randomUUID(),
+        name: data.name,
+        description: data.description,
+        exercises: data.exercises.map((ex: any) => ({
+          id: crypto.randomUUID(),
+          exerciseId: `custom_${Date.now()}_${Math.random()}`,
+          exerciseName: ex.name,
+          sets: ex.sets.map((s: any) => ({
+            id: crypto.randomUUID(),
+            reps: s.reps,
+            weight: s.weight
+          }))
+        }))
+      });
+      setSaved(true);
+      toast({
+        title: "✅ Plantilla guardada",
+        description: `La rutina "${data.name}" se ha guardado en tus plantillas.`,
+      });
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "No se pudo guardar la plantilla.",
+      });
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4 animate-fade-in text-left">
+      <div className="flex items-start justify-between mb-2">
+        <div>
+          <h3 className="font-bold text-foreground flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            {data.name}
+          </h3>
+          <p className="text-xs text-muted-foreground">{data.description}</p>
+        </div>
+      </div>
+
+      <div className="space-y-1 my-3">
+        {data.exercises.slice(0, 3).map((ex: any, i: number) => (
+          <div key={i} className="text-xs text-muted-foreground flex justify-between">
+            <span>• {ex.name}</span>
+            <span>{ex.sets.length} series</span>
+          </div>
+        ))}
+        {data.exercises.length > 3 && (
+          <div className="text-xs text-muted-foreground italic">
+            + {data.exercises.length - 3} ejercicios más
+          </div>
+        )}
+      </div>
+
+      <Button
+        onClick={handleSave}
+        disabled={saved}
+        size="sm"
+        className="w-full gap-2 rounded-lg"
+        variant={saved ? "outline" : "default"}
+      >
+        {saved ? (
+          <>¡Guardado!</>
+        ) : (
+          <>
+            <Plus className="h-4 w-4" />
+            Guardar como Plantilla
+          </>
+        )}
+      </Button>
+    </div>
+  );
+};
+
+const MessageBubble = ({ message }: { message: ChatMessage }) => {
+  const isUser = message.role === "user";
+
+  // Check for JSON block
+  const jsonMatch = !isUser && message.content.match(/```json\s*({[\s\S]*?suggestion_type[\s\S]*?})\s*```/);
+  let content = message.content;
+  let suggestionData = null;
+
+  if (jsonMatch) {
+    try {
+      suggestionData = JSON.parse(jsonMatch[1]);
+      // Remove the JSON block from display content
+      content = content.replace(jsonMatch[0], "").trim();
+    } catch (e) {
+      console.error("Failed to parse suggestion JSON", e);
+    }
+  }
+
+  return (
+    <div className={`flex items-start gap-2.5 animate-fade-in ${isUser ? "flex-row-reverse" : ""}`}>
+      {!isUser && (
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <Bot className="h-3.5 w-3.5 text-primary" />
+        </div>
+      )}
+      <div
+        className={`max-w-[85%] rounded-2xl px-4 py-3 ${isUser
+          ? "rounded-tr-sm bg-primary text-primary-foreground"
+          : "rounded-tl-sm bg-card"
+          }`}
+      >
+        {isUser ? (
+          <p className="text-sm whitespace-pre-wrap">{content}</p>
+        ) : (
+          <div className="prose prose-sm prose-invert max-w-none text-sm [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5 [&_strong]:text-primary [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_h1]:font-display [&_h2]:font-display [&_h3]:font-display">
+            <ReactMarkdown>{content}</ReactMarkdown>
+
+            {suggestionData && (
+              <WorkoutSuggestionCard data={suggestionData} />
+            )}
+          </div>
+        )}
+
+        {/* Tool call indicators */}
+        {message.toolCalls && message.toolCalls.length > 0 && (
+          <div className="mt-2 space-y-1.5 border-t border-border/30 pt-2">
+            {message.toolCalls.map((tc, i) => (
+              <div key={i} className="flex items-center gap-2 rounded-xl bg-primary/5 px-3 py-1.5">
+                {tc.name === "log_exercises" ? (
+                  <Dumbbell className="h-3.5 w-3.5 text-primary" />
+                ) : (
+                  <UtensilsCrossed className="h-3.5 w-3.5 text-primary" />
+                )}
+                <span className="text-[11px] text-muted-foreground">
+                  {tc.name === "log_exercises"
+                    ? `${tc.data.exercises?.length || 0} ejercicio(s) registrados`
+                    : `${tc.data.meals?.length || 0} alimento(s) registrados`}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const ChatPage = () => {
   const { messages, isLoading, sendMessage, stopGeneration } = useAICoach();
@@ -143,54 +293,6 @@ const ChatPage = () => {
             </Button>
           )}
         </form>
-      </div>
-    </div>
-  );
-};
-
-const MessageBubble = ({ message }: { message: ChatMessage }) => {
-  const isUser = message.role === "user";
-
-  return (
-    <div className={`flex items-start gap-2.5 animate-fade-in ${isUser ? "flex-row-reverse" : ""}`}>
-      {!isUser && (
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-          <Bot className="h-3.5 w-3.5 text-primary" />
-        </div>
-      )}
-      <div
-        className={`max-w-[85%] rounded-2xl px-4 py-3 ${isUser
-          ? "rounded-tr-sm bg-primary text-primary-foreground"
-          : "rounded-tl-sm bg-card"
-          }`}
-      >
-        {isUser ? (
-          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-        ) : (
-          <div className="prose prose-sm prose-invert max-w-none text-sm [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5 [&_strong]:text-primary [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_h1]:font-display [&_h2]:font-display [&_h3]:font-display">
-            <ReactMarkdown>{message.content}</ReactMarkdown>
-          </div>
-        )}
-
-        {/* Tool call indicators */}
-        {message.toolCalls && message.toolCalls.length > 0 && (
-          <div className="mt-2 space-y-1.5 border-t border-border/30 pt-2">
-            {message.toolCalls.map((tc, i) => (
-              <div key={i} className="flex items-center gap-2 rounded-xl bg-primary/5 px-3 py-1.5">
-                {tc.name === "log_exercises" ? (
-                  <Dumbbell className="h-3.5 w-3.5 text-primary" />
-                ) : (
-                  <UtensilsCrossed className="h-3.5 w-3.5 text-primary" />
-                )}
-                <span className="text-[11px] text-muted-foreground">
-                  {tc.name === "log_exercises"
-                    ? `${tc.data.exercises?.length || 0} ejercicio(s) registrados`
-                    : `${tc.data.meals?.length || 0} alimento(s) registrados`}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

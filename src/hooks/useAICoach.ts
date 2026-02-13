@@ -104,8 +104,30 @@ export function useAICoach() {
       ctx += `- Proteína: ${profile.protein_goal}g | Carbos: ${profile.carbs_goal}g | Grasa: ${profile.fat_goal}g\n`;
       if (profile.weight) ctx += `- Peso: ${profile.weight}kg\n`;
       if (profile.height) ctx += `- Altura: ${profile.height}cm\n`;
+      if (profile.height) ctx += `- Altura: ${profile.height}cm\n`;
       ctx += "\n";
     }
+
+    // Add protocol for workout suggestions
+    ctx += "### Protocolo de Sugerencia de Rutinas:\n";
+    ctx += "Si el usuario te pide una rutina, diséñala explicándola en texto. ADEMÁS, incluye SIEMPRE al final un bloque de código JSON (code block) con esta estructura exacta para habilitar el botón de 'Guardar Plantilla' en la interfaz:\n";
+    ctx += "```json\n";
+    ctx += JSON.stringify({
+      suggestion_type: "workout",
+      name: "Nombre corto de la rutina",
+      description: "Breve descripción",
+      exercises: [
+        {
+          name: "Nombre exacto del ejercicio",
+          sets: [
+            { reps: 10, weight: 0 },
+            { reps: 10, weight: 0 }
+          ]
+        }
+      ]
+    }, null, 2);
+    ctx += "\n```\n";
+    ctx += "Asegúrate de que los nombres de ejercicios sean estándar.\n\n";
 
     // Workouts
     if (workouts && workouts.length > 0) {
