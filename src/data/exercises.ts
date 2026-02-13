@@ -1,5 +1,8 @@
 ﻿
-import benchPressImg from '../assets/exercises/bench_press.png';
+
+import benchPressImg from '../assets/exercises/bench_press.jpg';
+import benchPressDumbbellImg from '../assets/exercises/bench_press_dumbbell.jpg';
+import inclineBenchPressBarbell from '../assets/exercises/incline_bench_press_barbell.jpg';
 
 export type MuscleGroup =
   | "pecho" | "espalda" | "hombros" | "bíceps" | "tríceps"
@@ -46,14 +49,16 @@ export const exercises: Exercise[] = [
     name: "Press Inclinado con Barra",
     muscleGroup: "pecho",
     type: "barra",
-    description: "Enfocado en la parte superior del pecho (clavicular). Banco a 30-45 grados."
+    description: "Enfocado en la parte superior del pecho (clavicular). Banco a 30-45 grados.",
+    modelUrl: inclineBenchPressBarbell
   },
   {
     id: "chest_bench_press_dumbbell",
     name: "Press de Banca con Mancuernas",
     muscleGroup: "pecho",
     type: "mancuerna",
-    description: "Mayor rango de movimiento que la barra. Permite trabajar cada lado de forma independiente."
+    description: "Mayor rango de movimiento que la barra. Permite trabajar cada lado de forma independiente.",
+    modelUrl: benchPressDumbbellImg
   },
   {
     id: "chest_incline_bench_press_dumbbell",
