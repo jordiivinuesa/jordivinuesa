@@ -424,7 +424,8 @@ const WorkoutPage = () => {
                       </Button>
                       <Button
                         size="sm"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent bubbling
                           // Check if there's already an active workout
                           if (activeWorkout) {
                             setPendingWorkoutStart({
@@ -432,7 +433,8 @@ const WorkoutPage = () => {
                               mode: "template",
                               template: template
                             });
-                            setShowOverwriteConfirmation(true);
+                            // Small timeout to ensure state update propagates before dialog triggers
+                            setTimeout(() => setShowOverwriteConfirmation(true), 0);
                             return;
                           }
 
