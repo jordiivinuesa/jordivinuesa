@@ -15,6 +15,7 @@ import { useAppStore } from "@/store/useAppStore";
 import VolumeChart from "@/components/stats/VolumeChart";
 import MuscleDistributionChart from "@/components/stats/MuscleDistributionChart";
 import PersonalRecordsList from "@/components/stats/PersonalRecordsList";
+import { useWorkoutHistory } from "@/hooks/useWorkoutHistory";
 
 const ProfilePage = () => {
     console.log("%c>>> PROFILE_PAGE: MOUNTED", "color: orange; font-weight: bold; font-size: 14px;");
@@ -61,45 +62,12 @@ const ProfilePage = () => {
     });
 
     const { dayLogs } = useAppStore();
-    // Reconstruct workouts for useStats. In a real app we might want to fetch history here or keep it in global store
-    // For now, let's assume we need to fetch history or use what is available. 
-    // Wait, useStats expects array of workouts. 
-    // We should probably fetch workout history here too if we want stats, or use a cached query.
-    // Let's use the same query key 'workout-history' to leverage cache from HistoryPage if visited.
 
-    // Quick fix: fetch history here too using supabase directly or reuse the logic.
-    // Ideally we'd move the query to a custom hook useWorkoutHistory() but for now let's copy the hook usage since React Query handles deduplication.
-    // We need to import Supabase and the fetch logic.
+    // Use reusable hook to fetch history for stats
+    const { data: historyWorkouts = [], isLoading: loadingHistory } = useWorkoutHistory();
 
-    // Actually, let's just use the same useQuery call as in HistoryPage but simpler.
-    // We need to import fetchHistory logic or duplication.
-    // Let's rely on cached 'workout-history' if exists, or fetch it.
-
-    // To avoid massive code duplication in this step, I will just assume for now we can read from React Query cache 
-    // or we should move fetchHistory to a hook. 
-    // Let's try to get data from queryClient first.
-
-    const { data: historyWorkouts = [] } = useQuery({
-        queryKey: ['workout-history', user?.id],
-        enabled: false // Don't fetch automatically if not already cached? 
-        // Actually we DO want to fetch if not present. 
-        // Since I cannot easily move the fetch function right now without editing another file, 
-        // I'll assume the user might have visited History page or I'll add a simple fetch here.
-    });
-
-    // WAIT, I should probably copy the fetch logic to ensure it works even if History wasn't visited.
-    // But for this interaction, let's try to see if I can just import useDbSync logic? No, that's different.
-
-    // Let's just use useStats with an empty array fallback and maybe add a note that it depends on history being loaded?
-    // User asked to MOVE it, so likely they visited History.
-    // But for robustness, I should copy the fetch. 
-
-    // ... Revisiting Strategy: I'll use the dayLogs from store as a fallback source of truth!
-    // dayLogs contains { [date]: { workouts: [...] } }
-    // We can flat map that.
-
-    const storeWorkouts = Object.values(dayLogs).flatMap(log => log.workouts);
-    const stats = useStats(storeWorkouts);
+    // Calculate stats using the full history
+    const stats = useStats(historyWorkouts);
 
     useEffect(() => {
         if (user) {
