@@ -43,7 +43,7 @@ export const ThreeExerciseViewer = ({ muscleHighlight, minimal = false, equipmen
         <div className={`w-full h-full ${!minimal ? 'min-h-[300px] rounded-2xl p-4 shadow-sm border border-gray-100' : ''} bg-white overflow-hidden relative flex flex-col items-center justify-center`}>
 
             {/* Image Viewer */}
-            <div className={`relative ${minimal ? 'h-full w-auto aspect-[1/2]' : 'w-full max-w-[200px] aspect-[1/2]'} flex items-center justify-center`}>
+            <div className={`relative ${minimal ? 'h-full w-full' : 'w-full max-w-[200px] aspect-[1/2]'} flex items-center justify-center`}>
 
                 {/* Toggle View Button */}
                 {!minimal && (
