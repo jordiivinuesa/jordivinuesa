@@ -3,6 +3,10 @@
 import benchPressImg from '../assets/exercises/bench_press.jpg';
 import benchPressDumbbellImg from '../assets/exercises/bench_press_dumbbell.jpg';
 import inclineBenchPressBarbell from '../assets/exercises/incline_bench_press_barbell.jpg';
+import dumbbellFlyesImg from '../assets/exercises/dumbbell_flyes.jpg';
+import cableCrossoverImg from '../assets/exercises/cable_crossover.jpg';
+import pushUpsImg from '../assets/exercises/push_ups.jpg';
+import chestDipsImg from '../assets/exercises/chest_dips.jpg';
 
 export type MuscleGroup =
   | "pecho" | "espalda" | "hombros" | "bíceps" | "tríceps"
@@ -72,28 +76,32 @@ export const exercises: Exercise[] = [
     name: "Aperturas con Mancuernas",
     muscleGroup: "pecho",
     type: "mancuerna",
-    description: "Ejercicio de aislamiento para eixanchar el pecho. Codos ligeramente flexionados."
+    description: "Ejercicio de aislamiento para eixanchar el pecho. Codos ligeramente flexionados.",
+    modelUrl: dumbbellFlyesImg
   },
   {
     id: "chest_cable_crossover",
     name: "Cruce de Poleas",
     muscleGroup: "pecho",
     type: "cable",
-    description: "Excelente para el bombeo y la contracción final del pectoral."
+    description: "Excelente para el bombeo y la contracción final del pectoral.",
+    modelUrl: cableCrossoverImg
   },
   {
     id: "chest_push_ups",
     name: "Flexiones",
     muscleGroup: "pecho",
     type: "peso corporal",
-    description: "El clásico ejercicio de empuje con peso corporal. Mantén el cuerpo recto como una tabla."
+    description: "El clásico ejercicio de empuje con peso corporal. Mantén el cuerpo recto como una tabla.",
+    modelUrl: pushUpsImg
   },
   {
     id: "chest_dips",
     name: "Fondos en Paralelas (Pecho)",
     muscleGroup: "pecho",
     type: "peso corporal",
-    description: "Inclina el cuerpo hacia adelante para enfatizar el pecho sobre los tríceps."
+    description: "Inclina el cuerpo hacia adelante para enfatizar el pecho sobre los tríceps.",
+    modelUrl: chestDipsImg
   },
   {
     id: "chest_machine_press",
