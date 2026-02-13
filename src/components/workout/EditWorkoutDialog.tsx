@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAppStore, type Workout, type WorkoutExercise, type WorkoutSet } from "@/store/useAppStore";
 import { toast } from "@/hooks/use-toast";
 import { removeAccents } from "@/lib/utils";
+import ThreeExerciseViewer from "@/components/exercise/ThreeExerciseViewer";
 
 interface EditWorkoutDialogProps {
   open: boolean;
@@ -391,11 +392,11 @@ const EditWorkoutDialog = ({ open, onOpenChange, workout, date, onSaved }: EditW
                 className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left hover:bg-secondary/70 transition-colors gap-3"
               >
                 <div className="flex items-center gap-3 overflow-hidden">
-                  {exercise.gifUrl && (
-                    <div className="h-10 w-10 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center">
-                      <img src={exercise.gifUrl} alt={exercise.name} className="max-h-full max-w-full object-contain" />
+                  <div className="h-10 w-10 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center">
+                    <div className="w-full h-full scale-[1.8] relative top-1">
+                      <ThreeExerciseViewer muscleHighlight={exercise.muscleGroup} minimal />
                     </div>
-                  )}
+                  </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{exercise.name}</p>
                     <p className="text-[11px] text-muted-foreground">
