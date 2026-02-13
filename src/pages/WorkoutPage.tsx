@@ -425,16 +425,16 @@ const WorkoutPage = () => {
                       <Button
                         size="sm"
                         onClick={(e) => {
-                          e.stopPropagation(); // Prevent bubbling
+                          e.stopPropagation();
                           // Check if there's already an active workout
                           if (activeWorkout) {
+                            console.log("Active workout detected, showing confirmation dialog");
                             setPendingWorkoutStart({
                               name: template.name,
                               mode: "template",
                               template: template
                             });
-                            // Small timeout to ensure state update propagates before dialog triggers
-                            setTimeout(() => setShowOverwriteConfirmation(true), 0);
+                            setShowOverwriteConfirmation(true);
                             return;
                           }
 
