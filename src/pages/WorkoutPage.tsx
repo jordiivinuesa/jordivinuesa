@@ -16,6 +16,7 @@ import type { WorkoutTemplate } from "@/store/useAppStore";
 import { useNotifications } from "@/hooks/useNotifications";
 
 import { useNavigate } from "react-router-dom";
+import ThreeExerciseViewer from "@/components/exercise/ThreeExerciseViewer";
 
 const WorkoutPage = () => {
   const navigate = useNavigate();
@@ -53,6 +54,7 @@ const WorkoutPage = () => {
   const [showActivityDialog, setShowActivityDialog] = useState(false);
   const { pendingShares, updateShareStatus, fetchPendingShares } = useTemplateSharing();
   const [sharingTemplate, setSharingTemplate] = useState<WorkoutTemplate | null>(null);
+  const [demoExercise, setDemoExercise] = useState<typeof exercises[0] | null>(null);
 
   // Clear share notifications when entering workout page
   useEffect(() => {
@@ -506,13 +508,17 @@ const WorkoutPage = () => {
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 overflow-hidden">
                 {exercises.find(e => e.id === exercise.exerciseId)?.gifUrl && (
-                  <div className="h-10 w-10 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center">
+                  <button
+                    onClick={() => setDemoExercise(exercises.find(e => e.id === exercise.exerciseId) || null)}
+                    className="h-10 w-10 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center hover:scale-105 transition-transform"
+                    title="Ver demostración 3D"
+                  >
                     <img
                       src={exercises.find(e => e.id === exercise.exerciseId)?.gifUrl}
                       alt={exercise.exerciseName}
                       className="max-h-full max-w-full object-contain"
                     />
-                  </div>
+                  </button>
                 )}
                 <h3 className="font-semibold font-display truncate">{exercise.exerciseName}</h3>
               </div>
@@ -690,7 +696,14 @@ const WorkoutPage = () => {
                 </div>
 
                 {ex.gifUrl && (
-                  <div className="h-20 w-20 rounded-2xl bg-white overflow-hidden shrink-0 border border-border shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDemoExercise(ex);
+                    }}
+                    className="h-20 w-20 rounded-2xl bg-white overflow-hidden shrink-0 border border-border shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500 cursor-pointer hover:ring-2 hover:ring-primary z-10"
+                    title="Ver en 3D"
+                  >
                     <img
                       src={ex.gifUrl}
                       alt={ex.name}
@@ -718,6 +731,23 @@ const WorkoutPage = () => {
               <p className="py-8 text-center text-sm text-muted-foreground">No se encontraron ejercicios</p>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 3D Demo Dialog */}
+      <Dialog open={!!demoExercise} onOpenChange={(open) => !open && setDemoExercise(null)}>
+        <DialogContent className="bg-card border-border max-w-md w-full aspect-square p-0 overflow-hidden rounded-3xl">
+          <DialogHeader className="absolute top-4 left-4 z-10">
+            <DialogTitle className="font-display text-lg text-black/80 bg-white/50 backdrop-blur-md px-3 py-1 rounded-full">
+              {demoExercise?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {demoExercise && (
+            <ThreeExerciseViewer
+              muscleHighlight={demoExercise.muscleGroup}
+              modelUrl={demoExercise.modelUrl}
+            />
+          )}
         </DialogContent>
       </Dialog>
 

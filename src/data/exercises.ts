@@ -9,6 +9,8 @@ export interface Exercise {
   type: ExerciseType;
   description: string;
   gifUrl?: string;
+  modelUrl?: string; // Path to 3D model (glb/gltf)
+  muscleHighlight?: string; // Specific muscle to highlight in 3D model (e.g., "abs", "legs")
 }
 export const exercises: Exercise[] = [
   { id: "3_4_Sit-Up", name: "Abdominales 3/4", muscleGroup: "abdominales", type: "peso corporal", description: "Túmbate en el suelo con los pies asegurados y las rodillas dobladas. Coloca las manos detrás de la cabeza. Eleva el torso hacia las rodillas hasta quedar casi perpendicular al suelo. Baja solo 3/4 del camino y repite.", gifUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/3_4_Sit-Up/0.jpg" },
