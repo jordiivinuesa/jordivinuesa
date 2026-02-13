@@ -1,12 +1,46 @@
 ﻿
 
+// PECHO
 import benchPressImg from '../assets/exercises/bench_press.jpg';
 import benchPressDumbbellImg from '../assets/exercises/bench_press_dumbbell.jpg';
 import inclineBenchPressBarbell from '../assets/exercises/incline_bench_press_barbell.jpg';
+import inclineBenchPressDumbbell from '../assets/exercises/incline_bench_press_dumbbell.jpg';
 import dumbbellFlyesImg from '../assets/exercises/dumbbell_flyes.jpg';
 import cableCrossoverImg from '../assets/exercises/cable_crossover.jpg';
 import pushUpsImg from '../assets/exercises/push_ups.jpg';
 import chestDipsImg from '../assets/exercises/chest_dips.jpg';
+import machinePressImg from '../assets/exercises/machine_press.jpg';
+import pecDeckImg from '../assets/exercises/pec_deck.jpg';
+
+// ESPALDA
+import deadliftImg from '../assets/exercises/deadlift.jpg';
+import pullUpsImg from '../assets/exercises/pull_ups.jpg';
+import latPulldownImg from '../assets/exercises/lat_pulldown.jpg';
+import barbellRowImg from '../assets/exercises/barbell_row.jpg';
+import dumbbellRowImg from '../assets/exercises/dumbbell_row.jpg';
+import seatedCableRowImg from '../assets/exercises/seated_cable_row.jpg';
+import tBarRowImg from '../assets/exercises/t_bar_row.jpg';
+import facePullImg from '../assets/exercises/face_pull.jpg';
+import hyperextensionsImg from '../assets/exercises/hyperextensions.jpg';
+import cablePulloverImg from '../assets/exercises/cable_pullover.jpg';
+
+// HOMBROS
+import overheadPressBarbell from '../assets/exercises/overhead_press_barbell.jpg';
+import dumbbellShoulderPress from '../assets/exercises/dumbbell_shoulder_press.jpg';
+import lateralRaises from '../assets/exercises/lateral_raises.jpg';
+import frontRaises from '../assets/exercises/front_raises.jpg';
+import reverseFlyes from '../assets/exercises/reverse_flyes.jpg';
+import arnoldPress from '../assets/exercises/arnold_press.jpg';
+import uprightRow from '../assets/exercises/upright_row.jpg';
+import cableLateralRaise from '../assets/exercises/cable_lateral_raise.jpg';
+
+// PIERNAS
+import squatBarbell from '../assets/exercises/squat_barbell.jpg';
+import legPress from '../assets/exercises/leg_press.jpg';
+import lunges from '../assets/exercises/lunges.jpg';
+import legExtension from '../assets/exercises/leg_extension.jpg';
+import lyingLegCurl from '../assets/exercises/lying_leg_curl.jpg';
+import seatedLegCurl from '../assets/exercises/seated_leg_curl.jpg';
 
 export type MuscleGroup =
   | "pecho" | "espalda" | "hombros" | "bíceps" | "tríceps"
@@ -69,7 +103,8 @@ export const exercises: Exercise[] = [
     name: "Press Inclinado con Mancuernas",
     muscleGroup: "pecho",
     type: "mancuerna",
-    description: "Desarrollo del pectoral superior con mayor rango de movimiento."
+    description: "Desarrollo del pectoral superior con mayor rango de movimiento.",
+    modelUrl: inclineBenchPressDumbbell
   },
   {
     id: "chest_dumbbell_flyes",
@@ -108,14 +143,16 @@ export const exercises: Exercise[] = [
     name: "Press en Máquina Sentado",
     muscleGroup: "pecho",
     type: "máquina",
-    description: "Movimiento guiado y seguro para hipertrofia sin necesidad de estabilización."
+    description: "Movimiento guiado y seguro para hipertrofia sin necesidad de estabilización.",
+    modelUrl: machinePressImg
   },
   {
     id: "chest_pec_deck",
     name: "Pec Deck (Contractora)",
     muscleGroup: "pecho",
     type: "máquina",
-    description: "Aislamiento estricto del pectoral sin involucrar tríceps."
+    description: "Aislamiento estricto del pectoral sin involucrar tríceps.",
+    modelUrl: pecDeckImg
   },
 
   // --- ESPALDA ---
@@ -124,70 +161,80 @@ export const exercises: Exercise[] = [
     name: "Peso Muerto",
     muscleGroup: "espalda",
     type: "barra",
-    description: "Ejercicio compuesto total. Trabaja espalda baja, glúteos, femorales y trapecios."
+    description: "Ejercicio compuesto total. Trabaja espalda baja, glúteos, femorales y trapecios.",
+    modelUrl: deadliftImg
   },
   {
     id: "back_pull_ups",
     name: "Dominadas",
     muscleGroup: "espalda",
     type: "peso corporal",
-    description: "El mejor constructor de amplitud de espalda. Sube hasta pasar la barbilla por encima de la barra."
+    description: "El mejor constructor de amplitud de espalda. Sube hasta pasar la barbilla por encima de la barra.",
+    modelUrl: pullUpsImg
   },
   {
     id: "back_lat_pulldown",
     name: "Jalón al Pecho",
     muscleGroup: "espalda",
     type: "cable",
-    description: "Alternativa a las dominadas para desarrollar la amplitud dorsal."
+    description: "Alternativa a las dominadas para desarrollar la amplitud dorsal.",
+    modelUrl: latPulldownImg
   },
   {
     id: "back_barbell_row",
     name: "Remo con Barra",
     muscleGroup: "espalda",
     type: "barra",
-    description: "Constructor de densidad y grosor de espalda. Mantén la espalda recta."
+    description: "Constructor de densidad y grosor de espalda. Mantén la espalda recta.",
+    modelUrl: barbellRowImg
   },
   {
     id: "back_dumbbell_row",
     name: "Remo con Mancuerna a una mano",
     muscleGroup: "espalda",
     type: "mancuerna",
-    description: "Permite un gran rango de movimiento y focalización unilateral."
+    description: "Permite un gran rango de movimiento y focalización unilateral.",
+    modelUrl: dumbbellRowImg
   },
   {
     id: "back_seated_cable_row",
     name: "Remo en Polea Baja",
     muscleGroup: "espalda",
     type: "cable",
-    description: "Remo sentado para grosor de espalda media y dorsal."
+    description: "Remo sentado para grosor de espalda media y dorsal.",
+    modelUrl: seatedCableRowImg
   },
   {
     id: "back_t_bar_row",
     name: "Remo T",
     muscleGroup: "espalda",
     type: "máquina",
-    description: "Variante de remo muy estable que permite mover grandes cargas."
+    description: "Variante de remo muy estable que permite mover grandes cargas.",
+    modelUrl: tBarRowImg
   },
   {
     id: "back_face_pull",
     name: "Face Pull",
     muscleGroup: "espalda", // También hombros
     type: "cable",
-    description: "Salud del hombro y trabajo de trapecio medio/inferior y deltoides posterior."
+    description: "Salud del hombro y trabajo de trapecio medio/inferior y deltoides posterior.",
+    modelUrl: facePullImg
   },
   {
     id: "back_hyperextensions",
     name: "Hiperextensiones",
     muscleGroup: "espalda",
     type: "peso corporal",
-    description: "Fortalecimiento de la espalda baja (lumbares)."
+    description: "Fortalecimiento de la espalda baja (lumbares).",
+    modelUrl: hyperextensionsImg
   },
   {
     id: "back_pullover_cable",
     name: "Pullover en Polea Alta",
     muscleGroup: "espalda",
     type: "cable",
-    description: "Aislamiento del dorsal ancho sin involucrar bíceps."
+    description: "Aislamiento del dorsal ancho sin involucrar bíceps.",
+    modelUrl: cablePulloverImg
   },
 
   // --- HOMBROS ---
@@ -196,56 +243,64 @@ export const exercises: Exercise[] = [
     name: "Press Militar con Barra",
     muscleGroup: "hombros",
     type: "barra",
-    description: "Ejercicio base de fuerza para hombros."
+    description: "Ejercicio base de fuerza para hombros.",
+    modelUrl: overheadPressBarbell
   },
   {
     id: "shoulders_dumbbell_press",
     name: "Press de Hombros con Mancuernas",
     muscleGroup: "hombros",
     type: "mancuerna",
-    description: "Press sentado o de pie con mancuernas."
+    description: "Press sentado o de pie con mancuernas.",
+    modelUrl: dumbbellShoulderPress
   },
   {
     id: "shoulders_lateral_raises",
     name: "Elevaciones Laterales",
     muscleGroup: "hombros",
     type: "mancuerna",
-    description: "Clave para la 'anchura' del hombro (cabeza lateral)."
+    description: "Clave para la 'anchura' del hombro (cabeza lateral).",
+    modelUrl: lateralRaises
   },
   {
     id: "shoulders_front_raises",
     name: "Elevaciones Frontales",
     muscleGroup: "hombros",
     type: "mancuerna",
-    description: "Trabajo de la cabeza anterior del deltoides."
+    description: "Trabajo de la cabeza anterior del deltoides.",
+    modelUrl: frontRaises
   },
   {
     id: "shoulders_reverse_flyes",
     name: "Pájaros (Reverse Flyes)",
     muscleGroup: "hombros",
     type: "mancuerna",
-    description: "Trabajo de la cabeza posterior del deltoides."
+    description: "Trabajo de la cabeza posterior del deltoides.",
+    modelUrl: reverseFlyes
   },
   {
     id: "shoulders_arnold_press",
     name: "Press Arnold",
     muscleGroup: "hombros",
     type: "mancuerna",
-    description: "Rotación durante el press para mayor activación deltoidea."
+    description: "Rotación durante el press para mayor activación deltoidea.",
+    modelUrl: arnoldPress
   },
   {
     id: "shoulders_upright_row",
     name: "Remo al Mentón",
     muscleGroup: "hombros",
     type: "barra",
-    description: "Trabaja deltoides laterales y trapecios."
+    description: "Trabaja deltoides laterales y trapecios.",
+    modelUrl: uprightRow
   },
   {
     id: "shoulders_cable_lateral_raise",
     name: "Elevaciones Laterales en Polea",
     muscleGroup: "hombros",
     type: "cable",
-    description: "Tensión constante en todo el rango de movimiento."
+    description: "Tensión constante en todo el rango de movimiento.",
+    modelUrl: cableLateralRaise
   },
 
   // --- PIERNAS ---
@@ -254,42 +309,48 @@ export const exercises: Exercise[] = [
     name: "Sentadilla con Barra",
     muscleGroup: "piernas",
     type: "barra",
-    description: "El ejercicio rey de piernas."
+    description: "El ejercicio rey de piernas.",
+    modelUrl: squatBarbell
   },
   {
     id: "legs_leg_press",
     name: "Prensa de Piernas",
     muscleGroup: "piernas",
     type: "máquina",
-    description: "Mueve grandes cargas sin cargar la espalda."
+    description: "Mueve grandes cargas sin cargar la espalda.",
+    modelUrl: legPress
   },
   {
     id: "legs_lunges",
     name: "Zancadas (Lunges)",
     muscleGroup: "piernas",
     type: "mancuerna",
-    description: "Excelente ejercicio unilateral para cuádriceps y glúteo."
+    description: "Excelente ejercicio unilateral para cuádriceps y glúteo.",
+    modelUrl: lunges
   },
   {
     id: "legs_leg_extension",
     name: "Extensiones de Cuádriceps",
     muscleGroup: "piernas",
     type: "máquina",
-    description: "Aislamiento puro para la parte frontal del muslo."
+    description: "Aislamiento puro para la parte frontal del muslo.",
+    modelUrl: legExtension
   },
   {
     id: "legs_lying_leg_curl",
     name: "Curl Femoral Tumbado",
     muscleGroup: "piernas",
     type: "máquina",
-    description: "Trabajo directo de isquios."
+    description: "Trabajo directo de isquios.",
+    modelUrl: lyingLegCurl
   },
   {
     id: "legs_seated_leg_curl",
     name: "Curl Femoral Sentado",
     muscleGroup: "piernas",
     type: "máquina",
-    description: "Trabajo de isquios en posición estirada."
+    description: "Variante sentada del curl femoral.",
+    modelUrl: seatedLegCurl
   },
   {
     id: "legs_goblet_squat",
