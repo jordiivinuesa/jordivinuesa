@@ -428,7 +428,7 @@ const WorkoutPage = () => {
                           e.stopPropagation();
                           // Check if there's already an active workout
                           if (activeWorkout) {
-                            console.log("Active workout detected, showing confirmation dialog");
+                            // alert("DEBUG: Entrando en confirmación. ActiveWorkout es true"); // Debug alert
                             setPendingWorkoutStart({
                               name: template.name,
                               mode: "template",
@@ -443,7 +443,7 @@ const WorkoutPage = () => {
                         }}
                         className="rounded-xl h-8 px-4 text-xs"
                       >
-                        Empezar
+                        {activeWorkout ? "Empezar (⚠️)" : "Empezar"}
                       </Button>
                     </div>
                   </div>
