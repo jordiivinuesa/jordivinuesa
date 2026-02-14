@@ -41,6 +41,28 @@ import lunges from '../assets/exercises/lunges.jpg';
 import legExtension from '../assets/exercises/leg_extension.jpg';
 import lyingLegCurl from '../assets/exercises/lying_leg_curl.jpg';
 import seatedLegCurl from '../assets/exercises/seated_leg_curl.jpg';
+import gobletSquatImg from '../assets/exercises/goblet_squat.jpg';
+import bulgarianSplitSquatImg from '../assets/exercises/bulgarian_split_squat.jpg';
+import calfRaiseStandingImg from '../assets/exercises/calf_raise_standing.jpg';
+import calfRaiseSeatedImg from '../assets/exercises/calf_raise_seated.jpg';
+
+import barbellCurlImg from '../assets/exercises/barbell_curl.jpg';
+import dumbbellCurlImg from '../assets/exercises/dumbbell_curl.jpg';
+import hammerCurlImg from '../assets/exercises/hammer_curl.jpg';
+import preacherCurlImg from '../assets/exercises/preacher_curl.jpg';
+import cableCurlImg from '../assets/exercises/cable_curl.jpg';
+import inclineCurlImg from '../assets/exercises/incline_curl.jpg';
+import concentrationCurlImg from '../assets/exercises/concentration_curl.jpg';
+
+import tricepsPushdownImg from '../assets/exercises/triceps_pushdown.jpg';
+import skullcrusherImg from '../assets/exercises/skullcrusher.jpg';
+import tricepsDipsImg from '../assets/exercises/triceps_dips.jpg';
+import tricepsRopePushdownImg from '../assets/exercises/triceps_rope_pushdown.jpg';
+import tricepsOverheadExtensionImg from '../assets/exercises/triceps_overhead_extension.jpg';
+import tricepsCloseGripBenchPressImg from '../assets/exercises/triceps_close_grip_bench_press.jpg';
+import tricepsKickbackImg from '../assets/exercises/triceps_kickback.jpg';
+
+import hipThrustImg from '../assets/exercises/hip_thrust.jpg';
 
 export type MuscleGroup =
   | "pecho" | "espalda" | "hombros" | "bíceps" | "tríceps"
@@ -357,28 +379,32 @@ export const exercises: Exercise[] = [
     name: "Sentadilla Goblet",
     muscleGroup: "piernas",
     type: "mancuerna",
-    description: "Ideal para aprender la técnica de sentadilla o calentar."
+    description: "Ideal para aprender la técnica de sentadilla o calentar.",
+    modelUrl: gobletSquatImg
   },
   {
     id: "legs_bulgarian_split_squat",
     name: "Sentadilla Búlgara",
     muscleGroup: "piernas",
     type: "mancuerna",
-    description: "Amado y odiado. Unilateral, equilibrio y fuerza."
+    description: "Amado y odiado. Unilateral, equilibrio y fuerza.",
+    modelUrl: bulgarianSplitSquatImg
   },
   {
     id: "legs_calf_raise_standing",
     name: "Elevación de Talones de Pie",
     muscleGroup: "piernas",
     type: "máquina",
-    description: "Gemelos (Gastrocnemio)."
+    description: "Gemelos (Gastrocnemio).",
+    modelUrl: calfRaiseStandingImg
   },
   {
     id: "legs_calf_raise_seated",
     name: "Elevación de Talones Sentado",
     muscleGroup: "piernas",
     type: "máquina",
-    description: "Sóleo (músculo bajo el gemelo)."
+    description: "Sóleo (músculo bajo el gemelo).",
+    modelUrl: calfRaiseSeatedImg
   },
 
   // --- BÍCEPS ---
@@ -387,49 +413,56 @@ export const exercises: Exercise[] = [
     name: "Curl con Barra",
     muscleGroup: "bíceps",
     type: "barra",
-    description: "Constructor de masa básico para bíceps."
+    description: "Constructor de masa básico para bíceps.",
+    modelUrl: barbellCurlImg
   },
   {
     id: "biceps_dumbbell_curl",
     name: "Curl con Mancuernas",
     muscleGroup: "bíceps",
     type: "mancuerna",
-    description: "Permite supinar la muñeca."
+    description: "Permite supinar la muñeca.",
+    modelUrl: dumbbellCurlImg
   },
   {
     id: "biceps_hammer_curl",
     name: "Curl Martillo",
     muscleGroup: "bíceps",
     type: "mancuerna",
-    description: "Enfasis en braquial y antebrazo."
+    description: "Enfasis en braquial y antebrazo.",
+    modelUrl: hammerCurlImg
   },
   {
     id: "biceps_preacher_curl",
     name: "Curl Predicador",
     muscleGroup: "bíceps",
     type: "barra",
-    description: "Aislamiento total, evita balanceos."
+    description: "Aislamiento total, evita balanceos.",
+    modelUrl: preacherCurlImg
   },
   {
     id: "biceps_cable_curl",
     name: "Curl en Polea",
     muscleGroup: "bíceps",
     type: "cable",
-    description: "Tensión constante."
+    description: "Tensión constante.",
+    modelUrl: cableCurlImg
   },
   {
     id: "biceps_incline_curl",
     name: "Curl Inclinado",
     muscleGroup: "bíceps",
     type: "mancuerna",
-    description: "Estiramiento máximo de la cabeza larga del bíceps."
+    description: "Estiramiento máximo de la cabeza larga del bíceps.",
+    modelUrl: inclineCurlImg
   },
   {
     id: "biceps_concentration_curl",
     name: "Curl Concentrado",
     muscleGroup: "bíceps",
     type: "mancuerna",
-    description: "Para el pico del bíceps."
+    description: "Para el pico del bíceps.",
+    modelUrl: concentrationCurlImg
   },
 
   // --- TRÍCEPS ---
@@ -438,49 +471,56 @@ export const exercises: Exercise[] = [
     name: "Extensiones en Polea",
     muscleGroup: "tríceps",
     type: "cable",
-    description: "Básico y efectivo."
+    description: "Básico y efectivo.",
+    modelUrl: tricepsPushdownImg
   },
   {
     id: "triceps_skullcrusher",
     name: "Press Francés",
     muscleGroup: "tríceps",
     type: "barra",
-    description: "Gran constructor de masa para tríceps."
+    description: "Gran constructor de masa para tríceps.",
+    modelUrl: skullcrusherImg
   },
   {
     id: "triceps_dips",
     name: "Fondos en Paralelas (Tríceps)",
     muscleGroup: "tríceps",
     type: "peso corporal",
-    description: "Mantén el cuerpo vertical para enfatizar tríceps."
+    description: "Mantén el cuerpo vertical para enfatizar tríceps.",
+    modelUrl: tricepsDipsImg
   },
   {
     id: "triceps_rope_pushdown",
     name: "Extensiones con Cuerda",
     muscleGroup: "tríceps",
     type: "cable",
-    description: "Permite abrir al final para mayor contracción."
+    description: "Permite abrir al final para mayor contracción.",
+    modelUrl: tricepsRopePushdownImg
   },
   {
     id: "triceps_overhead_extension",
     name: "Extensiones Tras Nuca",
     muscleGroup: "tríceps",
     type: "mancuerna",
-    description: "Trabaja la cabeza larga del tríceps."
+    description: "Trabaja la cabeza larga del tríceps.",
+    modelUrl: tricepsOverheadExtensionImg
   },
   {
     id: "triceps_close_grip_bench_press",
     name: "Press Banca Agarre Cerrado",
     muscleGroup: "tríceps",
     type: "barra",
-    description: "Compuesto pesado para tríceps."
+    description: "Compuesto pesado para tríceps.",
+    modelUrl: tricepsCloseGripBenchPressImg
   },
   {
     id: "triceps_kickback",
     name: "Patada de Tríceps",
     muscleGroup: "tríceps",
     type: "mancuerna",
-    description: "Contracción máxima."
+    description: "Contracción máxima.",
+    modelUrl: tricepsKickbackImg
   },
 
   // --- GLÚTEOS ---
@@ -489,7 +529,8 @@ export const exercises: Exercise[] = [
     name: "Hip Thrust",
     muscleGroup: "glúteos",
     type: "barra",
-    description: "El mejor ejercicio para aislar y cargar el glúteo."
+    description: "El mejor ejercicio para aislar y cargar el glúteo.",
+    modelUrl: hipThrustImg
   },
   {
     id: "glutes_bridge",
