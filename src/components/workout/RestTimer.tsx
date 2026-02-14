@@ -21,11 +21,31 @@ export function RestTimer() {
         return () => clearInterval(interval);
     }, [restTimer, tickRestTimer]);
 
+    // Request notification permission on mount
+    useEffect(() => {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }, []);
+
     // Sound/notification when timer reaches 0
     useEffect(() => {
         if (!restTimer) return;
 
         if (restTimer.remainingSeconds === 0 && restTimerSound) {
+            // Send system notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    new Notification("¡Descanso terminado!", {
+                        body: "Es hora de volver a darle duro 💪",
+                        vibrate: [200, 100, 200],
+                        icon: '/favicon.ico'
+                    } as any);
+                } catch (e) {
+                    console.error("Error showing notification:", e);
+                }
+            }
+
             // Play beep sound
             const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
             const oscillator = audioContext.createOscillator();

@@ -78,6 +78,7 @@ export interface RestTimer {
   remainingSeconds: number;
   targetSeconds: number;
   exerciseId: string | null;
+  endTime: number;
 }
 
 export interface AppState {
@@ -387,21 +388,27 @@ export const useAppStore = create<AppState>()(
       }),
 
       // Rest Timer actions
-      startRestTimer: (exerciseId) => set((state) => ({
-        restTimer: {
-          isActive: true,
-          remainingSeconds: state.restTimerDuration,
-          targetSeconds: state.restTimerDuration,
-          exerciseId
-        }
-      })),
+      startRestTimer: (exerciseId) => set((state) => {
+        const now = Date.now();
+        return {
+          restTimer: {
+            isActive: true,
+            remainingSeconds: state.restTimerDuration,
+            targetSeconds: state.restTimerDuration,
+            exerciseId,
+            endTime: now + state.restTimerDuration * 1000
+          }
+        };
+      }),
 
       stopRestTimer: () => set({ restTimer: null }),
 
       tickRestTimer: () => set((state) => {
         if (!state.restTimer || !state.restTimer.isActive) return state;
 
-        const newRemaining = Math.max(0, state.restTimer.remainingSeconds - 1);
+        const now = Date.now();
+        const secondsLeft = Math.ceil((state.restTimer.endTime - now) / 1000);
+        const newRemaining = Math.max(0, secondsLeft);
 
         return {
           restTimer: {
@@ -417,11 +424,16 @@ export const useAppStore = create<AppState>()(
       addRestTime: (seconds) => set((state) => {
         if (!state.restTimer) return state;
 
+        const newEndTime = state.restTimer.endTime + (seconds * 1000);
+        const now = Date.now();
+        const newRemaining = Math.max(0, Math.ceil((newEndTime - now) / 1000));
+
         return {
           restTimer: {
             ...state.restTimer,
-            remainingSeconds: state.restTimer.remainingSeconds + seconds,
-            targetSeconds: state.restTimer.targetSeconds + seconds
+            remainingSeconds: newRemaining,
+            targetSeconds: state.restTimer.targetSeconds + seconds,
+            endTime: newEndTime
           }
         };
       }),
