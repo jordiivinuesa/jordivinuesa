@@ -63,6 +63,26 @@ import tricepsCloseGripBenchPressImg from '../assets/exercises/triceps_close_gri
 import tricepsKickbackImg from '../assets/exercises/triceps_kickback.jpg';
 
 import hipThrustImg from '../assets/exercises/hip_thrust.jpg';
+import gluteBridgeImg from '../assets/exercises/glute_bridge.jpg';
+import cableKickbackImg from '../assets/exercises/cable_kickback.jpg';
+import abductionsMachineImg from '../assets/exercises/abductions_machine.jpg';
+import sumoDeadliftImg from '../assets/exercises/sumo_deadlift.jpg';
+import romanianDeadliftImg from '../assets/exercises/romanian_deadlift.jpg';
+
+import absPlankImg from '../assets/exercises/abs_plank.jpg';
+import absCrunchImg from '../assets/exercises/abs_crunch.jpg';
+import absLegRaisesImg from '../assets/exercises/abs_leg_raises.jpg';
+import absWheelImg from '../assets/exercises/abs_wheel.jpg';
+import absRussianTwistImg from '../assets/exercises/abs_russian_twist.jpg';
+import absCableCrunchImg from '../assets/exercises/abs_cable_crunch.jpg';
+import absMountainClimbersImg from '../assets/exercises/abs_mountain_climbers.jpg';
+
+import trapsBarbellShrugImg from '../assets/exercises/traps_barbell_shrug.jpg';
+import trapsDumbbellShrugImg from '../assets/exercises/traps_dumbbell_shrug.jpg';
+
+import forearmsReverseWristCurlImg from '../assets/exercises/forearms_reverse_wrist_curl.jpg';
+import forearmsWristCurlImg from '../assets/exercises/forearms_wrist_curl.jpg';
+import forearmsFarmersWalkImg from '../assets/exercises/forearms_farmers_walk.jpg';
 
 export type MuscleGroup =
   | "pecho" | "espalda" | "hombros" | "bíceps" | "tríceps"
@@ -537,35 +557,40 @@ export const exercises: Exercise[] = [
     name: "Puente de Glúteo",
     muscleGroup: "glúteos",
     type: "peso corporal",
-    description: "Versión más sencilla del Hip Thrust."
+    description: "Versión más sencilla del Hip Thrust.",
+    modelUrl: gluteBridgeImg
   },
   {
     id: "glutes_cable_kickback",
     name: "Patada de Glúteo en Polea",
     muscleGroup: "glúteos",
     type: "cable",
-    description: "Aislamiento unilateral."
+    description: "Aislamiento unilateral.",
+    modelUrl: cableKickbackImg
   },
   {
     id: "glutes_abductions_machine",
     name: "Máquina de Abductores",
     muscleGroup: "glúteos",
     type: "máquina",
-    description: "Glúteo medio y menor."
+    description: "Glúteo medio y menor.",
+    modelUrl: abductionsMachineImg
   },
   {
     id: "glutes_sumo_deadlift",
     name: "Peso Muerto Sumo",
     muscleGroup: "glúteos",
     type: "barra",
-    description: "Variante de peso muerto con mayor énfasis en cadera/glúteo."
+    description: "Variante de peso muerto con mayor énfasis en cadera/glúteo.",
+    modelUrl: sumoDeadliftImg
   },
   {
     id: "glutes_romanian_deadlift",
     name: "Peso Muerto Rumano",
     muscleGroup: "glúteos",
     type: "barra",
-    description: "Enfasis en la cadena posterior (isquios y glúteos)."
+    description: "Enfasis en la cadena posterior (isquios y glúteos).",
+    modelUrl: romanianDeadliftImg
   },
 
   // --- ABDOMINALES ---
@@ -574,49 +599,56 @@ export const exercises: Exercise[] = [
     name: "Crunch Abdominal",
     muscleGroup: "abdominales",
     type: "peso corporal",
-    description: "Flexión de columna básica."
+    description: "Flexión de columna básica.",
+    modelUrl: absCrunchImg
   },
   {
     id: "abs_plank",
     name: "Plancha",
     muscleGroup: "abdominales",
     type: "peso corporal",
-    description: "Estabilidad del core (isométrico)."
+    description: "Estabilidad del core (isométrico).",
+    modelUrl: absPlankImg
   },
   {
     id: "abs_leg_raises",
     name: "Elevación de Piernas",
     muscleGroup: "abdominales",
     type: "peso corporal",
-    description: "Enfasis en la parte baja del abdomen."
+    description: "Enfasis en la parte baja del abdomen.",
+    modelUrl: absLegRaisesImg
   },
   {
     id: "abs_wheel",
     name: "Rueda Abdominal",
     muscleGroup: "abdominales",
     type: "libre",
-    description: "Ejercicio avanzado de anti-extensión."
+    description: "Ejercicio avanzado de anti-extensión.",
+    modelUrl: absWheelImg
   },
   {
     id: "abs_russian_twist",
     name: "Russian Twist",
     muscleGroup: "abdominales",
     type: "peso corporal",
-    description: "Trabajo de oblicuos."
+    description: "Trabajo de oblicuos.",
+    modelUrl: absRussianTwistImg
   },
   {
     id: "abs_cable_crunch",
     name: "Crunch en Polea",
     muscleGroup: "abdominales",
     type: "cable",
-    description: "Crunch con resistencia constante."
+    description: "Crunch con resistencia constante.",
+    modelUrl: absCableCrunchImg
   },
   {
     id: "abs_mountain_climbers",
     name: "Escaladores",
     muscleGroup: "abdominales",
     type: "peso corporal",
-    description: "Dinámico y metabólico."
+    description: "Dinámico y metabólico.",
+    modelUrl: absMountainClimbersImg
   },
 
   // --- TRAPECIO ---
@@ -625,14 +657,16 @@ export const exercises: Exercise[] = [
     name: "Encogimientos con Barra",
     muscleGroup: "trapecio",
     type: "barra",
-    description: "Trampas superiores."
+    description: "Trampas superiores.",
+    modelUrl: trapsBarbellShrugImg
   },
   {
     id: "traps_dumbbell_shrug",
     name: "Encogimientos con Mancuernas",
     muscleGroup: "trapecio",
     type: "mancuerna",
-    description: "Trampas superiores."
+    description: "Trampas superiores.",
+    modelUrl: trapsDumbbellShrugImg
   },
 
   // --- ANTEBRAZOS ---
@@ -641,20 +675,23 @@ export const exercises: Exercise[] = [
     name: "Curl de Muñeca",
     muscleGroup: "antebrazos",
     type: "mancuerna",
-    description: "Flexores del antebrazo."
+    description: "Flexores del antebrazo.",
+    modelUrl: forearmsWristCurlImg
   },
   {
     id: "forearms_reverse_wrist_curl",
     name: "Curl de Muñeca Inverso",
     muscleGroup: "antebrazos",
     type: "mancuerna",
-    description: "Extensores del antebrazo."
+    description: "Extensores del antebrazo.",
+    modelUrl: forearmsReverseWristCurlImg
   },
   {
     id: "forearms_farmers_walk",
     name: "Paseo del Granjero",
     muscleGroup: "antebrazos",
     type: "mancuerna",
-    description: "Fuerza de agarre y estabilidad total."
+    description: "Fuerza de agarre y estabilidad total.",
+    modelUrl: forearmsFarmersWalkImg
   }
 ];

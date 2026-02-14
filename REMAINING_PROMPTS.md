@@ -137,12 +137,13 @@ This file contains the prompts for generating the missing 'low-poly 3D male mann
 ## 7. Forearms
 
 ### **Wrist Curl**
-*File: forearms_wrist_curl.jpg*
+*File: rearms_wrist_curl.jpg*
 > High quality low-poly 3D render of a male mannequin performing DUMBBELL WRIST CURLS. Forearm resting on a bench or thigh, palm facing UP, holding a dumbbell. Flexing the wrist upwards. Geometric faceted style. Grey skin, teal geometric tank top and shorts. White background. Clean, minimal. Close-up on arm.
 
 ### **Reverse Wrist Curl**
+### **Reverse Wrist Curl**
 *File: forearms_reverse_wrist_curl.jpg*
-> High quality low-poly 3D render of a male mannequin performing REVERSE WRIST CURLS. Forearm resting on a bench or thigh, palm facing DOWN, holding a dumbbell. Extending the wrist backwards/upwards. Geometric faceted style. Grey skin, teal geometric tank top and shorts. White background. Clean, minimal.
+> High quality low-poly 3D render of a male mannequin performing REVERSE WRIST CURL. EXTREME CLOSE-UP of the forearm resting flat on a bench. The HAND is PRONATED (palm down). We see the BACK OF THE HAND and the KNUCKLES pointing UP at the ceiling. The PALM is facing the FLOOR and is HIDDEN. The wrist bends UPWARDS lifting the dumbbell. Like revving a motorcycle throttle. Geometric faceted style. Grey skin, teal geometric tank top. White background. Clean, minimal.
 
 ### **Farmers Walk**
 *File: forearms_farmers_walk.jpg*
