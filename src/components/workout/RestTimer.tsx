@@ -58,9 +58,9 @@ export function RestTimer() {
     const isFinished = restTimer.remainingSeconds === 0;
 
     return (
-        <div className={`sticky top-0 z-50 bg-gradient-to-r ${isFinished
-                ? 'from-green-500 to-emerald-600'
-                : 'from-primary/90 to-primary'
+        <div className={`fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r ${isFinished
+            ? 'from-green-500 to-emerald-600'
+            : 'from-primary/90 to-primary'
             } text-white shadow-lg transition-all duration-300`}>
             <div className="container mx-auto px-4 py-3">
                 <div className="flex items-center justify-between gap-4">

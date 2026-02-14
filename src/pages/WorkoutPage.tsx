@@ -557,402 +557,402 @@ const WorkoutPage = () => {
 
   // Active Session View
   return (
-    <div className="px-4 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] pb-20 animate-fade-in">
-      <div className="-mx-4">
-        <RestTimer />
-      </div>
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowDetailView(false)}
-            className="h-8 w-8 p-0 rounded-xl"
-          >
-            <ArrowLeft className="h-5 w-5 text-muted-foreground" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold font-display">{activeWorkout.name}</h1>
-            <p className="text-xs text-muted-foreground">
-              {activeWorkoutType === 'template' ? 'Creando plantilla...' : 'Entrenamiento en curso'}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSaveAsTemplate}
-            className={`rounded-xl border-primary/30 transition-all ${(isTemplateSaved || activeTemplateId)
-              ? "bg-primary/20 text-primary border-primary shadow-[0_0_10px_rgba(132,204,22,0.3)]"
-              : "text-primary hover:bg-primary/10"
-              }`}
-            title={(isTemplateSaved || activeTemplateId) ? "Plantilla guardada y sincronizada" : "Guardar como plantilla"}
-          >
-            <Bookmark className={`h-4 w-4 ${(isTemplateSaved || activeTemplateId) ? "fill-primary" : ""}`} />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={cancelWorkout}
-            className="rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleFinishWorkout}
-            className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            <Check className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        {/* Exercise-based workout (default for backward compatibility) */}
-        {activeWorkout.type !== 'actividad' && activeWorkout.exercises && activeWorkout.exercises.map((exercise, exerciseIndex) => (
-          <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-slide-up" style={{ animationDelay: `${exerciseIndex * 0.1} s` }}>
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 overflow-hidden">
-                <button
-                  onClick={() => setDemoExercise(exercises.find(e => e.id === exercise.exerciseId) || null)}
-                  className="h-12 w-12 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center hover:scale-105 transition-transform"
-                  title="Ver demostración"
-                >
-                  <ThreeExerciseViewer
-                    muscleHighlight={exercises.find(e => e.id === exercise.exerciseId)?.muscleGroup}
-                    equipmentType={exercises.find(e => e.id === exercise.exerciseId)?.type}
-                    modelUrl={exercises.find(e => e.id === exercise.exerciseId)?.modelUrl}
-                    minimal={true}
-                  />
-                </button>
-                <h3 className="font-semibold font-display truncate">{exercise.exerciseName}</h3>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeExerciseFromWorkout(exerciseIndex)}
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive shrink-0"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="mb-3 grid grid-cols-[1fr,1fr,auto] gap-4 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              <span>Peso (kg)</span>
-              <span>Reps</span>
-              <span className="w-8"></span>
-            </div>
-
-            <div className="space-y-2">
-              {exercise.sets.map((set, setIndex) => (
-                <div key={set.id} className="grid grid-cols-[1fr,1fr,auto] gap-4 items-center">
-                  <Input
-                    type="number"
-                    value={set.weight || ""}
-                    onChange={(e) => updateSet(exerciseIndex, setIndex, { weight: parseFloat(e.target.value) || 0 })}
-                    className="h-10 rounded-xl border-border bg-secondary/50 text-center font-medium focus:ring-primary"
-                  />
-                  <Input
-                    type="number"
-                    value={set.reps || ""}
-                    onChange={(e) => updateSet(exerciseIndex, setIndex, { reps: parseInt(e.target.value) || 0 })}
-                    className="h-10 rounded-xl border-border bg-secondary/50 text-center font-medium focus:ring-primary"
-                  />
-                  <Button
-                    variant={set.completed ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      const isCompleting = !set.completed;
-                      updateSet(exerciseIndex, setIndex, { completed: isCompleting });
-
-                      // Start rest timer if completing a set and auto-start is enabled
-                      if (isCompleting && restTimerAutoStart) {
-                        startRestTimer(exercise.exerciseId);
-                      }
-                    }}
-                    className={`h - 10 w - 10 rounded - xl transition - all ${set.completed ? "bg-primary text-primary-foreground scale-95" : "border-border text-muted-foreground hover:border-primary/50"} `}
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-
+    <>
+      <RestTimer />
+      <div className="px-4 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] pb-20 animate-fade-in">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => addSetToExercise(exerciseIndex)}
-              className="mt-4 w-full rounded-xl border border-dashed border-border py-2 text-xs text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
+              onClick={() => setShowDetailView(false)}
+              className="h-8 w-8 p-0 rounded-xl"
             >
-              <Plus className="mr-2 h-3 w-3" />
-              Añadir Serie
+              <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-bold font-display">{activeWorkout.name}</h1>
+              <p className="text-xs text-muted-foreground">
+                {activeWorkoutType === 'template' ? 'Creando plantilla...' : 'Entrenamiento en curso'}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveAsTemplate}
+              className={`rounded-xl border-primary/30 transition-all ${(isTemplateSaved || activeTemplateId)
+                ? "bg-primary/20 text-primary border-primary shadow-[0_0_10px_rgba(132,204,22,0.3)]"
+                : "text-primary hover:bg-primary/10"
+                }`}
+              title={(isTemplateSaved || activeTemplateId) ? "Plantilla guardada y sincronizada" : "Guardar como plantilla"}
+            >
+              <Bookmark className={`h-4 w-4 ${(isTemplateSaved || activeTemplateId) ? "fill-primary" : ""}`} />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cancelWorkout}
+              className="rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleFinishWorkout}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Check className="h-4 w-4" />
             </Button>
           </div>
-        ))}
+        </div>
 
-        {/* Activity-based workout */}
-        {activeWorkout.type === 'actividad' && activeWorkout.activity && (
-          <div className="rounded-2xl bg-card p-6 glow-border animate-slide-up space-y-6">
-            {/* Duration */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Duración (minutos)</label>
-              <Input
-                type="number"
-                value={activeWorkout.activity.duration || ""}
-                onChange={(e) => updateActivity({ duration: parseInt(e.target.value) || 0 })}
-                placeholder="60"
-                className="h-12 rounded-xl border-border bg-secondary/50 text-center text-2xl font-bold focus:ring-primary"
-              />
-            </div>
-
-            {/* Intensity */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Intensidad</label>
-              <div className="grid grid-cols-3 gap-3">
-                {(['baja', 'media', 'alta'] as const).map((intensity) => (
-                  <Button
-                    key={intensity}
-                    variant={activeWorkout.activity?.intensity === intensity ? "default" : "outline"}
-                    onClick={() => updateActivity({ intensity })}
-                    className="rounded-xl h-12 capitalize"
+        <div className="space-y-6">
+          {/* Exercise-based workout (default for backward compatibility) */}
+          {activeWorkout.type !== 'actividad' && activeWorkout.exercises && activeWorkout.exercises.map((exercise, exerciseIndex) => (
+            <div key={exercise.id} className="rounded-2xl bg-card p-4 glow-border animate-slide-up" style={{ animationDelay: `${exerciseIndex * 0.1} s` }}>
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <button
+                    onClick={() => setDemoExercise(exercises.find(e => e.id === exercise.exerciseId) || null)}
+                    className="h-12 w-12 rounded-lg bg-white overflow-hidden shrink-0 border border-border/50 flex items-center justify-center hover:scale-105 transition-transform"
+                    title="Ver demostración"
                   >
-                    {intensity}
-                  </Button>
+                    <ThreeExerciseViewer
+                      muscleHighlight={exercises.find(e => e.id === exercise.exerciseId)?.muscleGroup}
+                      equipmentType={exercises.find(e => e.id === exercise.exerciseId)?.type}
+                      modelUrl={exercises.find(e => e.id === exercise.exerciseId)?.modelUrl}
+                      minimal={true}
+                    />
+                  </button>
+                  <h3 className="font-semibold font-display truncate">{exercise.exerciseName}</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeExerciseFromWorkout(exerciseIndex)}
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive shrink-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="mb-3 grid grid-cols-[1fr,1fr,auto] gap-4 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span>Peso (kg)</span>
+                <span>Reps</span>
+                <span className="w-8"></span>
+              </div>
+
+              <div className="space-y-2">
+                {exercise.sets.map((set, setIndex) => (
+                  <div key={set.id} className="grid grid-cols-[1fr,1fr,auto] gap-4 items-center">
+                    <Input
+                      type="number"
+                      value={set.weight || ""}
+                      onChange={(e) => updateSet(exerciseIndex, setIndex, { weight: parseFloat(e.target.value) || 0 })}
+                      className="h-10 rounded-xl border-border bg-secondary/50 text-center font-medium focus:ring-primary"
+                    />
+                    <Input
+                      type="number"
+                      value={set.reps || ""}
+                      onChange={(e) => updateSet(exerciseIndex, setIndex, { reps: parseInt(e.target.value) || 0 })}
+                      className="h-10 rounded-xl border-border bg-secondary/50 text-center font-medium focus:ring-primary"
+                    />
+                    <Button
+                      variant={set.completed ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        const isCompleting = !set.completed;
+                        updateSet(exerciseIndex, setIndex, { completed: isCompleting });
+
+                        // Start rest timer if completing a set and auto-start is enabled
+                        if (isCompleting && restTimerAutoStart) {
+                          startRestTimer(exercise.exerciseId);
+                        }
+                      }}
+                      className={`h - 10 w - 10 rounded - xl transition - all ${set.completed ? "bg-primary text-primary-foreground scale-95" : "border-border text-muted-foreground hover:border-primary/50"} `}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  </div>
                 ))}
               </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => addSetToExercise(exerciseIndex)}
+                className="mt-4 w-full rounded-xl border border-dashed border-border py-2 text-xs text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
+              >
+                <Plus className="mr-2 h-3 w-3" />
+                Añadir Serie
+              </Button>
             </div>
+          ))}
 
-            {/* Notes */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Notas (opcional)</label>
-              <Input
-                value={activeWorkout.activity.notes || ""}
-                onChange={(e) => updateActivity({ notes: e.target.value })}
-                placeholder="Ej: Partido amistoso, clase avanzada..."
-                className="h-10 rounded-xl border-border bg-secondary/50 focus:ring-primary"
-              />
-            </div>
-          </div>
-        )}
-
-        {activeWorkout.type !== 'actividad' && (
-          <Button
-            onClick={() => setShowExercisePicker(true)}
-            className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/40 transition-all font-display font-semibold"
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            Añadir Ejercicio
-          </Button>
-        )}
-      </div>
-
-      <Dialog open={showExercisePicker} onOpenChange={setShowExercisePicker}>
-        <DialogContent className="bg-card border-border h-[80vh] flex flex-col p-0 overflow-hidden rounded-t-3xl sm:rounded-2xl">
-          <div className="p-6 pb-2">
-            <DialogHeader className="mb-4">
-              <DialogTitle className="font-display text-xl">Añadir Ejercicio</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          {/* Activity-based workout */}
+          {activeWorkout.type === 'actividad' && activeWorkout.activity && (
+            <div className="rounded-2xl bg-card p-6 glow-border animate-slide-up space-y-6">
+              {/* Duration */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Duración (minutos)</label>
                 <Input
-                  placeholder="Buscar ejercicio..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-secondary pl-9 h-11 rounded-xl border-border"
+                  type="number"
+                  value={activeWorkout.activity.duration || ""}
+                  onChange={(e) => updateActivity({ duration: parseInt(e.target.value) || 0 })}
+                  placeholder="60"
+                  className="h-12 rounded-xl border-border bg-secondary/50 text-center text-2xl font-bold focus:ring-primary"
                 />
               </div>
-              <div
-                className="mt-4 -mx-6 overflow-x-auto pb-2 no-scrollbar touch-pan-x"
-                onWheel={(e) => {
-                  if (e.deltaY !== 0) {
-                    e.currentTarget.scrollLeft += e.deltaY;
-                  }
-                }}
-              >
-                <div className="flex gap-2 px-6 whitespace-nowrap">
-                  <Button
-                    variant={selectedMuscle === "all" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedMuscle("all")}
-                    className="rounded-xl h-8 px-4 text-xs shrink-0"
-                  >
-                    Todos
-                  </Button>
-                  {muscleGroups.map(([key, label]) => (
+
+              {/* Intensity */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Intensidad</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {(['baja', 'media', 'alta'] as const).map((intensity) => (
                     <Button
-                      key={key}
-                      variant={selectedMuscle === key ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedMuscle(key)}
-                      className="rounded-xl h-8 px-4 text-xs shrink-0"
+                      key={intensity}
+                      variant={activeWorkout.activity?.intensity === intensity ? "default" : "outline"}
+                      onClick={() => updateActivity({ intensity })}
+                      className="rounded-xl h-12 capitalize"
                     >
-                      {label}
+                      {intensity}
                     </Button>
                   ))}
                 </div>
               </div>
+
+              {/* Notes */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Notas (opcional)</label>
+                <Input
+                  value={activeWorkout.activity.notes || ""}
+                  onChange={(e) => updateActivity({ notes: e.target.value })}
+                  placeholder="Ej: Partido amistoso, clase avanzada..."
+                  className="h-10 rounded-xl border-border bg-secondary/50 focus:ring-primary"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex-1 overflow-y-auto p-6 pt-0 space-y-3 no-scrollbar">
-            {filteredExercises.map((ex) => (
-              <button
-                key={ex.id}
-                onClick={() => handleSelectExercise(ex.id, ex.name)}
-                className="group flex w-full items-center gap-4 rounded-3xl bg-secondary/30 p-4 text-left transition-all hover:bg-secondary/50 active:scale-[0.98] border border-transparent hover:border-primary/20 relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Plus className="h-5 w-5 text-primary" />
-                  </div>
-                </div>
+          {activeWorkout.type !== 'actividad' && (
+            <Button
+              onClick={() => setShowExercisePicker(true)}
+              className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/40 transition-all font-display font-semibold"
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              Añadir Ejercicio
+            </Button>
+          )}
+        </div>
 
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDemoExercise(ex);
-                  }}
-                  className="h-20 w-20 rounded-2xl bg-white overflow-hidden shrink-0 border border-border shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500 cursor-pointer hover:ring-2 hover:ring-primary z-10"
-                  title="Ver demostración"
-                >
-                  <ThreeExerciseViewer
-                    muscleHighlight={ex.muscleGroup}
-                    equipmentType={ex.type}
-                    modelUrl={ex.modelUrl}
-                    minimal={true}
+        <Dialog open={showExercisePicker} onOpenChange={setShowExercisePicker}>
+          <DialogContent className="bg-card border-border h-[80vh] flex flex-col p-0 overflow-hidden rounded-t-3xl sm:rounded-2xl">
+            <div className="p-6 pb-2">
+              <DialogHeader className="mb-4">
+                <DialogTitle className="font-display text-xl">Añadir Ejercicio</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar ejercicio..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-secondary pl-9 h-11 rounded-xl border-border"
                   />
                 </div>
-
-                <div className="min-w-0 flex-1 py-1">
-                  <h4 className="font-bold text-base text-foreground leading-snug group-hover:text-primary transition-colors truncate">
-                    {ex.name}
-                  </h4>
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] uppercase font-black tracking-widest">
-                      {muscleGroupLabels[ex.muscleGroup]}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-lg bg-muted text-muted-foreground text-[10px] uppercase font-bold">
-                      {ex.type}
-                    </span>
+                <div
+                  className="mt-4 -mx-6 overflow-x-auto pb-2 no-scrollbar touch-pan-x"
+                  onWheel={(e) => {
+                    if (e.deltaY !== 0) {
+                      e.currentTarget.scrollLeft += e.deltaY;
+                    }
+                  }}
+                >
+                  <div className="flex gap-2 px-6 whitespace-nowrap">
+                    <Button
+                      variant={selectedMuscle === "all" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedMuscle("all")}
+                      className="rounded-xl h-8 px-4 text-xs shrink-0"
+                    >
+                      Todos
+                    </Button>
+                    {muscleGroups.map(([key, label]) => (
+                      <Button
+                        key={key}
+                        variant={selectedMuscle === key ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedMuscle(key)}
+                        className="rounded-xl h-8 px-4 text-xs shrink-0"
+                      >
+                        {label}
+                      </Button>
+                    ))}
                   </div>
                 </div>
-              </button>
-            ))}
-            {filteredExercises.length === 0 && (
-              <p className="py-8 text-center text-sm text-muted-foreground">No se encontraron ejercicios</p>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 pt-0 space-y-3 no-scrollbar">
+              {filteredExercises.map((ex) => (
+                <button
+                  key={ex.id}
+                  onClick={() => handleSelectExercise(ex.id, ex.name)}
+                  className="group flex w-full items-center gap-4 rounded-3xl bg-secondary/30 p-4 text-left transition-all hover:bg-secondary/50 active:scale-[0.98] border border-transparent hover:border-primary/20 relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Plus className="h-5 w-5 text-primary" />
+                    </div>
+                  </div>
+
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDemoExercise(ex);
+                    }}
+                    className="h-20 w-20 rounded-2xl bg-white overflow-hidden shrink-0 border border-border shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500 cursor-pointer hover:ring-2 hover:ring-primary z-10"
+                    title="Ver demostración"
+                  >
+                    <ThreeExerciseViewer
+                      muscleHighlight={ex.muscleGroup}
+                      equipmentType={ex.type}
+                      modelUrl={ex.modelUrl}
+                      minimal={true}
+                    />
+                  </div>
+
+                  <div className="min-w-0 flex-1 py-1">
+                    <h4 className="font-bold text-base text-foreground leading-snug group-hover:text-primary transition-colors truncate">
+                      {ex.name}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] uppercase font-black tracking-widest">
+                        {muscleGroupLabels[ex.muscleGroup]}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg bg-muted text-muted-foreground text-[10px] uppercase font-bold">
+                        {ex.type}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+              {filteredExercises.length === 0 && (
+                <p className="py-8 text-center text-sm text-muted-foreground">No se encontraron ejercicios</p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* 3D Demo Dialog */}
+        <Dialog open={!!demoExercise} onOpenChange={(open) => !open && setDemoExercise(null)}>
+          <DialogContent className="bg-card border-border max-w-md w-full aspect-square p-0 overflow-hidden rounded-3xl">
+            <DialogHeader className="absolute top-4 left-4 z-10">
+              <DialogTitle className="font-display text-lg text-black/80 bg-white/50 backdrop-blur-md px-3 py-1 rounded-full">
+                {demoExercise?.name}
+              </DialogTitle>
+            </DialogHeader>
+            {demoExercise && (
+              <ThreeExerciseViewer
+                muscleHighlight={demoExercise.muscleGroup}
+                modelUrl={demoExercise.modelUrl}
+              />
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
 
-      {/* 3D Demo Dialog */}
-      <Dialog open={!!demoExercise} onOpenChange={(open) => !open && setDemoExercise(null)}>
-        <DialogContent className="bg-card border-border max-w-md w-full aspect-square p-0 overflow-hidden rounded-3xl">
-          <DialogHeader className="absolute top-4 left-4 z-10">
-            <DialogTitle className="font-display text-lg text-black/80 bg-white/50 backdrop-blur-md px-3 py-1 rounded-full">
-              {demoExercise?.name}
-            </DialogTitle>
-          </DialogHeader>
-          {demoExercise && (
-            <ThreeExerciseViewer
-              muscleHighlight={demoExercise.muscleGroup}
-              modelUrl={demoExercise.modelUrl}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+        {/* Activity Picker Dialog */}
+        <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
+          <DialogContent className="bg-card border-border max-w-[500px] max-h-[80vh] flex flex-col p-0 overflow-hidden rounded-2xl">
+            <DialogHeader className="p-6 pb-4">
+              <DialogTitle className="font-display">Seleccionar Actividad</DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-hidden">
+              <ActivityPicker onSelect={handleSelectActivity} />
+            </div>
+          </DialogContent>
+        </Dialog>
 
-      {/* Activity Picker Dialog */}
-      <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
-        <DialogContent className="bg-card border-border max-w-[500px] max-h-[80vh] flex flex-col p-0 overflow-hidden rounded-2xl">
-          <DialogHeader className="p-6 pb-4">
-            <DialogTitle className="font-display">Seleccionar Actividad</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-hidden">
-            <ActivityPicker onSelect={handleSelectActivity} />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Overwrite Confirmation Dialog */}
-      <AlertDialog open={showOverwriteConfirmation} onOpenChange={setShowOverwriteConfirmation}>
-        <AlertDialogContent className="bg-card border-border rounded-2xl max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Entrenamiento en curso</AlertDialogTitle>
-            <AlertDialogDescription>
-              Ya tienes un entrenamiento activo. Si empiezas uno nuevo, perderás el progreso del actual.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                cancelWorkout();
-                setShowOverwriteConfirmation(false);
-                if (pendingWorkoutStart) {
-                  proceedWithWorkoutStart(
-                    pendingWorkoutStart.name,
-                    pendingWorkoutStart.mode,
-                    pendingWorkoutStart.template
-                  );
-                  setPendingWorkoutStart(null);
-                }
-              }}
-            >
-              Empezar nuevo
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      {/* Overwrite Confirmation Dialog */}
-      <AlertDialog open={showOverwriteConfirmation} onOpenChange={setShowOverwriteConfirmation}>
-        <AlertDialogContent className="bg-card border-border rounded-2xl max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Entrenamiento en curso</AlertDialogTitle>
-            <AlertDialogDescription>
-              Ya tienes un entrenamiento activo. Si empiezas uno nuevo, perderás el progreso del actual.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                cancelWorkout();
-                setShowOverwriteConfirmation(false);
-                if (pendingWorkoutStart) {
-                  const { name, mode, template } = pendingWorkoutStart;
-
-                  // Use timeout to allow state to settle after cancelWorkout
-                  setTimeout(() => {
-                    if (template) {
-                      startWorkoutFromTemplate(template);
-                    } else if (name) {
-                      startWorkout(name, mode === "template" ? "template" : undefined);
-                      if (mode === "template") {
-                        setIsTemplateSaved(true);
-                      } else {
-                        setIsTemplateSaved(false);
-                      }
-                      setShowStartDialog(false);
-                      setWorkoutName("");
-                    }
-                    setShowDetailView(true);
+        {/* Overwrite Confirmation Dialog */}
+        <AlertDialog open={showOverwriteConfirmation} onOpenChange={setShowOverwriteConfirmation}>
+          <AlertDialogContent className="bg-card border-border rounded-2xl max-w-sm">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Entrenamiento en curso</AlertDialogTitle>
+              <AlertDialogDescription>
+                Ya tienes un entrenamiento activo. Si empiezas uno nuevo, perderás el progreso del actual.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  cancelWorkout();
+                  setShowOverwriteConfirmation(false);
+                  if (pendingWorkoutStart) {
+                    proceedWithWorkoutStart(
+                      pendingWorkoutStart.name,
+                      pendingWorkoutStart.mode,
+                      pendingWorkoutStart.template
+                    );
                     setPendingWorkoutStart(null);
-                  }, 50);
-                }
-              }}
-            >
-              Empezar nuevo
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+                  }
+                }}
+              >
+                Empezar nuevo
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        {/* Overwrite Confirmation Dialog */}
+        <AlertDialog open={showOverwriteConfirmation} onOpenChange={setShowOverwriteConfirmation}>
+          <AlertDialogContent className="bg-card border-border rounded-2xl max-w-sm">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Entrenamiento en curso</AlertDialogTitle>
+              <AlertDialogDescription>
+                Ya tienes un entrenamiento activo. Si empiezas uno nuevo, perderás el progreso del actual.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  cancelWorkout();
+                  setShowOverwriteConfirmation(false);
+                  if (pendingWorkoutStart) {
+                    const { name, mode, template } = pendingWorkoutStart;
+
+                    // Use timeout to allow state to settle after cancelWorkout
+                    setTimeout(() => {
+                      if (template) {
+                        startWorkoutFromTemplate(template);
+                      } else if (name) {
+                        startWorkout(name, mode === "template" ? "template" : undefined);
+                        if (mode === "template") {
+                          setIsTemplateSaved(true);
+                        } else {
+                          setIsTemplateSaved(false);
+                        }
+                        setShowStartDialog(false);
+                        setWorkoutName("");
+                      }
+                      setShowDetailView(true);
+                      setPendingWorkoutStart(null);
+                    }, 50);
+                  }
+                }}
+              >
+                Empezar nuevo
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </>
   );
 };
 
