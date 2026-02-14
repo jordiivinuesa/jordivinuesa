@@ -78,7 +78,7 @@ export function RestTimer() {
     const isFinished = restTimer.remainingSeconds === 0;
 
     return (
-        <div className={`fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r ${isFinished
+        <div className={`fixed top-0 left-0 right-0 z-[100] pt-[env(safe-area-inset-top,0px)] bg-gradient-to-r ${isFinished
             ? 'from-green-500 to-emerald-600'
             : 'from-primary/90 to-primary'
             } text-white shadow-lg transition-all duration-300`}>
